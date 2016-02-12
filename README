@@ -1,6 +1,18 @@
-Project in the course TSBK07 - Computer Graphics.
+Project for the course TSBK07 - Computer Graphics.
 
 Project members:
 Hans-Filip Elo
 Lage Ragnarsson
 Isak Wiberg
+
+INSTALLATION
+
+LINUX:
+Install dependencies with apt-get:
+
+sudo apt-get install build-essential libgl1-mesa-dev libsdl2-dev libglew-dev libglm-dev libsdl2-image-dev libassimp-dev
+
+MAC OSX:
+Install dependencies with brew:
+brew install glm assimp
+Download SDL2 and copy to /Library/Frameworks
