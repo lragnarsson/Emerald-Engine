@@ -17,3 +17,7 @@
 * Advanced VSD
 * Reflections
 * Refractions
+
+## Implementation techniques
+
+* Entity-Component-System? https://github.com/miguelmartin75/anax/wiki/What-is-an-Entity-System%3F
