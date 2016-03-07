@@ -1,7 +1,7 @@
 # Project Specification
 
 ## Name
-DeferredNerderer <-- WORK IN PROGRESS
+DeferredNerderer
 
 ## Participants
 
