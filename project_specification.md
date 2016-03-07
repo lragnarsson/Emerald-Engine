@@ -5,13 +5,18 @@ DeferredNerderer <-- WORK IN PROGRESS
 
 ## Participants
 
+* Hans-Filip Elo, hanel742
 * Lage Ragnarsson, lagra033
 * Isak Wiberg, isawi527
-* Hans-Filip Elo, hanel742
 
 ## Description
 
-The project will result in a tech demo. The tech demo will illustrate the deffered renderer, preferably with many objects and light sources. The project will be implemented using SDL2 (https://www.libsdl.org/) and glM (http://glm.g-truc.net/0.9.7/index.html).
+The project will result in a tech demo. The tech demo will illustrate the deffered renderer, preferably with many objects and light sources. The demo will be written in C++, and implemented using at least some parts of the following libraries: 
+
+* SDL2 (https://www.libsdl.org/)
+* glM (http://glm.g-truc.net/0.9.7/index.html).
+* GLEW (http://glew.sourceforge.net/)
+* Assimp (http://www.assimp.org/)
 
 There will be no game-like content and there will also not be any form of editor or sandbox to generate environments.
 
@@ -35,3 +40,4 @@ A scene will be created using these techniques. The scene will contain geometry 
 * Shadow mapping
 * Shadow volumes
 * Screen Space Reflections
+
