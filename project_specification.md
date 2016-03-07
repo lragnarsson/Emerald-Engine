@@ -34,5 +34,4 @@ A scene will be created using these techniques. The scene will contain geometry 
 * Bloom
 * Shadow mapping
 * Shadow volumes
-* Reflections
-* Refractions
+* Screen Space Reflections
