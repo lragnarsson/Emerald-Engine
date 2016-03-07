@@ -11,7 +11,7 @@ DeferredNerderer
 
 ## Description
 
-The project will result in a tech demo. The tech demo will illustrate the deffered renderer, preferably with many objects and light sources. The demo will be written in C++, and implemented using at least some parts of the following libraries: 
+The project will result in a tech demo. The tech demo will illustrate the deffered renderer, preferably with many objects and light sources. The demo will be written in C++ with OpenGL 3.2+, and implemented using at least some parts of the following libraries: 
 
 * SDL2 (https://www.libsdl.org/)
 * glM (http://glm.g-truc.net/0.9.7/index.html).
