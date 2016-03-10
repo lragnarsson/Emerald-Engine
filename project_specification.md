@@ -38,6 +38,7 @@ A scene will be created using these techniques. The scene will contain geometry 
 
 ### Might do features
 
+* Functionality to compare deferred and forward rendering
 * HDR
 * Screen Space Reflections
 * Camera animation paths
