@@ -1,33 +1,50 @@
-#include "Mesh.hpp"
+#ifndef MODEL
+#define MODEL
 
-struct ModelData {
-    std::vector<Texture> textures;
-    std::vector<Model> models;
+#include "Utils.hpp"
+
+
+class Mesh {
+public:
+    GLuint index_count, vertex_count;
+    std::vector<GLuint> indices;
+    std::vector<GLfloat> vertices, normals, tex_coords;
+    std::vector<Texture*> textures;
+
+    Mesh() { };
+    ~Mesh() { };
+
+    void draw(GLuint shader_program);
+    /* Upload vertices, normals etc to the GPU */
+    void upload_mesh_data(GLuint shader_program);
+
+private:
+    GLuint VAO, EBO;
+    GLuint VBO[3]; // Vertices, normals, texCoords
 };
 
-ModelData loadedModelData;
 
 class Model {
 public:
+    static std::vector<Texture*> loaded_textures;
+    std::vector<GLuint> shader_programs;
+    glm::mat4 m2w_matrix, rot_matrix;
+
     Model() { };
-
-    Model(std::string path) {
-        Load(path);
-    };
-
+    Model(std::string path, const GLuint shader_program,
+          const glm::mat4 rot_matrix, const glm::mat4 m2w_matrix);
     ~Model() { };
 
-    void Draw(GLuint shaderProgram);
-
-    void Load(std::string path);
+    void draw(GLuint shader_program);
+    void load(std::string path);
 
 private:
     std::vector<Mesh> meshes;
     std::string directory;
 
-    void unfoldAssimpNode(aiNode* node, const aiScene* scene);
-
-    Mesh processMesh(aiMesh* mesh, const aiScene* scene);
-
-    Texture* LoadTexture(const char* filename, std::string basepath);
+    void unfold_assimp_node(aiNode* node, const aiScene* scene);
+    Mesh load_mesh(aiMesh* mesh, const aiScene* scene);
+    Texture* load_texture(const char* filename, std::string basepath);
 };
+
+#endif
