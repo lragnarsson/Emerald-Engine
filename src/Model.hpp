@@ -1,6 +1,8 @@
 #ifndef MODEL
 #define MODEL
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include "Utils.hpp"
 
 

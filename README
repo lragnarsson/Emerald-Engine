@@ -6,13 +6,30 @@ Lage Ragnarsson
 Isak Wiberg
 
 INSTALLATION
+--------
 
-LINUX:
+### Debian / Ubuntu
 Install dependencies with apt-get:
 
+'''
 sudo apt-get install build-essential libgl1-mesa-dev libsdl2-dev libglew-dev libglm-dev libsdl2-image-dev libassimp-dev
+'''
 
-MAC OSX:
-Install dependencies with brew:
+### MAC OS X
+
+Install some dependencies with brew:
+
+'''
 brew install glm assimp
-Download SDL2 and copy to /Library/Frameworks
+'''
+
+Install SDL2 from https://www.libsdl.org/download-2.0.php
+
+Get libSOIL, compile and install it:
+
+'''
+git clone git@github.com:smibarber/libSOIL.git
+cd libSOIL
+make
+sudo make install
+'''
