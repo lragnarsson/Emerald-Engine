@@ -4,14 +4,15 @@ CC = g++
 EXEC = exec
 CCFLAGS = -std=c++11 -DGL_GLEXT_PROTOTYPES -DGLEW_STATIC -DGLM_FORCE_RADIANS
 INC =
+LDFLAGS = -lSDL2 -lSDL2_image -lassimp
 
 ifeq ($(UNAME_S),Linux)
-	LDFLAGS = -lGLEW -lGL -lSDL2 -lSDL2_image -lassimp
+	LDFLAGS += -lGLEW -lGL
 endif
 
 ifeq ($(UNAME_S),Darwin)
 	INC += -F/Library/Frameworks/ -I/usr/local/include -L/usr/local/lib -I/opt/local/include
-	LDFLAGS = -lassimp -framework OpenGL -framework Cocoa -lSDL2 -lSDL2_image
+	LDFLAGS += -framework OpenGL -framework Cocoa
 endif
 
 SRC_FILES = $(wildcard src/*.cpp)
