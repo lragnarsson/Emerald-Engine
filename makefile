@@ -1,11 +1,12 @@
 UNAME_S := $(shell uname -s)
 
+CC = g++
 EXEC = exec
 CCFLAGS = -std=c++11 -DGL_GLEXT_PROTOTYPES
 INC =
 
 ifeq ($(UNAME_S),Linux)
-	LDFLAGS = -lGLEW -lGL -lSDL2 -lassimp
+	LDFLAGS = -lGLEW -lGL -lSDL2 -lSDL2_image -lassimp
 endif
 
 ifeq ($(UNAME_S),Darwin)
@@ -20,10 +21,10 @@ OBJS = $(SRC_FILES:.cpp=.o)
 all: $(EXEC)
 
 $(EXEC): $(OBJS)
-	g++ $(CCFLAGS) $(OBJS) $(INC) -o $(EXEC) $(LDFLAGS)
+	$(CC) $(OBJS) $(INC) -o $(EXEC) $(LDFLAGS)
 
 %.o: %.cpp %.hpp
-	g++ $(CCFLAGS) $(INC) -c -o $@ $<
+	$(CC) $(CCFLAGS) $(INC) -c -o $@ $<
 
 clean:
 	rm -f $(EXEC) $(OBJS)
