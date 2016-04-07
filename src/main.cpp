@@ -23,39 +23,7 @@ glm::mat4 projection_matrix;
 std::vector<Model*> loaded_models;
 std::vector<Light*> loaded_lights;
 
-void run_game();
-
-int main(int argc, char *argv[])
-{
-
-    if (!sdl_init(screen_width, screen_height, main_window, main_context)) {
-        return 1;
-    }
-
-    shader_forward = load_shaders("src/shaders/forward.vert", "src/shaders/forward.frag");
-    glm::mat4 rot = glm::rotate(glm::mat4(1.0f), 0.1f, glm::vec3(1.f));
-    glm::mat4 m2w = glm::translate(glm::mat4(1.0f), glm::vec3(-5.f)) * rot;
-    loaded_models.push_back(new Model("res/models/nanosuit/nanosuit.obj", shader_forward, rot, m2w));
-
-    loaded_lights.push_back(new Light(glm::vec3(-2.f), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f)));
-    loaded_lights.push_back(new Light(glm::vec3(1.f), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f)));
-    upload_lights(shader_forward, loaded_lights);
-
-    // Create and upload view uniforms:
-    w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
-    projection_matrix = glm::perspective(45.0f, (float)screen_width / (float)screen_height, 0.1f, 100.0f);
-    GLint view = glGetUniformLocation(shader_forward, "view");
-    glUniformMatrix4fv(view, 1, GL_FALSE, glm::value_ptr(w2v_matrix));
-    GLint projection = glGetUniformLocation(shader_forward, "projection");
-    glUniformMatrix4fv(projection, 1, GL_FALSE, glm::value_ptr(projection_matrix));
-
-
-    run_game();
-
-    sdl_quit(main_window, main_context);
-    return 0;
-}
-
+// --------------------------
 
 void run_game() {
     bool loop = true;
@@ -79,4 +47,42 @@ void run_game() {
 
         SDL_GL_SwapWindow(main_window);
     }
+}
+
+// --------------------------
+
+int main(int argc, char *argv[])
+{
+
+    if (!sdl_init(screen_width, screen_height, main_window, main_context)) {
+        return 1;
+    }
+    init_input();
+
+    // Initiate shaders
+    shader_forward = load_shaders("src/shaders/forward.vert", "src/shaders/forward.frag");
+
+    // Load nanosuit model
+    glm::mat4 rot = glm::rotate(glm::mat4(1.0f), 0.1f, glm::vec3(1.f));
+    glm::mat4 m2w = glm::translate(glm::mat4(1.0f), glm::vec3(-5.f)) * rot;
+    loaded_models.push_back(new Model("res/models/nanosuit/nanosuit.obj", shader_forward, rot, m2w));
+
+    // Load light sources into GPU
+    loaded_lights.push_back(new Light(glm::vec3(-2.f), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f)));
+    loaded_lights.push_back(new Light(glm::vec3(1.f), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f)));
+    upload_lights(shader_forward, loaded_lights);
+
+    // Create and upload view uniforms:
+    w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
+    projection_matrix = glm::perspective(45.0f, (float)screen_width / (float)screen_height, 0.1f, 100.0f);
+    GLint view = glGetUniformLocation(shader_forward, "view");
+    glUniformMatrix4fv(view, 1, GL_FALSE, glm::value_ptr(w2v_matrix));
+    GLint projection = glGetUniformLocation(shader_forward, "projection");
+    glUniformMatrix4fv(projection, 1, GL_FALSE, glm::value_ptr(projection_matrix));
+
+
+    run_game();
+
+    sdl_quit(main_window, main_context);
+    return 0;
 }

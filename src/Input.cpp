@@ -1,5 +1,12 @@
 #include "Input.hpp"
 
+void init_input()
+{
+  // Mouse init
+  SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1", SDL_HINT_OVERRIDE);
+  SDL_SetRelativeMouseMode(SDL_TRUE);
+}
+
 void handle_keyboard_input(Camera &camera, bool &loop)
 {
     SDL_Event event;

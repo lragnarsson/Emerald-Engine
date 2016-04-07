@@ -58,10 +58,6 @@ bool sdl_init(const GLuint screen_width, const GLuint screen_height,
     glEnable(GL_DEPTH_TEST);
     SDL_GL_SwapWindow(main_window);
 
-    // Mouse init
-    SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1", SDL_HINT_OVERRIDE);
-    SDL_SetRelativeMouseMode(SDL_TRUE);
-
     return true;
 }
 
