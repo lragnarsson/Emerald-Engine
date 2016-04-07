@@ -2,6 +2,7 @@
 #include "Model.hpp"
 #include "Input.hpp"
 #include "Containers.hpp"
+#include "Light.hpp"
 
 GLuint shader_forward, shader_geometry, shader_deferred;
 GLuint screen_width = 800;
@@ -21,7 +22,6 @@ glm::mat4 w2v_matrix;
 glm::mat4 projection_matrix;
 
 std::vector<Model*> loaded_models;
-std::vector<Light*> loaded_lights;
 
 // --------------------------
 
@@ -68,9 +68,9 @@ int main(int argc, char *argv[])
     loaded_models.push_back(new Model("res/models/nanosuit/nanosuit.obj", shader_forward, rot, m2w));
 
     // Load light sources into GPU
-    loaded_lights.push_back(new Light(glm::vec3(-2.f), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f)));
-    loaded_lights.push_back(new Light(glm::vec3(1.f), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f)));
-    upload_lights(shader_forward, loaded_lights);
+    new Light(glm::vec3(-2.f), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f));
+    new Light(glm::vec3(1.f), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f));
+    Light::upload_all(shader_forward);
 
     // Create and upload view uniforms:
     w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
