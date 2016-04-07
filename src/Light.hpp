@@ -25,7 +25,7 @@ public:
     void upload(const GLuint shader_program);
 
 private:
-    uint id;
+    unsigned int id;
     glm::vec3 position, ambient_color, diffuse_color, specular_color;
 
     static std::vector<Light*> lights;
