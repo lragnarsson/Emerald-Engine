@@ -13,7 +13,7 @@ struct Light {
     vec3 ambientColor;
     vec3 diffuseColor;
     vec3 specularColor;
-    };
+};
 
 out vec4 out_Color;
 in vec3 Normal;

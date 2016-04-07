@@ -1,29 +1,6 @@
 #include "Utils.hpp"
 
 
-Light::Light(const glm::vec3 world_coord, const glm::vec3 ambient_color,
-             const glm::vec3 diffuse_color, const glm::vec3 specular_color) {
-
-    this->position = world_coord;
-    this->ambient_color = ambient_color;
-    this->diffuse_color = diffuse_color;
-    this->specular_color = specular_color;
-}
-
-void upload_lights(const GLuint shader_program, const std::vector<Light*> &loaded_lights) {
-    for (int i = 0; i < loaded_lights.size(); i++) {
-        glUniform3fv(glGetUniformLocation(shader_program, ("lights[" + std::to_string(i) + "].position").c_str()), 1,
-                     glm::value_ptr(loaded_lights[i]->position));
-        glUniform3fv(glGetUniformLocation(shader_program, ("lights[" + std::to_string(i) + "].ambientColor").c_str()), 1,
-                     glm::value_ptr(loaded_lights[i]->ambient_color));
-        glUniform3fv(glGetUniformLocation(shader_program, ("lights[" + std::to_string(i) + "].diffuseColor").c_str()), 1,
-                     glm::value_ptr(loaded_lights[i]->diffuse_color));
-        glUniform3fv(glGetUniformLocation(shader_program, ("lights[" + std::to_string(i) + "].specularColor").c_str()), 1,
-                     glm::value_ptr(loaded_lights[i]->specular_color));
-    }
-    glUniform1i(glGetUniformLocation(shader_program, "nLights"), loaded_lights.size());
-}
-
 bool sdl_init(const GLuint screen_width, const GLuint screen_height,
               SDL_Window *&main_window, SDL_GLContext &main_context)
 {

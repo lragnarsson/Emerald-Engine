@@ -26,8 +26,6 @@
 #include <vector>
 #include "Containers.hpp"
 
-  /* Upload all light information to the GPU */
-void upload_lights(const GLuint shader_program, const std::vector<Light*> &loaded_lights);
 
 /* Initialize SDL and GLEW (on Linux) and creates an OpenGL context within a window */
 bool sdl_init(const GLuint screen_width, const GLuint screen_height,
