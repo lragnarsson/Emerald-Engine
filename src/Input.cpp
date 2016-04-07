@@ -30,3 +30,15 @@ void handle_keyboard_input(Camera &camera, bool &loop)
         }
     }
 }
+
+void handle_mouse_input(Camera &camera)
+{
+  int dx,dy;
+  unsigned int button_state;
+
+  button_state = SDL_GetRelativeMouseState(&dx, &dy);
+
+  camera.front = glm::rotate(camera.front, -dy*camera.rot_speed, camera.right); // pitch
+  camera.front = glm::rotateY(camera.front, -dx*camera.rot_speed); // yaw
+  camera.right = glm::cross(camera.front, camera.up);
+}

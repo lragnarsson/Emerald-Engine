@@ -62,6 +62,7 @@ void run_game() {
 
     while (loop) {
         handle_keyboard_input(camera, loop);
+        handle_mouse_input(camera);
 
         w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
         GLint view = glGetUniformLocation(shader_forward, "view");
