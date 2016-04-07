@@ -20,16 +20,6 @@ sudo apt-get install build-essential libgl1-mesa-dev libsdl2-dev libglew-dev lib
 Install some dependencies with brew:
 
 '''
-brew install glm assimp
+brew install glm assimp sdl2 sdl2_image
 '''
 
-Install SDL2 from https://www.libsdl.org/download-2.0.php
-
-Get libSOIL, compile and install it:
-
-'''
-git clone git@github.com:smibarber/libSOIL.git
-cd libSOIL
-make
-sudo make install
-'''

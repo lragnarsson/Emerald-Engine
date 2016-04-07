@@ -2,7 +2,7 @@ UNAME_S := $(shell uname -s)
 
 CC = g++
 EXEC = exec
-CCFLAGS = -std=c++11 -DGL_GLEXT_PROTOTYPES
+CCFLAGS = -std=c++11 -DGL_GLEXT_PROTOTYPES -DGLEW_STATIC -DGLM_FORCE_RADIANS
 INC =
 
 ifeq ($(UNAME_S),Linux)
@@ -27,4 +27,4 @@ $(EXEC): $(OBJS)
 	$(CC) $(CCFLAGS) $(INC) -c -o $@ $<
 
 clean:
-	rm -f $(EXEC) $(OBJS)
+	rm -f $(EXEC) $(OBJS) *~ src/*~

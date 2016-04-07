@@ -100,7 +100,7 @@ void Model::load(std::string path) {
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
 
     if(!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        std::cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
+        std::cerr << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
         return;
     }
     this->directory = path.substr(0, path.find_last_of('/'));
@@ -186,9 +186,9 @@ Mesh Model::load_mesh(aiMesh* mesh, const aiScene* scene) {
 }
 
 
-Texture* Model::load_texture(const char* filename, std::string basepath) {
+Texture* Model::load_texture(const char* filename, std::string basepath)
+{
     std::string filepath = basepath + "/" + std::string(filename);
-    std::cout << filepath << "\n";
 
     for (uint i = 0; i < Model::loaded_textures.size(); i++) {
         if (!strcmp(Model::loaded_textures[i]->path.C_Str(), filename)) {
@@ -197,8 +197,7 @@ Texture* Model::load_texture(const char* filename, std::string basepath) {
     }
 
     SDL_Surface* surface = IMG_Load(filepath.c_str());
-    if (surface == NULL)
-    {
+    if (surface == NULL) {
       std::cerr << "Can not load image!" << SDL_GetError() << std::endl;
     }
 
