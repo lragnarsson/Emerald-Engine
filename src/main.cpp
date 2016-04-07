@@ -79,25 +79,25 @@ void run_game() {
         }
         if(keystate[SDL_GetScancodeFromKey(SDLK_q)]) {
             camera_rot = glm::rotate(glm::mat4(1.0f),
-                                 camera_rot_speed,
-                                 glm::vec3(0.f, 1.f, 0.f) //camera_up
-                                 );
+                                     camera_rot_speed,
+                                     glm::vec3(0.f, 1.f, 0.f) //camera_up
+                                     );
             camera_front = glm::vec3(camera_rot * glm::vec4(camera_front, 1.f));
             camera_up = glm::vec3(camera_rot * glm::vec4(camera_up, 1.f));
         }
         if(keystate[SDL_GetScancodeFromKey(SDLK_e)]) {
             camera_rot = glm::rotate(glm::mat4(1.0f),
-                                 -camera_rot_speed,
-                                 glm::vec3(0.f, 1.f, 0.f) //camera_up
-                                 );
+                                     -camera_rot_speed,
+                                     glm::vec3(0.f, 1.f, 0.f) //camera_up
+                                     );
             camera_front = glm::vec3(camera_rot * glm::vec4(camera_front, 1.f));
             camera_up = glm::vec3(camera_rot * glm::vec4(camera_up, 1.f));
         }
         if(keystate[SDL_GetScancodeFromKey(SDLK_f)]) {
             camera_right = glm::normalize(glm::cross(camera_front, camera_up));
             camera_rot = glm::rotate(glm::mat4(1.0f),
-                                 -camera_rot_speed,
-                                 camera_right
+                                     -camera_rot_speed,
+                                     camera_right
                                  );
             camera_front = glm::vec3(camera_rot * glm::vec4(camera_front, 1.f));
             camera_up = glm::vec3(camera_rot * glm::vec4(camera_up, 1.f));
@@ -105,8 +105,8 @@ void run_game() {
         if(keystate[SDL_GetScancodeFromKey(SDLK_r)]) {
             camera_right = glm::normalize(glm::cross(camera_front, camera_up));
             camera_rot = glm::rotate(glm::mat4(1.0f),
-                                 camera_rot_speed,
-                                 camera_right
+                                     camera_rot_speed,
+                                     camera_right
                                  );
             camera_front = glm::vec3(camera_rot * glm::vec4(camera_front, 1.f));
             camera_up = glm::vec3(camera_rot * glm::vec4(camera_up, 1.f));
