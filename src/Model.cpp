@@ -188,7 +188,7 @@ Mesh Model::load_mesh(aiMesh* mesh, const aiScene* scene) {
 
 Texture* Model::load_texture(const char* filename, std::string basepath) {
     std::string filepath = basepath + "/" + std::string(filename);
-    std::cout << filename << "\n";
+    std::cout << filepath << "\n";
 
     for (uint i = 0; i < Model::loaded_textures.size(); i++) {
         if (!strcmp(Model::loaded_textures[i]->path.C_Str(), filename)) {
@@ -196,8 +196,11 @@ Texture* Model::load_texture(const char* filename, std::string basepath) {
         }
     }
 
-    int width, height;
-    unsigned char* image = SOIL_load_image(filepath.c_str(), &width, &height, 0, SOIL_LOAD_RGBA);
+    SDL_Surface* surface = IMG_Load(filepath.c_str());
+    if (surface == NULL)
+    {
+      std::cerr << "Can not load image!" << SDL_GetError() << std::endl;
+    }
 
     /* Upload texture */
     Texture* texture = new Texture();
@@ -209,12 +212,9 @@ Texture* Model::load_texture(const char* filename, std::string basepath) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-
-    SOIL_free_image_data(image);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
 
     Model::loaded_textures.push_back(texture);
 
     return texture;
 }
-

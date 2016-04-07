@@ -25,17 +25,17 @@ std::vector<Light*> loaded_lights;
 
 void run_game();
 
-int main()
+int main(int argc, char *argv[])
 {
 
     if (!sdl_init(screen_width, screen_height, main_window, main_context)) {
         return 1;
     }
 
-    shader_forward = load_shaders("shaders/forward.vert", "shaders/forward.frag");
+    shader_forward = load_shaders("src/shaders/forward.vert", "src/shaders/forward.frag");
     glm::mat4 rot = glm::rotate(glm::mat4(1.0f), 0.1f, glm::vec3(1.f));
     glm::mat4 m2w = glm::translate(glm::mat4(1.0f), glm::vec3(-5.f)) * rot;
-    loaded_models.push_back(new Model("../res/models/nanosuit/nanosuit.obj", shader_forward, rot, m2w));
+    loaded_models.push_back(new Model("res/models/nanosuit/nanosuit.obj", shader_forward, rot, m2w));
 
     loaded_lights.push_back(new Light(glm::vec3(-2.f), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f)));
     loaded_lights.push_back(new Light(glm::vec3(1.f), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f)));
@@ -140,5 +140,3 @@ void run_game() {
         SDL_GL_SwapWindow(main_window);
     }
 }
-
-

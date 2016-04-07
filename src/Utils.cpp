@@ -1,5 +1,6 @@
 #include "Utils.hpp"
 
+
 Light::Light(const glm::vec3 world_coord, const glm::vec3 ambient_color,
              const glm::vec3 diffuse_color, const glm::vec3 specular_color) {
 
@@ -170,4 +171,3 @@ GLuint load_shaders(const GLchar* vertex_file_path, const GLchar* fragment_file_
 
     return program;
 }
-
