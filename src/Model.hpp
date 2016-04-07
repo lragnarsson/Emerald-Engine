@@ -1,8 +1,28 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+#ifdef __linux__
+  #include <GL/glew.h>
+#endif
+
+#ifdef __APPLE__
+  #include <OpenGL/gl3.h>
+#endif
+
+#include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include "Utils.hpp"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp> // glm::value_ptr
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
+#include <string>
+#include <iostream>
+#include <vector>
+#include "Containers.hpp"
 
 
 class Mesh {
@@ -27,7 +47,6 @@ private:
 
 class Model {
 public:
-    static std::vector<Texture*> loaded_textures;
     std::vector<GLuint> shader_programs;
     glm::mat4 m2w_matrix, rot_matrix;
 
@@ -40,6 +59,8 @@ public:
     void load(std::string path);
 
 private:
+    static std::vector<Texture*> loaded_textures;
+
     std::vector<Mesh> meshes;
     std::string directory;
 
