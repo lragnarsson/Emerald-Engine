@@ -10,21 +10,11 @@
 #endif
 
 #include <SDL2/SDL.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/constants.hpp> // glm::pi
-#include <glm/gtc/type_ptr.hpp> // glm::value_ptr
-
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
 
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <vector>
-#include "Containers.hpp"
 
 
 /* Initialize SDL and GLEW (on Linux) and creates an OpenGL context within a window */

@@ -1,1 +1,11 @@
-*~
+*
+!*.cpp
+!*.hpp
+!makefile
+!*.frag
+!*.vert
+!*.obj
+!*.png
+!*.md
+!*.txt
+!*.mtl
