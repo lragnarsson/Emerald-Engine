@@ -52,7 +52,7 @@ void sdl_check_error(const int line = -1)
     std::string error = SDL_GetError();
 
     if (error != "") {
-        std::cout << "SLD Error : " << error << std::endl;
+        std::cout << "SDL Error : " << error << std::endl;
 
         if (line != -1) {
             std::cout << "\nLine : " << line << std::endl;
