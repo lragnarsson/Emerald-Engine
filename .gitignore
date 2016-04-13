@@ -1,4 +1,4 @@
-*
+./*
 !src/*.cpp
 !src/*.hpp
 !makefile
