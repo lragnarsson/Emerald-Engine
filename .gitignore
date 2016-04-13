@@ -1,6 +1,6 @@
 *
-!*.cpp
-!*.hpp
+!src/*.cpp
+!src/*.hpp
 !makefile
 !*.frag
 !*.vert
