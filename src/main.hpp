@@ -3,6 +3,7 @@
 #include "Input.hpp"
 #include "Containers.hpp"
 #include "Light.hpp"
+#include "Error.hpp"
 
 GLuint shader_forward, shader_geometry, shader_deferred;
 GLuint screen_width = 800;
