@@ -55,8 +55,9 @@ int main(int argc, char *argv[])
     loaded_models.push_back(new Model("res/models/nanosuit/nanosuit.obj", shader_forward, rot, m2w));
 
     // Load light sources into GPU
-    new Light(glm::vec3(-2.f), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f));
-    new Light(glm::vec3(1.f), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f));
+    new Light(glm::vec3(-2.f), glm::vec3(0.5f));
+    new Light(glm::vec3(1.f), glm::vec3(0.5f));
+    new Light(glm::vec3(-5.f, 5.f, -10.f), glm::vec3(1.f));
     Light::upload_all(shader_forward);
 
     run();
@@ -64,4 +65,3 @@ int main(int argc, char *argv[])
     sdl_quit(main_window, main_context);
     return 0;
 }
-
