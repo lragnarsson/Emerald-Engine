@@ -7,7 +7,7 @@ void init_input()
   SDL_SetRelativeMouseMode(SDL_TRUE);
 }
 
-void handle_keyboard_input(Camera &camera, bool &loop)
+void handle_keyboard_input(Camera &camera, bool &loop, glm::vec3 &dir)
 {
     SDL_Event event;
     const Uint8* keystate = SDL_GetKeyboardState(NULL);
@@ -25,6 +25,20 @@ void handle_keyboard_input(Camera &camera, bool &loop)
         camera.position += glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed;
     }
 
+    
+    if(keystate[SDL_GetScancodeFromKey(SDLK_UP)]) {
+        dir = dir + glm::vec3(0.f, 0.f, 1.f);
+    }
+    if(keystate[SDL_GetScancodeFromKey(SDLK_LEFT)]) {
+        dir = dir + glm::vec3(1.f, 0.f, 0.f);
+    }
+    if(keystate[SDL_GetScancodeFromKey(SDLK_RIGHT)]) {
+        dir = dir + glm::vec3(-1.f, 0.f, 0.f);
+    }
+    if(keystate[SDL_GetScancodeFromKey(SDLK_DOWN)]) {
+        dir = dir + glm::vec3(0.f, 0.f, -1.f);
+    }
+    
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT)
             loop = false;

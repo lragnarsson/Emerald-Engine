@@ -6,7 +6,8 @@
 void Mesh::draw(GLuint shader_program) {
     GLuint diffuse_num = 1;
     GLuint specular_num = 1;
-
+    glUseProgram(shader_program);
+    
     for(GLuint i = 0; i < this->textures.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i);
         if(this->textures[i]->type == DIFFUSE) {
@@ -29,6 +30,7 @@ void Mesh::draw(GLuint shader_program) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
+    glUseProgram(0);
 }
 
 void Mesh::upload_mesh_data(GLuint shader_program) {
@@ -82,17 +84,33 @@ Model::Model(const std::string path, const GLuint shader_program,
         load(path);
 }
 
+Model::Model(std::string path, const GLuint shader_program,
+             const glm::mat4 rot_matrix, const glm::mat4 m2w_matrix, std::vector<Light*> lightsources) {
+        this->rot_matrix = rot_matrix;
+        this->m2w_matrix = m2w_matrix;
+        this->attached_lightsources = lightsources;
+        shader_programs.push_back(shader_program);
+        load(path);
+}
+
 /* Public Model functions */
 void Model::draw(GLuint shader_program) {
+    glUseProgram(shader_program);
     /* Upload model to world matrix and model rotation for normal calculation */
     GLuint m2w = glGetUniformLocation(shader_program, "model");
     glUniformMatrix4fv(m2w, 1, GL_FALSE, glm::value_ptr(this->m2w_matrix));
     GLuint rot = glGetUniformLocation(shader_program, "modelRot");
     glUniformMatrix4fv(rot, 1, GL_FALSE, glm::value_ptr(this->rot_matrix));
 
+    if (this->attached_lightsources.size() > 0) {
+        GLuint color = glGetUniformLocation(shader_program, "color");
+        glUniform3fv(color, 1, glm::value_ptr(this->attached_lightsources[0]->get_color()));
+    }
+        
     for (auto mesh : this->meshes) {
         mesh.draw(shader_program);
     }
+    glUseProgram(0);
 }
 
 void Model::load(std::string path) {
@@ -107,6 +125,25 @@ void Model::load(std::string path) {
     this->unfold_assimp_node(scene->mRootNode, scene);
 }
 
+void Model::attach_light(Light* light) {
+    this->attached_lightsources.push_back(light);
+}
+
+void Model::move_to(glm::vec3 world_coord) {
+    this->m2w_matrix = glm::translate(glm::mat4(1.f), world_coord) * this->rot_matrix;
+    /* Upload new uniform */
+    for (auto program : this->shader_programs) {
+        glUseProgram(program);
+        GLuint m2w = glGetUniformLocation(program, "model");
+        glUniformMatrix4fv(m2w, 1, GL_FALSE, glm::value_ptr(this->m2w_matrix));
+    }
+    glUseProgram(0);
+}
+
+void Model::move(glm::vec3 relative) {
+    /* TODO! fix world_coord. Constructor should take world_coord and use to generate
+       m2w_matrix. */
+}
 
 /* Private Model functions */
 void Model::unfold_assimp_node(aiNode* node, const aiScene* scene) {
@@ -179,9 +216,10 @@ Mesh Model::load_mesh(aiMesh* mesh, const aiScene* scene) {
     if (!shader_programs.size())
         std::cerr << "No shader programs attached to model." << std::endl;
     for (auto program : shader_programs) {
+        glUseProgram(program);
         m.upload_mesh_data(program);
     }
-
+    glUseProgram(0);
     return m;
 }
 

@@ -31,6 +31,7 @@ void Light::upload(const GLuint shader_program)
 
 void Light::upload_all(const GLuint shader_program)
 {
+    glUseProgram(shader_program);
     for (int i = 0; i < lights.size(); i++) {
         glUniform3fv(glGetUniformLocation(shader_program, ("lights[" + std::to_string(i) + "].position").c_str()), 1,
                      glm::value_ptr(lights[i]->position));
@@ -42,4 +43,9 @@ void Light::upload_all(const GLuint shader_program)
                      glm::value_ptr(lights[i]->specular_color));
     }
     glUniform1i(glGetUniformLocation(shader_program, "nLights"), lights.size());
+    glUseProgram(0);
+}
+
+glm::vec3 Light::get_color() {
+    return this->ambient_color; // this should be changed soon Hans-Filip
 }

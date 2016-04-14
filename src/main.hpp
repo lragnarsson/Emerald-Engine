@@ -4,7 +4,7 @@
 #include "Containers.hpp"
 #include "Light.hpp"
 
-GLuint shader_forward, shader_geometry, shader_deferred;
+GLuint shader_forward, flat_shader_forward, shader_geometry, shader_deferred;
 GLuint screen_width = 800;
 GLuint screen_height = 640;
 SDL_Window* main_window;

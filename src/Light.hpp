@@ -23,7 +23,8 @@ public:
           const glm::vec3 diffuse_color, const glm::vec3 specular_color);
 
     void upload(const GLuint shader_program);
-
+    glm::vec3 get_color();
+    
 private:
     unsigned int id;
     glm::vec3 position, ambient_color, diffuse_color, specular_color;
