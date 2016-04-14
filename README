@@ -11,15 +11,15 @@ INSTALLATION
 ### Debian / Ubuntu
 Install dependencies with apt-get:
 
-'''
+```
 sudo apt-get install build-essential libgl1-mesa-dev libsdl2-dev libglew-dev libglm-dev libsdl2-image-dev libassimp-dev
-'''
+```
 
 ### MAC OS X
 
 Install some dependencies with brew:
 
-'''
+```
 brew install glm assimp sdl2 sdl2_image
-'''
+```
 
