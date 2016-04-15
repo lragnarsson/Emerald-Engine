@@ -20,8 +20,7 @@ Light::Light(const glm::vec3 world_coord, const glm::vec3 color, GLuint shader_p
     this->id = lights.size() - 1;
   }
   else {
-    this->id = free_ids[0];
-    free_ids.erase(free_ids.begin()+0); // We took this id, remove it.
+    this->id = free_ids.pop_back();
     lights[id] = this;
   }
 }
@@ -29,6 +28,7 @@ Light::Light(const glm::vec3 world_coord, const glm::vec3 color, GLuint shader_p
 Light::~Light()
 {
   this->color = glm::vec3(0);
+  this->active_light = false;
   this->upload();
   free_ids.push_back(this->id);
   lights[this->id] = nullptr;
