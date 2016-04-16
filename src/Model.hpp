@@ -14,10 +14,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp> // glm::value_ptr
+#include <glm/gtx/string_cast.hpp>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <assimp/material.h>
 
 #include <string>
 #include <iostream>
@@ -40,6 +42,8 @@ struct Texture {
 class Mesh {
 public:
     GLuint index_count, vertex_count;
+    GLfloat shininess = 80;
+    glm::vec3 ambient_color = glm::vec3(0.8f), diffuse_color = glm::vec3(0.8f), specular_color = glm::vec3(0.8f);
     std::vector<GLuint> indices;
     std::vector<GLfloat> vertices, normals, tex_coords;
     std::vector<Texture*> textures;

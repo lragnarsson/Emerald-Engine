@@ -19,7 +19,10 @@ void Mesh::draw(GLuint shader_program) {
         }
     }
 
-    glUniform1f(glGetUniformLocation(shader_program, "shininess"), 40.0f);
+    glUniform1f(glGetUniformLocation(shader_program, "m.shininess"), this->shininess);
+    glUniform3fv(glGetUniformLocation(shader_program, "m.ambient"), 1, glm::value_ptr(this->ambient_color));
+    glUniform3fv(glGetUniformLocation(shader_program, "m.diffuse"), 1, glm::value_ptr(this->diffuse_color));
+    glUniform3fv(glGetUniformLocation(shader_program, "m.specular"), 1, glm::value_ptr(this->specular_color));
 
     glBindVertexArray(this->VAO);
     glDrawElements(GL_TRIANGLES, this->index_count, GL_UNSIGNED_INT, 0);
@@ -144,40 +147,52 @@ void Model::unfold_assimp_node(aiNode* node, const aiScene* scene) {
     }
 }
 
-
-Mesh Model::load_mesh(aiMesh* mesh, const aiScene* scene) {
+Mesh Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
     Mesh m;
 
-    m.index_count = 3 * mesh->mNumFaces;
-    m.vertex_count = mesh->mNumVertices;
+    m.index_count = 3 * ai_mesh->mNumFaces;
+    m.vertex_count = ai_mesh->mNumVertices;
 
-    for(GLuint i = 0; i < mesh->mNumVertices; i++) {
-        m.vertices.push_back(mesh->mVertices[i].x);
-        m.vertices.push_back(mesh->mVertices[i].y);
-        m.vertices.push_back(mesh->mVertices[i].z);
+    for(GLuint i = 0; i < ai_mesh->mNumVertices; i++) {
+        m.vertices.push_back(ai_mesh->mVertices[i].x);
+        m.vertices.push_back(ai_mesh->mVertices[i].y);
+        m.vertices.push_back(ai_mesh->mVertices[i].z);
 
-        m.normals.push_back(mesh->mNormals[i].x);
-        m.normals.push_back(mesh->mNormals[i].y);
-        m.normals.push_back(mesh->mNormals[i].z);
+        m.normals.push_back(ai_mesh->mNormals[i].x);
+        m.normals.push_back(ai_mesh->mNormals[i].y);
+        m.normals.push_back(ai_mesh->mNormals[i].z);
 
-        if(mesh->mTextureCoords[0]) {
-            m.tex_coords.push_back(mesh->mTextureCoords[0][i].x);
-            m.tex_coords.push_back(mesh->mTextureCoords[0][i].y);
+        if(ai_mesh->HasTextureCoords(0)) {
+            m.tex_coords.push_back(ai_mesh->mTextureCoords[0][i].x);
+            m.tex_coords.push_back(ai_mesh->mTextureCoords[0][i].y);
         } else {
             m.tex_coords.push_back(0.0f);
             m.tex_coords.push_back(0.0f);
         }
     }
 
-    for(GLuint i = 0; i < mesh->mNumFaces; i++) {
-        aiFace face = mesh->mFaces[i];
+    for(GLuint i = 0; i < ai_mesh->mNumFaces; i++) {
+        aiFace face = ai_mesh->mFaces[i];
         for(GLuint j = 0; j < face.mNumIndices; j++) {
             m.indices.push_back(face.mIndices[j]);
         }
     }
 
-    if(mesh->mMaterialIndex >= 0) {
-        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+    if(ai_mesh->mMaterialIndex >= 0) {
+        aiMaterial* material = scene->mMaterials[ai_mesh->mMaterialIndex];
+
+        GLfloat shininess;
+        material->Get(AI_MATKEY_SHININESS, shininess);
+        m.shininess = shininess / 4.f; // Assimp multiplies shininess by 4 because reasons
+
+        aiColor3D ambient, diffuse, specular;
+        material->Get(AI_MATKEY_COLOR_AMBIENT, ambient);
+        material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
+        material->Get(AI_MATKEY_COLOR_SPECULAR, specular);
+
+        m.ambient_color = glm::vec3(ambient.r, ambient.g, ambient.b);
+        m.diffuse_color = glm::vec3(diffuse.r, diffuse.g, diffuse.b);
+        m.specular_color = glm::vec3(specular.r, specular.g, specular.b);
 
         for(GLuint i = 0; i < material->GetTextureCount(aiTextureType_DIFFUSE); i++) {
             aiString filepath;
