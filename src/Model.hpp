@@ -61,8 +61,7 @@ class Model {
 public:
     std::vector<GLuint> shader_programs;
     glm::mat4 m2w_matrix, rot_matrix;
-    glm::vec3 bounding_sphere_center = glm::vec3(0.f, 0.f, -5.f);
-    float bounding_sphere_radius = 1.f;
+    float bounding_sphere_radius = -1.f;
     bool draw_me = true;
 
     Model() { };
@@ -76,16 +75,19 @@ public:
 
     void draw(GLuint shader_program);
     void load(std::string path);
+    glm::vec3 get_center_point();
 
 private:
     static std::vector<Texture*> loaded_textures;
 
     std::vector<Mesh> meshes;
     std::string directory;
+    glm::vec3 bounding_sphere_center;
 
     void unfold_assimp_node(aiNode* node, const aiScene* scene);
     Mesh load_mesh(aiMesh* mesh, const aiScene* scene);
     Texture* load_texture(const char* filename, std::string basepath);
+    void generate_bounding_sphere();
 };
 
 #endif

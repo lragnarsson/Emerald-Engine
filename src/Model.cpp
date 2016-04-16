@@ -118,8 +118,17 @@ void Model::load(std::string path) {
         std::cerr << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
         return;
     }
-    this->directory = path.substr(0, path.find_last_of('/'));
-    this->unfold_assimp_node(scene->mRootNode, scene);
+    directory = path.substr(0, path.find_last_of('/'));
+    unfold_assimp_node(scene->mRootNode, scene);
+
+    generate_bounding_sphere();
+}
+
+
+glm::vec3 Model::get_center_point()
+{
+    //return this->bounding_sphere_center;
+    return glm::vec3(this->m2w_matrix * glm::vec4(this->bounding_sphere_center, 1.f));
 }
 
 
@@ -127,11 +136,11 @@ void Model::load(std::string path) {
 void Model::unfold_assimp_node(aiNode* node, const aiScene* scene) {
     for(GLuint i = 0; i < node->mNumMeshes; i++) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        this->meshes.push_back(this->load_mesh(mesh, scene));
+        this->meshes.push_back(load_mesh(mesh, scene));
     }
 
     for(GLuint i = 0; i < node->mNumChildren; i++) {
-        this->unfold_assimp_node(node->mChildren[i], scene);
+        unfold_assimp_node(node->mChildren[i], scene);
     }
 }
 
@@ -232,4 +241,34 @@ Texture* Model::load_texture(const char* filename, std::string basepath)
     Model::loaded_textures.push_back(texture);
 
     return texture;
+}
+
+
+void Model::generate_bounding_sphere()
+{
+    GLfloat v = this->meshes[0].vertices[0];
+    GLfloat x_max = v, y_max = v, z_max = v, x_min = v, y_min = v, z_min = v;
+
+    for (auto mesh : this->meshes) {
+        for (int i=0; i < mesh.vertices.size() - 2; i++) {
+            if (mesh.vertices[i] > x_max)
+                x_max = mesh.vertices[i];
+            if (mesh.vertices[i + 1] > y_max)
+                y_max = mesh.vertices[i + 1];
+            if (mesh.vertices[i + 2] > z_max)
+                z_max = mesh.vertices[i + 2];
+            if (mesh.vertices[i] < x_min)
+                x_min = mesh.vertices[i];
+            if (mesh.vertices[i + 1] < y_min)
+                y_min = mesh.vertices[i + 1];
+            if (mesh.vertices[i + 2] < z_min)
+                z_min = mesh.vertices[i + 2];
+        }
+    }
+    glm::vec3 max_corner = glm::vec3(x_max, y_max, z_max);
+    glm::vec3 min_corner = glm::vec3(x_min, y_min, z_min);
+
+    glm::vec3 r_vector = 0.5f * (max_corner - min_corner);
+    this->bounding_sphere_radius = glm::length(r_vector);
+    this->bounding_sphere_center = min_corner + r_vector;
 }

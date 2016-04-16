@@ -45,7 +45,7 @@ void run()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         for (auto model : loaded_models) {
-            model->draw_me = camera->sphere_in_frustum(model->bounding_sphere_center, model->bounding_sphere_radius);
+            model->draw_me = camera->sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius);
         }
 
         for (auto model : loaded_models) {
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
     init_uniforms();
 
     // Load nanosuit model
-    glm::mat4 rot = glm::rotate(glm::mat4(1.0f), 0.1f, glm::vec3(1.f));
+    glm::mat4 rot = glm::rotate(glm::mat4(1.0f), 0.3f, glm::vec3(0.f, 1.f, 0.f));
     glm::mat4 m2w = glm::translate(glm::mat4(1.0f), glm::vec3(-5.f)) * rot;
     loaded_models.push_back(new Model("res/models/nanosuit/nanosuit.obj", shader_forward, rot, m2w));
 
