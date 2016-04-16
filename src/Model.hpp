@@ -22,7 +22,19 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include "Containers.hpp"
+
+
+enum texture_type {
+    DIFFUSE,
+    SPECULAR,
+    NORMAL
+};
+
+struct Texture {
+    GLuint id;
+    texture_type type;
+    aiString path;
+};
 
 
 class Mesh {
@@ -49,10 +61,17 @@ class Model {
 public:
     std::vector<GLuint> shader_programs;
     glm::mat4 m2w_matrix, rot_matrix;
+    glm::vec3 bounding_sphere_center = glm::vec3(0.f, 0.f, -5.f);
+    float bounding_sphere_radius = 1.f;
+    bool draw_me = true;
 
     Model() { };
     Model(std::string path, const GLuint shader_program,
           const glm::mat4 rot_matrix, const glm::mat4 m2w_matrix);
+    Model(std::string path, const GLuint shader_program,
+          const glm::mat4 rot_matrix, const glm::mat4 m2w_matrix,
+          const float bounding_sphere_radius);
+
     ~Model() { };
 
     void draw(GLuint shader_program);

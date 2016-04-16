@@ -31,6 +31,7 @@ void Mesh::draw(GLuint shader_program) {
     }
 }
 
+
 void Mesh::upload_mesh_data(GLuint shader_program) {
     glGenVertexArrays(1, &this->VAO);
     glBindVertexArray(this->VAO);
@@ -82,6 +83,19 @@ Model::Model(const std::string path, const GLuint shader_program,
         load(path);
 }
 
+
+Model::Model(const std::string path, const GLuint shader_program,
+             const glm::mat4 rot_matrix, const glm::mat4 m2w_matrix,
+             const float bounding_sphere_radius) {
+
+        this->rot_matrix = rot_matrix;
+        this->m2w_matrix = m2w_matrix;
+        this->bounding_sphere_radius = bounding_sphere_radius;
+        shader_programs.push_back(shader_program);
+        load(path);
+}
+
+
 /* Public Model functions */
 void Model::draw(GLuint shader_program) {
     /* Upload model to world matrix and model rotation for normal calculation */
@@ -94,6 +108,7 @@ void Model::draw(GLuint shader_program) {
         mesh.draw(shader_program);
     }
 }
+
 
 void Model::load(std::string path) {
     Assimp::Importer importer;
@@ -119,6 +134,7 @@ void Model::unfold_assimp_node(aiNode* node, const aiScene* scene) {
         this->unfold_assimp_node(node->mChildren[i], scene);
     }
 }
+
 
 Mesh Model::load_mesh(aiMesh* mesh, const aiScene* scene) {
     Mesh m;
