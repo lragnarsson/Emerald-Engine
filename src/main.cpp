@@ -5,14 +5,7 @@
 
 void init_uniforms()
 {
-    camera = new Camera(glm::vec3(0.f, 0.f, 3.f),    // Position
-                        glm::vec3(0.f, 0.f, -1.f),   // Front
-                        glm::vec3(0.0f, 1.0f, 0.0f), // Up
-                        glm::vec3(1.f, 0.f, 0.f),    // Right
-                        0.3f,                        // Speed
-                        0.01f);                      // Rotational speed
-
-    w2v_matrix = glm::lookAt(camera->position, camera->position + camera->front, camera->up);
+    w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
     projection_matrix = glm::perspective(Y_FOV, ASPECT_RATIO, NEAR, FAR);
     glUniformMatrix4fv(glGetUniformLocation(shader_forward, "view"), 1, GL_FALSE, glm::value_ptr(w2v_matrix));
     glUniformMatrix4fv(glGetUniformLocation(shader_forward, "projection"), 1, GL_FALSE, glm::value_ptr(projection_matrix));
@@ -24,7 +17,6 @@ void init_uniforms()
 void free_resources()
 {
     sdl_quit(main_window, main_context);
-    delete camera;
 }
 
 // --------------------------
@@ -36,16 +28,16 @@ void run()
     while (loop) {
         handle_keyboard_input(camera, loop);
         handle_mouse_input(camera);
-        camera->update_culling_frustum();
+        camera.update_culling_frustum();
 
-        w2v_matrix = glm::lookAt(camera->position, camera->position + camera->front, camera->up);
+        w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
         glUniformMatrix4fv(glGetUniformLocation(shader_forward, "view"), 1, GL_FALSE, glm::value_ptr(w2v_matrix));
 
         glClearColor(0.3, 0.3, 1.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         for (auto model : loaded_models) {
-            model->draw_me = camera->sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius);
+            model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius);
         }
 
         for (auto model : loaded_models) {

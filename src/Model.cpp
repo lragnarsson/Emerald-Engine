@@ -84,18 +84,7 @@ Model::Model(const std::string path, const GLuint shader_program,
         this->m2w_matrix = m2w_matrix;
         shader_programs.push_back(shader_program);
         load(path);
-}
-
-
-Model::Model(const std::string path, const GLuint shader_program,
-             const glm::mat4 rot_matrix, const glm::mat4 m2w_matrix,
-             const float bounding_sphere_radius) {
-
-        this->rot_matrix = rot_matrix;
-        this->m2w_matrix = m2w_matrix;
-        this->bounding_sphere_radius = bounding_sphere_radius;
-        shader_programs.push_back(shader_program);
-        load(path);
+        generate_bounding_sphere();
 }
 
 
@@ -123,8 +112,6 @@ void Model::load(std::string path) {
     }
     directory = path.substr(0, path.find_last_of('/'));
     unfold_assimp_node(scene->mRootNode, scene);
-
-    generate_bounding_sphere();
 }
 
 
