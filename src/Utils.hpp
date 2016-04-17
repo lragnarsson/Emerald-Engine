@@ -16,6 +16,8 @@
 #include <sstream>
 #include <iostream>
 
+#include "Error.hpp"
+
 
 /* Initialize SDL and GLEW (on Linux) and creates an OpenGL context within a window */
 bool sdl_init(const GLuint screen_width, const GLuint screen_height,
