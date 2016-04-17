@@ -27,10 +27,11 @@ void run() {
         handle_keyboard_input(camera, loop, dir);
         handle_mouse_input(camera);
 
-        
+        /* Temporary way to move the blue box around */
         if (glm::length(dir)  > 0.1f) {
-            loaded_models[0]->move_to(glm::vec3(-5.0f) + dir );
+            loaded_models[1]->move( dir );
         }
+        
         w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
         glUseProgram(shader_forward);
         glUniformMatrix4fv(glGetUniformLocation(shader_forward, "view"), 1, GL_FALSE, glm::value_ptr(w2v_matrix));
@@ -83,8 +84,8 @@ int main(int argc, char *argv[])
     loaded_models.push_back(box2);
     
     // Load light sources into GPU
-    box1->attach_light(new Light(p1, glm::vec3(0.1f, 0.2f, 1.0f), glm::vec3(0.8f), glm::vec3(1.f)));
-    box2->attach_light(new Light(p2, glm::vec3(0.1f, 1.0f, 0.2f), glm::vec3(0.8f), glm::vec3(1.f)));
+    box1->attach_light(new Light(p1, glm::vec3(0.1f, 0.2f, 1.0f), glm::vec3(0.8f), glm::vec3(1.f)), shader_forward);
+    box2->attach_light(new Light(p2, glm::vec3(0.1f, 1.0f, 0.2f), glm::vec3(0.8f), glm::vec3(1.f)), shader_forward);
     Light::upload_all(shader_forward);
 
     run();

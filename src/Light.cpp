@@ -49,3 +49,16 @@ void Light::upload_all(const GLuint shader_program)
 glm::vec3 Light::get_color() {
     return this->ambient_color; // this should be changed soon Hans-Filip
 }
+
+void Light::move_to(glm::vec3 world_coord) {
+    this->position = world_coord;
+    
+}
+
+void Light::upload_pos(const GLuint shader_program) {
+    glUseProgram(shader_program);
+    const char* name = ("lights[" + std::to_string(this->id) + "].position").c_str();
+    GLuint pos_loc = glGetUniformLocation(shader_program, name);                                
+    glUniform3fv(pos_loc, 1, glm::value_ptr(this->position));
+    glUseProgram(0);
+}

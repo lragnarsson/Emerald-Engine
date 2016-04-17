@@ -125,24 +125,39 @@ void Model::load(std::string path) {
     this->unfold_assimp_node(scene->mRootNode, scene);
 }
 
-void Model::attach_light(Light* light) {
+
+void Model::attach_light(Light* light, GLuint shader_program) {
     this->attached_lightsources.push_back(light);
+    /* add the shader_program for the light to the models list of 
+       programs if it is not already there */
+    if (std::find(this->shader_programs.begin(),
+                  this->shader_programs.end(), shader_program) == this->shader_programs.end()) {
+        this->shader_programs.push_back(shader_program);
+    }
 }
 
+/* Move model and all attached lights to world_coord and upload
+   the changed values to GPU. 
+   Important: the lights does not currently keep their relative 
+   position to the model */
 void Model::move_to(glm::vec3 world_coord) {
     this->m2w_matrix = glm::translate(glm::mat4(1.f), world_coord) * this->rot_matrix;
+    this->world_coord = world_coord;
     /* Upload new uniform */
     for (auto program : this->shader_programs) {
         glUseProgram(program);
         GLuint m2w = glGetUniformLocation(program, "model");
         glUniformMatrix4fv(m2w, 1, GL_FALSE, glm::value_ptr(this->m2w_matrix));
+        for (auto light : this->attached_lightsources) {
+            light->move_to(world_coord);
+            light->upload_pos(program);
+        }
     }
     glUseProgram(0);
 }
 
 void Model::move(glm::vec3 relative) {
-    /* TODO! fix world_coord. Constructor should take world_coord and use to generate
-       m2w_matrix. */
+    move_to(this->world_coord + relative);
 }
 
 /* Private Model functions */

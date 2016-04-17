@@ -24,7 +24,8 @@ public:
 
     void upload(const GLuint shader_program);
     glm::vec3 get_color();
-    
+    void move_to(glm::vec3 world_coord); // does not upload data
+    void upload_pos(const GLuint shader_program); 
 private:
     unsigned int id;
     glm::vec3 position, ambient_color, diffuse_color, specular_color;

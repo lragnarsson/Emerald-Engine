@@ -22,3 +22,4 @@ glm::mat4 w2v_matrix;
 glm::mat4 projection_matrix;
 
 std::vector<Model*> loaded_models;
+

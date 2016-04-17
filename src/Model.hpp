@@ -59,7 +59,7 @@ public:
 
     void draw(GLuint shader_program);
     void load(std::string path);
-    void attach_light(Light* light);
+    void attach_light(Light* light, GLuint shader_program);
     void move_to(glm::vec3 world_coord);
     void move(glm::vec3 relative);
     

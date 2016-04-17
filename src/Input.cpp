@@ -38,6 +38,7 @@ void handle_keyboard_input(Camera &camera, bool &loop, glm::vec3 &dir)
     if(keystate[SDL_GetScancodeFromKey(SDLK_DOWN)]) {
         dir = dir + glm::vec3(0.f, 0.f, -1.f);
     }
+    dir = glm::normalize(dir);
     
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT)
