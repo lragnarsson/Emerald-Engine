@@ -66,10 +66,10 @@ void run() {
 int main(int argc, char *argv[])
 {
 
-  if (!sdl_init(screen_width, screen_height, main_window, main_context)) {
-    return 1;
-  }
-  init_input();
+    if (!sdl_init(screen_width, screen_height, main_window, main_context)) {
+        Error::throw_error(Error::display_init_fail);
+    }
+    init_input();
 
   // Initiate shaders
   shader_forward = load_shaders("src/shaders/forward.vert", "src/shaders/forward.frag");
