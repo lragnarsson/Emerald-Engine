@@ -3,7 +3,7 @@
 
 /* --- MESH --- */
 /* Public Mesh functions */
-void Mesh::draw(GLuint shader_program) {
+void Mesh::draw_forward(GLuint shader_program) {
     GLuint diffuse_num = 1;
     GLuint specular_num = 1;
 
@@ -86,8 +86,10 @@ Model::Model(const std::string path, const GLuint shader_program,
         load(path);
 }
 
+
 /* Public Model functions */
-void Model::draw(GLuint shader_program) {
+
+void Model::draw_forward(GLuint shader_program) {
     /* Upload model to world matrix and model rotation for normal calculation */
     GLuint m2w = glGetUniformLocation(shader_program, "model");
     glUniformMatrix4fv(m2w, 1, GL_FALSE, glm::value_ptr(this->m2w_matrix));
@@ -95,9 +97,15 @@ void Model::draw(GLuint shader_program) {
     glUniformMatrix4fv(rot, 1, GL_FALSE, glm::value_ptr(this->rot_matrix));
 
     for (auto mesh : this->meshes) {
-        mesh.draw(shader_program);
+        mesh.draw_forward(shader_program);
     }
 }
+
+
+void Model::draw_deferred(GLuint shader_program) {
+    return;
+}
+
 
 void Model::load(std::string path) {
     Assimp::Importer importer;

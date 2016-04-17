@@ -13,10 +13,9 @@ void init_uniforms()
 // --------------------------
 
 void run() {
-    bool loop = true;
-
-    while (loop) {
-        handle_keyboard_input(camera, loop);
+    state.running = true;
+    while (state.running) {
+        handle_keyboard_input(camera, state);
         handle_mouse_input(camera);
 
         w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
@@ -25,8 +24,17 @@ void run() {
         glClearColor(0.3, 0.3, 1.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        for (auto model : loaded_models) {
-            model->draw(shader_forward);
+        switch(state.current_render_mode) {
+        case FORWARD:
+            for (auto model : loaded_models) {
+                model->draw_forward(shader_forward);
+            }
+            break;
+        case DEFERRED:
+            for (auto model : loaded_models) {
+                model->draw_deferred(shader_forward);
+            }
+            break;
         }
 
         glBindVertexArray(0);

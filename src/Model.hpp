@@ -39,7 +39,7 @@ public:
     Mesh() { };
     ~Mesh() { };
 
-    void draw(GLuint shader_program);
+    void draw_forward(GLuint shader_program);
     /* Upload vertices, normals etc to the GPU */
     void upload_mesh_data(GLuint shader_program);
 
@@ -59,7 +59,8 @@ public:
           const glm::mat4 rot_matrix, const glm::mat4 m2w_matrix);
     ~Model() { };
 
-    void draw(GLuint shader_program);
+    void draw_forward(GLuint shader_program);
+    void draw_deferred(GLuint shader_program);
     void load(std::string path);
 
 private:

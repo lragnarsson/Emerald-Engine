@@ -5,6 +5,7 @@
 #include "Light.hpp"
 #include "Error.hpp"
 
+
 GLuint shader_forward, shader_geometry, shader_deferred;
 GLuint screen_width = 800;
 GLuint screen_height = 640;
@@ -23,3 +24,5 @@ glm::mat4 w2v_matrix;
 glm::mat4 projection_matrix;
 
 std::vector<Model*> loaded_models;
+State state = {false,        // Running
+               FORWARD};     // Render mode
