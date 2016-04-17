@@ -21,12 +21,10 @@ void free_resources()
 
 // --------------------------
 
-void run()
-{
-    bool loop = true;
-
-    while (loop) {
-        handle_keyboard_input(camera, loop);
+void run() {
+    state.running = true;
+    while (state.running) {
+        handle_keyboard_input(camera, state);
         handle_mouse_input(camera);
         camera.update_culling_frustum();
 
@@ -40,10 +38,17 @@ void run()
             model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius);
         }
 
-        for (auto model : loaded_models) {
-            if (model->draw_me) {
-                model->draw(shader_forward);
+        switch(state.current_render_mode) {
+        case FORWARD:
+            for (auto model : loaded_models) {
+                model->draw_forward(shader_forward);
             }
+            break;
+        case DEFERRED:
+            for (auto model : loaded_models) {
+                model->draw_deferred(shader_forward);
+            }
+            break;
         }
 
         glBindVertexArray(0);

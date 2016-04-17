@@ -5,6 +5,7 @@
 #include "Light.hpp"
 #include "Error.hpp"
 
+
 GLuint shader_forward, shader_geometry, shader_deferred;
 
 SDL_Window* main_window;
@@ -21,3 +22,5 @@ glm::mat4 w2v_matrix;
 glm::mat4 projection_matrix;
 
 std::vector<Model*> loaded_models;
+State state = {false,        // Running
+               FORWARD};     // Render mode
