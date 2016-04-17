@@ -51,7 +51,7 @@ void handle_mouse_input(Camera &camera)
 
   button_state = SDL_GetRelativeMouseState(&dx, &dy);
 
-  camera.front = glm::rotate(camera.front, -dy*camera.rot_speed, camera.right); // pitch
-  camera.front = glm::rotateY(camera.front, -dx*camera.rot_speed); // yaw
+  camera.front = glm::rotate(camera.front, -dy*camera.rot_speed, camera.right);    // pitch
+  camera.front = glm::normalize(glm::rotateY(camera.front, -dx*camera.rot_speed)); // yaw
   camera.right = glm::cross(camera.front, camera.up);
 }
