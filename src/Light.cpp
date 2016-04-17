@@ -20,7 +20,9 @@ Light::Light(const glm::vec3 world_coord, const glm::vec3 color, GLuint shader_p
     this->id = lights.size() - 1;
   }
   else {
-    this->id = free_ids.pop_back();
+
+    this->id = free_ids.back();
+    free_ids.pop_back();
     lights[id] = this;
   }
 }
