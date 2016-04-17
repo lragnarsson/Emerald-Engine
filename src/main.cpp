@@ -55,9 +55,8 @@ void run()
 
 int main(int argc, char *argv[])
 {
-
     if (!sdl_init(SCREEN_WIDTH, SCREEN_HEIGHT, main_window, main_context)) {
-        return 1;
+        Error::throw_error(Error::display_init_fail);
     }
     init_input();
 
@@ -81,4 +80,3 @@ int main(int argc, char *argv[])
     free_resources();
     return 0;
 }
-

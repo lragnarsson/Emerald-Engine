@@ -3,6 +3,7 @@
 #include "Input.hpp"
 #include "Camera.hpp"
 #include "Light.hpp"
+#include "Error.hpp"
 
 GLuint shader_forward, shader_geometry, shader_deferred;
 
