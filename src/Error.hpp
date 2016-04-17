@@ -18,6 +18,7 @@ public:
   static const ErrorMessage cant_open_world_file;
   static const ErrorMessage invalid_file_syntax;
   static const ErrorMessage cant_load_light;
+  static const ErrorMessage cant_load_shader;
 };
 
 #endif
