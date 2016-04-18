@@ -14,11 +14,11 @@
 #include "Light.hpp"
 
 
-typedef void (*render_fptr)();
 
 class Renderer
 {
 public:
+    // This is a typedef of a Renderer member function pointer with return type void and argument std::vector<Model*>.
     typedef void (Renderer::*render_fptr)(std::vector<Model*> &loaded_models);
 
     bool running = false;
@@ -28,6 +28,7 @@ public:
     GLuint shader_forward, shader_geometry, shader_deferred;
     std::vector<GLuint> current_shaders;
 
+    // This is a function pointer to the current render function
     render_fptr render_function;
 
     Renderer(){}

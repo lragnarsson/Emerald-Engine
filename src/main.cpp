@@ -61,6 +61,7 @@ void run()
 
         cull_models();
 
+        // This is a call to our renderers member function pointer called render_function
         (renderer.*renderer.render_function)(loaded_models);
 
         glBindVertexArray(0);
