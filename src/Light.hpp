@@ -20,7 +20,7 @@ public:
     static void upload_all();
     static GLuint shader_program;
 
-    Light(const glm::vec3 world_coord, const glm::vec3 color, GLuint shader_program);
+    Light(const glm::vec3 world_coord, const glm::vec3 color);
     ~Light();
 
     void upload();

@@ -7,12 +7,11 @@ GLuint Light::shader_program;
 // ------------
 // Construct and destruct
 
-Light::Light(const glm::vec3 world_coord, const glm::vec3 color, GLuint shader_program)
+Light::Light(const glm::vec3 world_coord, const glm::vec3 color)
 {
   this->position = world_coord;
   this->color = color;
   this->active_light = true;
-  this->shader_program = shader_program;
 
   // Check if there are free places in the vector for lights
   if (free_ids.empty()) {
