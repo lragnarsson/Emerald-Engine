@@ -11,6 +11,7 @@
 
 #include <vector>
 #include "Model.hpp"
+#include "Light.hpp"
 
 
 typedef void (*render_fptr)();

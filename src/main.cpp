@@ -19,7 +19,7 @@ void init_uniforms()
 
 void init_renderer()
 {
-   renderer.shader_deferred = load_shaders("src/shaders/forward.vert", "src/shaders/forward.frag");
+    renderer.shader_deferred = load_shaders("src/shaders/forward.vert", "src/shaders/forward.frag");
     renderer.shader_forward = load_shaders("src/shaders/forward.vert", "src/shaders/forward.frag");
 
     renderer.set_forward();
@@ -52,6 +52,7 @@ void run()
         handle_mouse_input(camera);
         camera.update_culling_frustum();
 
+        glUseProgram(renderer.current_shaders[0]);
         w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
         glUniformMatrix4fv(glGetUniformLocation(renderer.current_shaders[0], "view"), 1, GL_FALSE, glm::value_ptr(w2v_matrix));
 
@@ -86,9 +87,9 @@ int main(int argc, char *argv[])
     loaded_models.push_back(new Model("res/models/nanosuit/nanosuit.obj", renderer.current_shaders[0], rot, m2w));
 
     // Load light sources into GPU
-    new Light(glm::vec3(-2.f), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f));
-    new Light(glm::vec3(1.f), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f));
-    Light::upload_all(renderer.current_shaders[0]);
+    Light light1 = Light(glm::vec3(-5.f, 5.f, -10.f), glm::vec3(1.f));
+    Light light2 = Light(glm::vec3(1.f, 5.f, 5.f), glm::vec3(1.f));
+    Light::upload_all();
 
     run();
 
