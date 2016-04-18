@@ -51,7 +51,7 @@ public:
     Mesh() { };
     ~Mesh() { };
 
-    void draw(GLuint shader_program);
+    void draw_forward(GLuint shader_program);
     /* Upload vertices, normals etc to the GPU */
     void upload_mesh_data(GLuint shader_program);
 
@@ -77,7 +77,8 @@ public:
 
     ~Model() { };
 
-    void draw(GLuint shader_program);
+    void draw_forward(GLuint shader_program);
+    void draw_deferred(GLuint shader_program);
     void load(std::string path);
     glm::vec3 get_center_point();
 

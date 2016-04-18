@@ -7,7 +7,7 @@ void init_input()
   SDL_SetRelativeMouseMode(SDL_TRUE);
 }
 
-void handle_keyboard_input(Camera &camera, bool &loop)
+void handle_keyboard_input(Camera &camera, Renderer &renderer)
 {
     SDL_Event event;
     const Uint8* keystate = SDL_GetKeyboardState(NULL);
@@ -27,11 +27,17 @@ void handle_keyboard_input(Camera &camera, bool &loop)
 
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT)
-            loop = false;
+            renderer.running = false;
         if (event.type == SDL_KEYDOWN) {
             switch (event.key.keysym.sym) {
             case SDLK_ESCAPE:
-                loop = false;
+                renderer.running = false;
+                break;
+            case SDLK_1:
+                renderer.set_forward();
+                break;
+            case SDLK_2:
+                renderer.set_deferred();
                 break;
             }
         }
