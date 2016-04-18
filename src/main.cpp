@@ -5,10 +5,10 @@
 
 void init_uniforms()
 {
-  w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
-  projection_matrix = glm::perspective(Y_FOV, ASPECT_RATIO, NEAR, FAR);
-  glUniformMatrix4fv(glGetUniformLocation(shader_forward, "view"), 1, GL_FALSE, glm::value_ptr(w2v_matrix));
-  glUniformMatrix4fv(glGetUniformLocation(shader_forward, "projection"), 1, GL_FALSE, glm::value_ptr(projection_matrix));
+    w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
+    projection_matrix = glm::perspective(Y_FOV, ASPECT_RATIO, NEAR, FAR);
+    glUniformMatrix4fv(glGetUniformLocation(shader_forward, "view"), 1, GL_FALSE, glm::value_ptr(w2v_matrix));
+    glUniformMatrix4fv(glGetUniformLocation(shader_forward, "projection"), 1, GL_FALSE, glm::value_ptr(projection_matrix));
 
 }
 
@@ -16,7 +16,7 @@ void init_uniforms()
 
 void free_resources()
 {
-  sdl_quit(main_window, main_context);
+    sdl_quit(main_window, main_context);
 }
 
 // --------------------------
