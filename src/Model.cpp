@@ -76,22 +76,24 @@ void Mesh::upload_mesh_data(GLuint shader_program) {
 std::vector<Texture*> Model::loaded_textures;
 
 Model::Model(const std::string path, const GLuint shader_program,
-             const glm::mat4 rot_matrix, const glm::mat4 m2w_matrix) {
+             const glm::mat4 rot_matrix, const glm::vec3 world_coord) {
 
         this->rot_matrix = rot_matrix;
-        this->m2w_matrix = m2w_matrix;
+        this->m2w_matrix = glm::translate(glm::mat4(1.0f), world_coord) * rot_matrix;
+        this->world_coord = world_coord;
         shader_programs.push_back(shader_program);
         load(path);
 }
-
+/*
 Model::Model(std::string path, const GLuint shader_program,
-             const glm::mat4 rot_matrix, const glm::mat4 m2w_matrix, std::vector<Light*> lightsources) {
+             const glm::mat4 rot_matrix, const glm::vec3 world_coord, std::vector<Light*> lightsources) {
         this->rot_matrix = rot_matrix;
-        this->m2w_matrix = m2w_matrix;
+        this->m2w_matrix = glm::translate(glm::mat4(1.0f), world_coord) * rot_matrix;
+        this->world_coord = world_coord;
         this->attached_lightsources = lightsources;
         shader_programs.push_back(shader_program);
         load(path);
-}
+        }*/
 
 /* Public Model functions */
 void Model::draw(GLuint shader_program) {
@@ -104,7 +106,7 @@ void Model::draw(GLuint shader_program) {
 
     if (this->attached_lightsources.size() > 0) {
         GLuint color = glGetUniformLocation(shader_program, "color");
-        glUniform3fv(color, 1, glm::value_ptr(this->attached_lightsources[0]->get_color()));
+        glUniform3fv(color, 1, glm::value_ptr(this->attached_lightsources[0].light->get_color()));
     }
         
     for (auto mesh : this->meshes) {
@@ -126,15 +128,11 @@ void Model::load(std::string path) {
 }
 
 
-void Model::attach_light(Light* light, GLuint shader_program) {
-    this->attached_lightsources.push_back(light);
-    /* add the shader_program for the light to the models list of 
-       programs if it is not already there */
-    if (std::find(this->shader_programs.begin(),
-                  this->shader_programs.end(), shader_program) == this->shader_programs.end()) {
-        this->shader_programs.push_back(shader_program);
-    }
+void Model::attach_light(Light* light, glm::vec3 relative_pos) {
+    light_container new_light = {light, relative_pos};
+    this->attached_lightsources.push_back(new_light);
 }
+
 
 /* Move model and all attached lights to world_coord and upload
    the changed values to GPU. 
@@ -146,11 +144,12 @@ void Model::move_to(glm::vec3 world_coord) {
     /* Upload new uniform */
     for (auto program : this->shader_programs) {
         glUseProgram(program);
-        GLuint m2w = glGetUniformLocation(program, "model");
-        glUniformMatrix4fv(m2w, 1, GL_FALSE, glm::value_ptr(this->m2w_matrix));
-        for (auto light : this->attached_lightsources) {
-            light->move_to(world_coord);
-            light->upload_pos(program);
+        GLuint m2w_loc = glGetUniformLocation(program, "model");
+        glUniformMatrix4fv(m2w_loc, 1, GL_FALSE, glm::value_ptr(this->m2w_matrix));
+        for (auto light_container : this->attached_lightsources) {
+            glm::vec3 new_pos = glm::vec3(m2w_matrix * glm::vec4(light_container.relative_pos, 1.f));
+            light_container.light->move_to(new_pos);
+            light_container.light->upload_pos(program);
         }
     }
     glUseProgram(0);
@@ -159,6 +158,18 @@ void Model::move_to(glm::vec3 world_coord) {
 void Model::move(glm::vec3 relative) {
     move_to(this->world_coord + relative);
 }
+void Model::rotate(glm::vec3 axis, float angle) {
+    rot_matrix = glm::rotate(rot_matrix, angle, axis);
+    m2w_matrix = glm::translate(glm::mat4(1.0f), world_coord) * rot_matrix;
+
+    GLuint program = shader_programs[1];
+    for (auto light_container : this->attached_lightsources) {
+        glm::vec3 new_pos = glm::vec3(m2w_matrix * glm::vec4(light_container.relative_pos, 1.f));
+        light_container.light->move_to(new_pos);
+        light_container.light->upload_pos(program);
+    }
+}
+
 
 /* Private Model functions */
 void Model::unfold_assimp_node(aiNode* node, const aiScene* scene) {

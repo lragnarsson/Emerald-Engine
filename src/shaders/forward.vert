@@ -15,7 +15,6 @@ uniform mat4 model;
 uniform mat4 modelRot;
 uniform mat4 view;
 //uniform vec3 lightPos;
-uniform vec3 viewPos;
 uniform mat4 projection;
 
 void main(void)
@@ -25,6 +24,4 @@ void main(void)
     //    light = lightPos;
     Normal = mat3(modelRot) * in_Normal;
     TexCoord = in_TexCoord;
-    ViewPos = viewPos;
-    //color = inColor;
 }

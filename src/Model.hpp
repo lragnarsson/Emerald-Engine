@@ -52,20 +52,23 @@ public:
     
     Model() { };
     Model(std::string path, const GLuint shader_program,
-          const glm::mat4 rot_matrix, const glm::mat4 m2w_matrix);
-    Model(std::string path, const GLuint shader_program,
-          const glm::mat4 rot_matrix, const glm::mat4 m2w_matrix, std::vector<Light*> lightsources);
+          const glm::mat4 rot_matrix, const glm::vec3 world_coord);
     ~Model() { };
 
     void draw(GLuint shader_program);
     void load(std::string path);
-    void attach_light(Light* light, GLuint shader_program);
+    void attach_light(Light* light, glm::vec3 relative_pos);
     void move_to(glm::vec3 world_coord);
     void move(glm::vec3 relative);
+    void rotate(glm::vec3 axis, float angle);
     
 private:
+    struct light_container {
+        Light* light;
+        glm::vec3 relative_pos;
+    };
     static std::vector<Texture*> loaded_textures;
-    std::vector<Light*> attached_lightsources;
+    std::vector<light_container> attached_lightsources;
     
     std::vector<Mesh> meshes;
     std::string directory;

@@ -19,7 +19,7 @@ out vec4 out_Color;
 in vec3 Normal;
 in vec2 TexCoord;
 in vec3 FragPos;
-in vec3 ViewPos;
+//in vec3 ViewPos;
 //in vec3 light;
 
 
@@ -52,7 +52,7 @@ vec3 PhongShading(Light l) {
     vec3 diffuse = d * l.diffuseColor * vec3(texture(texture_Diffuse1, TexCoord));
 
     vec3 reflection = normalize(reflect(-lightDir, Normal));
-    vec3 viewDir = normalize(ViewPos - FragPos);
+    vec3 viewDir = normalize(camPos - FragPos);
     float s = pow(max(dot(viewDir, reflection), 0.0), shininess);
     vec3 specular = s * l.specularColor * vec3(texture(texture_Specular1, TexCoord));
 
