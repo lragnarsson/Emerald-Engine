@@ -30,6 +30,7 @@ void run()
         handle_mouse_input(camera);
         camera.update_culling_frustum();
 
+        glUseProgram(shader_forward);
         w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
         glUniformMatrix4fv(glGetUniformLocation(shader_forward, "view"), 1, GL_FALSE, glm::value_ptr(w2v_matrix));
 
@@ -39,7 +40,6 @@ void run()
         for (auto model : loaded_models) {
             model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius);
         }
-
         for (auto model : loaded_models) {
             if (model->draw_me) {
                 model->draw(shader_forward);
