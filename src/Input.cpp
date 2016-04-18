@@ -7,7 +7,7 @@ void init_input()
   SDL_SetRelativeMouseMode(SDL_TRUE);
 }
 
-void handle_keyboard_input(Camera &camera, bool &loop, glm::vec3 &dir)
+void handle_keyboard_input(Camera &camera, Renderer &renderer)
 {
     SDL_Event event;
     const Uint8* keystate = SDL_GetKeyboardState(NULL);
@@ -25,28 +25,19 @@ void handle_keyboard_input(Camera &camera, bool &loop, glm::vec3 &dir)
         camera.position += glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed;
     }
 
-    
-    if(keystate[SDL_GetScancodeFromKey(SDLK_UP)]) {
-        dir = dir + glm::vec3(0.f, 0.f, 1.f);
-    }
-    if(keystate[SDL_GetScancodeFromKey(SDLK_LEFT)]) {
-        dir = dir + glm::vec3(1.f, 0.f, 0.f);
-    }
-    if(keystate[SDL_GetScancodeFromKey(SDLK_RIGHT)]) {
-        dir = dir + glm::vec3(-1.f, 0.f, 0.f);
-    }
-    if(keystate[SDL_GetScancodeFromKey(SDLK_DOWN)]) {
-        dir = dir + glm::vec3(0.f, 0.f, -1.f);
-    }
-    dir = glm::normalize(dir);
-    
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT)
-            loop = false;
+            renderer.running = false;
         if (event.type == SDL_KEYDOWN) {
             switch (event.key.keysym.sym) {
             case SDLK_ESCAPE:
-                loop = false;
+                renderer.running = false;
+                break;
+            case SDLK_1:
+                renderer.set_forward();
+                break;
+            case SDLK_2:
+                renderer.set_deferred();
                 break;
             }
         }
@@ -60,7 +51,7 @@ void handle_mouse_input(Camera &camera)
 
   button_state = SDL_GetRelativeMouseState(&dx, &dy);
 
-  camera.front = glm::rotate(camera.front, -dy*camera.rot_speed, camera.right); // pitch
-  camera.front = glm::rotateY(camera.front, -dx*camera.rot_speed); // yaw
+  camera.front = glm::rotate(camera.front, -dy*camera.rot_speed, camera.right);    // pitch
+  camera.front = glm::normalize(glm::rotateY(camera.front, -dx*camera.rot_speed)); // yaw
   camera.right = glm::cross(camera.front, camera.up);
 }
