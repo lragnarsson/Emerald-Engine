@@ -30,6 +30,7 @@ void run()
         handle_mouse_input(camera);
         camera.update_culling_frustum();
 
+        glUseProgram(shader_forward);
         w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
         glUniformMatrix4fv(glGetUniformLocation(shader_forward, "view"), 1, GL_FALSE, glm::value_ptr(w2v_matrix));
 
@@ -39,7 +40,6 @@ void run()
         for (auto model : loaded_models) {
             model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius);
         }
-
         for (auto model : loaded_models) {
             if (model->draw_me) {
                 model->draw(shader_forward);
@@ -71,9 +71,9 @@ int main(int argc, char *argv[])
     loaded_models.push_back(new Model("res/models/nanosuit/nanosuit.obj", shader_forward, rot, m2w));
 
     // Load light sources into GPU
-    new Light(glm::vec3(-2.f), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f));
-    new Light(glm::vec3(1.f), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f));
-    Light::upload_all(shader_forward);
+    Light::shader_program = shader_forward;
+    Light light1 = Light(glm::vec3(-5.f, 5.f, -10.f), glm::vec3(1.f));
+    Light::upload_all();
 
     run();
 
