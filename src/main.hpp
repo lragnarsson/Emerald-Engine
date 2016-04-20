@@ -20,6 +20,6 @@ Camera camera = Camera(glm::vec3(0.f, 0.f, 3.f),    // Position
 glm::mat4 w2v_matrix;
 glm::mat4 projection_matrix;
 
-std::vector<Model*> loaded_models;
+std::vector<Model*> loaded_models, loaded_flat_models;
 Renderer renderer;
 

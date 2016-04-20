@@ -3,7 +3,8 @@
 
 /* --- MESH --- */
 /* Public Mesh functions */
-void Mesh::draw_forward(GLuint shader_program) {
+void Mesh::draw_forward(GLuint shader_program)
+{
     GLuint diffuse_num = 1;
     GLuint specular_num = 1;
     glUseProgram(shader_program);
@@ -37,9 +38,8 @@ void Mesh::draw_forward(GLuint shader_program) {
 }
 
 
-void Mesh::upload_mesh_data(GLuint shader_program) {
-    glUseProgram(shader_program);
-
+void Mesh::upload_mesh_data()
+{
     glGenVertexArrays(1, &this->VAO);
     glBindVertexArray(this->VAO);
     glGenBuffers(1, &this->EBO);
@@ -57,24 +57,26 @@ void Mesh::upload_mesh_data(GLuint shader_program) {
     /* Vertex coordinates */
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO[0]);
     glBufferData(GL_ARRAY_BUFFER, 3 * vertex_count * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(glGetAttribLocation(shader_program, "in_Position"), 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(glGetAttribLocation(shader_program, "in_Position"));
+    GLint in_position_location = 0; // Apparently this is always 0 regardless of shader program
+    glVertexAttribPointer(in_position_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(in_position_location);
 
     /* Normal vectors */
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO[1]);
     glBufferData(GL_ARRAY_BUFFER, 3 * vertex_count * sizeof(GLfloat), normals, GL_STATIC_DRAW);
-    glVertexAttribPointer(glGetAttribLocation(shader_program, "in_Normal"), 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(glGetAttribLocation(shader_program, "in_Normal"));
+    GLint in_normal_location = 1; // this is always 1 
+    glVertexAttribPointer(in_normal_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(in_normal_location);
 
     /* Texture coordinates */
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO[2]);
     glBufferData(GL_ARRAY_BUFFER, 2 * vertex_count * sizeof(GLfloat), tex_coords, GL_STATIC_DRAW);
-    glVertexAttribPointer(glGetAttribLocation(shader_program, "in_TexCoord"), 2, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(glGetAttribLocation(shader_program, "in_TexCoord"));
+    GLint in_texcoord_location = 2; // always 2
+    glVertexAttribPointer(in_texcoord_location, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(in_texcoord_location);
 
     /* Unbind VAO */
     glBindVertexArray(0);
-    glUseProgram(0);
 }
 
 
@@ -82,7 +84,7 @@ void Mesh::upload_mesh_data(GLuint shader_program) {
 /* --- MODEL ---*/
 std::vector<Texture*> Model::loaded_textures;
 
-Model::Model(const std::string path, std::vector<GLuint> shader_programs, const glm::mat4 rot_matrix, const glm::vec3 world_coord)
+Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3 world_coord)
 {
         this->rot_matrix = rot_matrix;
         this->m2w_matrix = glm::translate(glm::mat4(1.0f), world_coord) * rot_matrix;
@@ -98,15 +100,15 @@ void Model::draw_forward(GLuint shader_program)
 {
     glUseProgram(shader_program);
     /* Upload model to world matrix and model rotation for normal calculation */
-    GLuint m2w = glGetUniformLocation(shader_program, "model");
-    glUniformMatrix4fv(m2w, 1, GL_FALSE, glm::value_ptr(this->m2w_matrix));
-    GLuint rot = glGetUniformLocation(shader_program, "modelRot");
-    glUniformMatrix4fv(rot, 1, GL_FALSE, glm::value_ptr(this->rot_matrix));
+    GLuint m2w_location = glGetUniformLocation(shader_program, "model");
+    glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(this->m2w_matrix));
+    GLuint rot_location = glGetUniformLocation(shader_program, "modelRot");
+    glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(this->rot_matrix));
 
-    /*if (this->attached_lightsources.size() > 0) {
+    if (this->attached_lightsources.size() > 0) {
         GLuint color = glGetUniformLocation(shader_program, "color");
         glUniform3fv(color, 1, glm::value_ptr(this->attached_lightsources[0].light->get_color()));
-        }*/
+    }
 
     for (auto mesh : this->meshes) {
         mesh.draw_forward(shader_program);
@@ -117,19 +119,6 @@ void Model::draw_forward(GLuint shader_program)
 
 void Model::draw_deferred(GLuint shader_program) {
     return;
-}
-
-
-void Model::load(std::string path) {
-    Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
-
-    if(!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        std::cerr << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
-        return;
-    }
-    directory = path.substr(0, path.find_last_of('/'));
-    unfold_assimp_node(scene->mRootNode, scene);
 }
 
 
@@ -181,11 +170,23 @@ void Model::rotate(glm::vec3 axis, float angle) {
 }
 
 
+void Model::load(std::string path) {
+    Assimp::Importer importer;
+    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
+
+    if(!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+        std::cerr << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
+        return;
+    }
+    directory = path.substr(0, path.find_last_of('/'));
+    unfold_assimp_node(scene->mRootNode, scene);
+}
+
 /* Private Model functions */
 void Model::unfold_assimp_node(aiNode* node, const aiScene* scene) {
     for(GLuint i = 0; i < node->mNumMeshes; i++) {
-        aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        this->meshes.push_back(load_mesh(mesh, scene));
+        aiMesh* ai_mesh = scene->mMeshes[node->mMeshes[i]];
+        this->meshes.push_back(load_mesh(ai_mesh, scene));
     }
 
     for(GLuint i = 0; i < node->mNumChildren; i++) {
@@ -261,9 +262,7 @@ Mesh Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         }
     }
 
-    glUseProgram(Light::shader_program);
-    m.upload_mesh_data(Light::shader_program);
-    glUseProgram(0);
+    m.upload_mesh_data();
     return m;
 }
 
@@ -302,6 +301,14 @@ Texture* Model::load_texture(const char* filename, std::string basepath)
     return texture;
 }
 
+std::vector<Light *> Model::get_lights()
+{
+    std::vector<Light *> lights;
+    for (auto container : attached_lightsources) {
+        lights.push_back(container.light);
+    }
+    return lights;
+}
 
 void Model::generate_bounding_sphere()
 {

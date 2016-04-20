@@ -9,6 +9,9 @@ void init_renderer()
     renderer.shader_flat = load_shaders("src/shaders/flat.vert", "src/shaders/flat.frag");
     renderer.shader_forward = load_shaders("src/shaders/forward.vert", "src/shaders/forward.frag");
 
+    renderer.compiled_shaders.push_back(renderer.shader_flat);
+    renderer.compiled_shaders.push_back(renderer.shader_forward);
+    
     renderer.set_forward();
 }
 
@@ -18,12 +21,14 @@ void init_uniforms()
 {
     w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
     projection_matrix = glm::perspective(Y_FOV, ASPECT_RATIO, NEAR, FAR);
-    for (int i = 0; i < renderer.current_shaders.size(); i ++) {
-        glUseProgram(renderer.current_shaders[i]);
-        glUniformMatrix4fv(glGetUniformLocation(renderer.current_shaders[i], "view"), 1, GL_FALSE, glm::value_ptr(w2v_matrix));
-        glUniformMatrix4fv(glGetUniformLocation(renderer.current_shaders[i], "projection"), 1, GL_FALSE, glm::value_ptr(projection_matrix));
+    for (int i = 0; i < renderer.compiled_shaders.size(); i ++) {
+        glUseProgram(renderer.compiled_shaders[i]);
+        glUniformMatrix4fv(glGetUniformLocation(renderer.compiled_shaders[i], "view"),
+                           1, GL_FALSE, glm::value_ptr(w2v_matrix));
+        glUniformMatrix4fv(glGetUniformLocation(renderer.compiled_shaders[i], "projection"),
+                           1, GL_FALSE, glm::value_ptr(projection_matrix));
     }
-
+    glUseProgram(0);
 }
 
 // --------------------------
@@ -47,27 +52,40 @@ void cull_models()
 
 void run()
 {
+    // DEBUG 
+    glm::vec3 dir = glm::vec3(0.f);
+    // DEBUG END
     renderer.running = true;
     while (renderer.running) {
-        handle_keyboard_input(camera, renderer);
+        dir = glm::vec3(0.f);
+        handle_keyboard_input(camera, renderer, dir);
         handle_mouse_input(camera);
         camera.update_culling_frustum();
 
-        for (int i = 0; i < renderer.current_shaders.size(); i ++) {
-            glUseProgram(renderer.current_shaders[i]);
-            w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
-            glUniformMatrix4fv(glGetUniformLocation(renderer.current_shaders[i], "view"), 1, GL_FALSE, glm::value_ptr(w2v_matrix));
-            glUniform3fv(glGetUniformLocation(renderer.current_shaders[i], "camPos"), 1, glm::value_ptr(camera.position));
-        }
+        /* Temporary way to move the blue box around */
+        if (glm::length(dir)  > 0.1f) {
+            loaded_flat_models[0]->move(dir * 0.1f);
+            loaded_flat_models[0]->rotate(glm::vec3(0.f, 0.f, 1.f), 0.1f);
 
+            loaded_flat_models[0]->get_lights()[0]->set_color(glm::vec3(glm::rotate(glm::mat4(1.f), 0.1f, dir)*glm::vec4(loaded_flat_models[0]->get_lights()[0]->get_color(),1.f)));
+        }
+        
         glClearColor(0.3, 0.3, 1.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         cull_models();
+        renderer.upload_camera_uniforms(camera);
 
         // This is a call to our renderers member function pointer called render_function
         (renderer.*renderer.render_function)(loaded_models);
 
+        // Render flat objects (lightsources)
+        renderer.set_flat();
+        renderer.upload_camera_uniforms(camera);
+        (renderer.*renderer.render_function)(loaded_flat_models);
+
+        renderer.set_forward();
+        
         glBindVertexArray(0);
         SDL_GL_SwapWindow(main_window);
     }
@@ -85,14 +103,31 @@ int main(int argc, char *argv[])
     init_renderer();
 
     init_uniforms();
-
+    
     // Load nanosuit model
     glm::mat4 rot = glm::rotate(glm::mat4(1.0f), 0.3f, glm::vec3(0.f, 1.f, 0.f));
-    loaded_models.push_back(new Model("res/models/nanosuit/nanosuit.obj", renderer.current_shaders, rot, glm::vec3(-5.f)));
 
+    loaded_models.push_back(new Model("res/models/nanosuit/nanosuit.obj", rot, glm::vec3(-5.f)));
+
+    
+    glm::vec3 p1 = glm::vec3(1.f);
+    glm::vec3 p2 = glm::vec3(2.f);
+    glm::vec3 rel = glm::vec3(0.f, 10.f, 0.f);
+    Model* box1 = new Model("res/models/cube/cube.obj", glm::mat4(1.f), p1);
+    Model* box2 = new Model("res/models/cube/cube.obj", glm::mat4(1.f), p2);
+    
+    loaded_flat_models.push_back(box1);
+    loaded_flat_models.push_back(box2);
+    
     // Load light sources into GPU
-    Light light1 = Light(glm::vec3(-5.f, 5.f, -10.f), glm::vec3(1.f));
-    Light light2 = Light(glm::vec3(1.f, 5.f, 5.f), glm::vec3(1.f));
+    Light light1 = Light(p1 + rel, glm::vec3(1.f));
+    Light light2 = Light(p2, glm::vec3(1.f, 0.f, 0.f));
+
+    // attach light sources to boxes
+    box1->attach_light(&light1, rel);
+    box2->attach_light(&light2, glm::vec3(0.0f));
+      
+    
     Light::upload_all();
 
     run();

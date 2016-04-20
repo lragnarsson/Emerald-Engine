@@ -54,7 +54,7 @@ public:
 
     void draw_forward(GLuint shader_program);
     /* Upload vertices, normals etc to the GPU */
-    void upload_mesh_data(GLuint shader_program);
+    void upload_mesh_data();
 
 private:
     GLuint VAO, EBO;
@@ -64,13 +64,12 @@ private:
 
 class Model {
 public:
-    std::vector<GLuint> shader_programs;
     glm::mat4 m2w_matrix, rot_matrix;
     float bounding_sphere_radius = -1.f;
     bool draw_me = true;
 
     Model() { };
-    Model(const std::string path, const std::vector<GLuint> shader_programs, const glm::mat4 rot_matrix, const glm::vec3 world_coord);
+    Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3 world_coord);
 
     ~Model() { };
 
@@ -82,6 +81,7 @@ public:
     void move_to(glm::vec3 world_coord);
     void move(glm::vec3 relative);
     void rotate(glm::vec3 axis, float angle);
+    std::vector<Light *> get_lights();
     glm::vec3 get_center_point();
 
 private:
