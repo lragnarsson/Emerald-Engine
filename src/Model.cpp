@@ -57,23 +57,23 @@ void Mesh::upload_mesh_data()
     /* Vertex coordinates */
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO[0]);
     glBufferData(GL_ARRAY_BUFFER, 3 * vertex_count * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-    GLint in_position_location = 0; // Apparently this is always 0 regardless of shader program
-    glVertexAttribPointer(in_position_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(in_position_location);
+   
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
 
     /* Normal vectors */
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO[1]);
     glBufferData(GL_ARRAY_BUFFER, 3 * vertex_count * sizeof(GLfloat), normals, GL_STATIC_DRAW);
-    GLint in_normal_location = 1; // this is always 1 
-    glVertexAttribPointer(in_normal_location, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(in_normal_location);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(1);
 
     /* Texture coordinates */
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO[2]);
     glBufferData(GL_ARRAY_BUFFER, 2 * vertex_count * sizeof(GLfloat), tex_coords, GL_STATIC_DRAW);
-    GLint in_texcoord_location = 2; // always 2
-    glVertexAttribPointer(in_texcoord_location, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(in_texcoord_location);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(2);
 
     /* Unbind VAO */
     glBindVertexArray(0);

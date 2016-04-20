@@ -52,30 +52,19 @@ void cull_models()
 
 void run()
 {
-    // DEBUG 
-    glm::vec3 dir = glm::vec3(0.f);
-    // DEBUG END
     renderer.running = true;
     while (renderer.running) {
-        dir = glm::vec3(0.f);
-        handle_keyboard_input(camera, renderer, dir);
+        handle_keyboard_input(camera, renderer);
         handle_mouse_input(camera);
         camera.update_culling_frustum();
 
-        /* Temporary way to move the blue box around */
-        if (glm::length(dir)  > 0.1f) {
-            loaded_flat_models[0]->move(dir * 0.1f);
-            loaded_flat_models[0]->rotate(glm::vec3(0.f, 0.f, 1.f), 0.1f);
-
-            loaded_flat_models[0]->get_lights()[0]->set_color(glm::vec3(glm::rotate(glm::mat4(1.f), 0.1f, dir)*glm::vec4(loaded_flat_models[0]->get_lights()[0]->get_color(),1.f)));
-        }
         
         glClearColor(0.3, 0.3, 1.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         cull_models();
         renderer.upload_camera_uniforms(camera);
-
+        
         // This is a call to our renderers member function pointer called render_function
         (renderer.*renderer.render_function)(loaded_models);
 
@@ -111,8 +100,7 @@ int main(int argc, char *argv[])
 
     
     glm::vec3 p1 = glm::vec3(1.f);
-    glm::vec3 p2 = glm::vec3(2.f);
-    glm::vec3 rel = glm::vec3(0.f, 10.f, 0.f);
+    glm::vec3 p2 = glm::vec3(-3.f, 10.f, 2.f);
     Model* box1 = new Model("res/models/cube/cube.obj", glm::mat4(1.f), p1);
     Model* box2 = new Model("res/models/cube/cube.obj", glm::mat4(1.f), p2);
     
@@ -120,11 +108,11 @@ int main(int argc, char *argv[])
     loaded_flat_models.push_back(box2);
     
     // Load light sources into GPU
-    Light light1 = Light(p1 + rel, glm::vec3(1.f));
-    Light light2 = Light(p2, glm::vec3(1.f, 0.f, 0.f));
+    Light light1 = Light(p1, glm::vec3(1.f));
+    Light light2 = Light(p2, glm::vec3(1.f, 0.5f, 0.f));
 
     // attach light sources to boxes
-    box1->attach_light(&light1, rel);
+    box1->attach_light(&light1, glm::vec3(0.0f));
     box2->attach_light(&light2, glm::vec3(0.0f));
       
     
