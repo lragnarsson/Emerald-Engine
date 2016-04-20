@@ -39,6 +39,18 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
             case SDLK_2:
                 renderer.set_deferred();
                 break;
+            case SDLK_3:
+                renderer.set_g_position();
+                break;
+            case SDLK_4:
+                renderer.set_g_normal();
+                break;
+            case SDLK_5:
+                renderer.set_g_albedo();
+                break;
+            case SDLK_6:
+                renderer.set_g_specular();
+                break;
             }
         }
     }

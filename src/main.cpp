@@ -17,16 +17,6 @@ void init_uniforms()
 
 // --------------------------
 
-void init_renderer()
-{
-    renderer.shader_deferred = load_shaders("src/shaders/forward.vert", "src/shaders/forward.frag");
-    renderer.shader_forward = load_shaders("src/shaders/forward.vert", "src/shaders/forward.frag");
-
-    renderer.set_forward();
-}
-
-// --------------------------
-
 void free_resources()
 {
     sdl_quit(main_window, main_context);
@@ -78,7 +68,7 @@ int main(int argc, char *argv[])
     }
     init_input();
 
-    init_renderer();
+    renderer.init();
 
     init_uniforms();
 

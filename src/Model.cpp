@@ -103,7 +103,14 @@ void Model::draw_forward(GLuint shader_program) {
 }
 
 
-void Model::draw_deferred(GLuint shader_program) {
+void Model::draw_geometry(GLuint shader_program)
+{
+    return;
+}
+
+
+void Model::draw_deferred(GLuint shader_program)
+{
     return;
 }
 
@@ -123,7 +130,6 @@ void Model::load(std::string path) {
 
 glm::vec3 Model::get_center_point()
 {
-    //return this->bounding_sphere_center;
     return glm::vec3(this->m2w_matrix * glm::vec4(this->bounding_sphere_center, 1.f));
 }
 

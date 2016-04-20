@@ -78,6 +78,7 @@ public:
     ~Model() { };
 
     void draw_forward(GLuint shader_program);
+    void draw_geometry(GLuint shader_program);
     void draw_deferred(GLuint shader_program);
     void load(std::string path);
     glm::vec3 get_center_point();
