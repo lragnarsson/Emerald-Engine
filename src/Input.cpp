@@ -24,7 +24,8 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
     if(keystate[SDL_GetScancodeFromKey(SDLK_d)]) {
         camera.position += glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed;
     }
-
+    
+    
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT)
             renderer.running = false;

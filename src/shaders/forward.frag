@@ -17,7 +17,6 @@ out vec4 out_Color;
 in vec3 Normal;
 in vec2 TexCoord;
 in vec3 FragPos;
-in vec3 ViewPos;
 
 uniform sampler2D texture_Diffuse1;
 uniform sampler2D texture_Specular1;
@@ -45,9 +44,10 @@ vec3 PhongShading(Light l) {
     vec3 diffuse = d * l.color * m.diffuse * vec3(texture(texture_Diffuse1, TexCoord));
 
     vec3 reflection = normalize(reflect(-lightDir, Normal));
-    vec3 viewDir = normalize(ViewPos - FragPos);
+
+    vec3 viewDir = normalize(camPos - FragPos);
     float s = pow(max(dot(viewDir, reflection), 0.0), m.shininess);
-    vec3 specular = s * l.color * m.specular * vec3(texture(texture_Specular1, TexCoord));
+    vec3 specular = s * l.color * vec3(texture(texture_Specular1, TexCoord));
 
     return attenuation * (diffuse + specular) + ambient;
 }
