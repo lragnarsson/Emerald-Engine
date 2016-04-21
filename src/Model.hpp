@@ -14,20 +14,37 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp> // glm::value_ptr
+#include <glm/gtx/string_cast.hpp>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <assimp/material.h>
 
 #include <string>
 #include <iostream>
 #include <vector>
-#include "Containers.hpp"
+#include "Light.hpp"
+
+
+enum texture_type {
+    DIFFUSE,
+    SPECULAR,
+    NORMAL
+};
+
+struct Texture {
+    GLuint id;
+    texture_type type;
+    aiString path;
+};
 
 
 class Mesh {
 public:
     GLuint index_count, vertex_count;
+    GLfloat shininess = 80;
+    glm::vec3 ambient_color = glm::vec3(0.8f), diffuse_color = glm::vec3(0.8f), specular_color = glm::vec3(0.8f);
     std::vector<GLuint> indices;
     std::vector<GLfloat> vertices, normals, tex_coords;
     std::vector<Texture*> textures;
@@ -35,9 +52,9 @@ public:
     Mesh() { };
     ~Mesh() { };
 
-    void draw(GLuint shader_program);
+    void draw_forward(GLuint shader_program);
     /* Upload vertices, normals etc to the GPU */
-    void upload_mesh_data(GLuint shader_program);
+    void upload_mesh_data();
 
 private:
     GLuint VAO, EBO;
@@ -47,26 +64,42 @@ private:
 
 class Model {
 public:
-    std::vector<GLuint> shader_programs;
     glm::mat4 m2w_matrix, rot_matrix;
+    float bounding_sphere_radius = -1.f;
+    bool draw_me = true;
 
     Model() { };
-    Model(std::string path, const GLuint shader_program,
-          const glm::mat4 rot_matrix, const glm::mat4 m2w_matrix);
+    Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3 world_coord);
+
     ~Model() { };
 
-    void draw(GLuint shader_program);
+    void draw_forward(GLuint shader_program);
+    void draw_deferred(GLuint shader_program);
     void load(std::string path);
 
-private:
-    static std::vector<Texture*> loaded_textures;
+    void attach_light(Light* light, glm::vec3 relative_pos);
+    void move_to(glm::vec3 world_coord);
+    void move(glm::vec3 relative);
+    void rotate(glm::vec3 axis, float angle);
+    std::vector<Light *> get_lights();
+    glm::vec3 get_center_point();
 
+private:
+    struct light_container {
+        Light* light;
+        glm::vec3 relative_pos;
+    };
+    static std::vector<Texture*> loaded_textures;
+    std::vector<light_container> attached_lightsources;
     std::vector<Mesh> meshes;
     std::string directory;
+    glm::vec3 bounding_sphere_center;
+    glm::vec3 world_coord;
 
     void unfold_assimp_node(aiNode* node, const aiScene* scene);
     Mesh load_mesh(aiMesh* mesh, const aiScene* scene);
     Texture* load_texture(const char* filename, std::string basepath);
+    void generate_bounding_sphere();
 };
 
 #endif

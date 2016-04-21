@@ -17,18 +17,25 @@
 class Light
 {
 public:
-    static void upload_all(const GLuint shader_program);
+    static void upload_all();
+    static GLuint shader_program;
 
-    Light(const glm::vec3 world_coord, const glm::vec3 ambient_color,
-          const glm::vec3 diffuse_color, const glm::vec3 specular_color);
+    Light(const glm::vec3 world_coord, const glm::vec3 color);
+    ~Light();
 
-    void upload(const GLuint shader_program);
+    void upload();
+    glm::vec3 get_color();
+    void set_color(glm::vec3 color);
+    void move_to(glm::vec3 world_coord); // does not upload data
+    void upload_pos();
 
 private:
     unsigned int id;
-    glm::vec3 position, ambient_color, diffuse_color, specular_color;
+    glm::vec3 position, color;
+    GLboolean active_light;
 
     static std::vector<Light*> lights;
+    static std::vector<unsigned int> free_ids;
 };
 
 
