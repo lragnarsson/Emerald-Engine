@@ -52,10 +52,10 @@ public:
     Mesh() { };
     ~Mesh() { };
 
-    void draw_forward(GLuint shader_program);
     /* Upload vertices, normals etc to the GPU */
     void upload_mesh_data();
-
+    GLuint get_VAO();
+    
 private:
     GLuint VAO, EBO;
     GLuint VBO[3]; // Vertices, normals, texCoords
@@ -73,17 +73,16 @@ public:
 
     ~Model() { };
 
-    void draw_forward(GLuint shader_program);
-    void draw_deferred(GLuint shader_program);
     void load(std::string path);
     static const std::vector<Model*> get_loaded_models();
     static const std::vector<Model*> get_loaded_flat_models();
-
+    const std::vector<Mesh> get_meshes();
+    
     void attach_light(Light* light, glm::vec3 relative_pos);
     void move_to(glm::vec3 world_coord);
     void move(glm::vec3 relative);
     void rotate(glm::vec3 axis, float angle);
-    std::vector<Light *> get_lights();
+    std::vector<Light*> get_lights();
     glm::vec3 get_center_point();
 
 private:

@@ -2,40 +2,6 @@
 
 /* --- MESH --- */
 /* Public Mesh functions */
-void Mesh::draw_forward(GLuint shader_program)
-{
-  GLuint diffuse_num = 1;
-  GLuint specular_num = 1;
-  glUseProgram(shader_program);
-
-  for(GLuint i = 0; i < this->textures.size(); i++) {
-    glActiveTexture(GL_TEXTURE0 + i);
-    if(this->textures[i]->type == DIFFUSE) {
-      glUniform1i(glGetUniformLocation(shader_program, ("texture_Diffuse" + std::to_string(diffuse_num++)).c_str()), i);
-      glBindTexture(GL_TEXTURE_2D, this->textures[i]->id);
-    }
-    else if(this->textures[i]->type == SPECULAR) {
-      glUniform1i(glGetUniformLocation(shader_program, ("texture_Specular" + std::to_string(specular_num++)).c_str()), i);
-      glBindTexture(GL_TEXTURE_2D, this->textures[i]->id);
-    }
-  }
-
-  glUniform1f(glGetUniformLocation(shader_program, "m.shininess"), this->shininess);
-  glUniform3fv(glGetUniformLocation(shader_program, "m.ambient"), 1, glm::value_ptr(this->ambient_color));
-  glUniform3fv(glGetUniformLocation(shader_program, "m.diffuse"), 1, glm::value_ptr(this->diffuse_color));
-  glUniform3fv(glGetUniformLocation(shader_program, "m.specular"), 1, glm::value_ptr(this->specular_color));
-
-  glBindVertexArray(this->VAO);
-  glDrawElements(GL_TRIANGLES, this->index_count, GL_UNSIGNED_INT, 0);
-  glBindVertexArray(0);
-
-  for (GLuint i = 0; i < this->textures.size(); i++) {
-    glActiveTexture(GL_TEXTURE0 + i);
-    glBindTexture(GL_TEXTURE_2D, 0);
-  }
-  glUseProgram(0);
-}
-
 
 void Mesh::upload_mesh_data()
 {
@@ -78,6 +44,10 @@ void Mesh::upload_mesh_data()
   glBindVertexArray(0);
 }
 
+GLuint Mesh::get_VAO()
+{
+    return VAO;
+}
 
 
 /* --- MODEL ---*/
@@ -102,32 +72,6 @@ Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3
 
 
 /* Public Model functions */
-void Model::draw_forward(GLuint shader_program)
-{
-  glUseProgram(shader_program);
-  /* Upload model to world matrix and model rotation for normal calculation */
-  GLuint m2w_location = glGetUniformLocation(shader_program, "model");
-  glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(this->m2w_matrix));
-  GLuint rot_location = glGetUniformLocation(shader_program, "modelRot");
-  glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(this->rot_matrix));
-
-  if (this->attached_lightsources.size() > 0) {
-    GLuint color = glGetUniformLocation(shader_program, "color");
-    glUniform3fv(color, 1, glm::value_ptr(this->attached_lightsources[0].light->get_color()));
-  }
-
-  for (auto mesh : this->meshes) {
-    mesh.draw_forward(shader_program);
-  }
-  glUseProgram(0);
-}
-
-
-void Model::draw_deferred(GLuint shader_program) {
-  return;
-}
-
-
 glm::vec3 Model::get_center_point()
 {
   //return this->bounding_sphere_center;
@@ -153,16 +97,12 @@ position to the model */
 void Model::move_to(glm::vec3 world_coord) {
   this->m2w_matrix = glm::translate(glm::mat4(1.f), world_coord) * this->rot_matrix;
   this->world_coord = world_coord;
-  /* Upload new uniform */
-  glUseProgram(Light::shader_program);
-  GLuint m2w_loc = glGetUniformLocation(Light::shader_program, "model");
-  glUniformMatrix4fv(m2w_loc, 1, GL_FALSE, glm::value_ptr(this->m2w_matrix));
+  
   for (auto light_container : this->attached_lightsources) {
     glm::vec3 new_pos = glm::vec3(m2w_matrix * glm::vec4(light_container.relative_pos, 1.f));
     light_container.light->move_to(new_pos);
     light_container.light->upload_pos();
   }
-  glUseProgram(0);
 }
 
 void Model::move(glm::vec3 relative) {
@@ -362,4 +302,9 @@ const std::vector<Model*> Model::get_loaded_models()
 const std::vector<Model*> Model::get_loaded_flat_models()
 {
   return Model::loaded_flat_models;
+}
+
+const std::vector<Mesh> Model::get_meshes()
+{
+    return meshes;
 }
