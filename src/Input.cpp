@@ -35,10 +35,10 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                 renderer.running = false;
                 break;
             case SDLK_1:
-                renderer.set_forward();
+                renderer.set_mode(FORWARD_MODE);
                 break;
             case SDLK_2:
-                renderer.set_deferred();
+                renderer.set_mode(DEFERRED_MODE);
                 break;
             }
         }

@@ -16,34 +16,33 @@
 #include "Camera.hpp"
 #include "Utils.hpp"
 
+
+enum render_mode {
+    FORWARD_MODE,
+    DEFERRED_MODE,
+    POSITION_MODE,
+    NORMAL_MODE,
+    ALBEDO_MODE,
+    SPECULAR_MODE
+};
+
+
 class Renderer
 {
 public:
-  // This is a typedef of a Renderer member function pointer with return type void and argument std::vector<Model*>.
-  typedef void (Renderer::*render_fptr)(const std::vector<Model*> &loaded_models,
-    const std::vector<Model*> &loaded_flat_models);
-
     bool running = false;
     bool wireframe_mode = false; // unused
     bool draw_bounding_spheres = false; //unused
 
-
-    // This is a function pointer to the current render function
-    render_fptr render_function;
-
     Renderer(){}
 
     void init();
-    void set_deferred();
-    void set_forward();
-    void set_g_position();
-    void set_g_normal();
-    void set_g_albedo();
-    void set_g_specular();
+    void render();
+    void set_mode(render_mode mode);
     void init_uniforms(const Camera &camera);
     void upload_camera_uniforms(const Camera &camera);
 
-  private:
+private:
     enum shader {
       FORWARD,
       GEOMETRY,
@@ -51,22 +50,17 @@ public:
       FLAT
     };
 
+    render_mode mode;
     GLuint shaders[4];
     glm::mat4 w2v_matrix;
 
-    void render_deferred(const std::vector<Model*> &loaded_models,
-      const std::vector<Model*> &loaded_flat_models);
-      void render_forward(const std::vector<Model*> &loaded_models,
-        const std::vector<Model*> &loaded_flat_models);
-        void render_flat(const std::vector<Model*> &loaded_flat_models);
-        void render_g_position(const std::vector<Model*> &loaded_models,
-          const std::vector<Model*> &loaded_flat_models);
-          void render_g_normal(const std::vector<Model*> &loaded_models,
-            const std::vector<Model*> &loaded_flat_models);
-            void render_g_albedo(const std::vector<Model*> &loaded_models,
-              const std::vector<Model*> &loaded_flat_models);
-              void render_g_specular(const std::vector<Model*> &loaded_models,
-                const std::vector<Model*> &loaded_flat_models);
-              };
+    void render_deferred();
+    void render_forward();
+    void render_flat();
+    void render_g_position();
+    void render_g_normal();
+    void render_g_albedo();
+    void render_g_specular();
+};
 
-              #endif
+#endif

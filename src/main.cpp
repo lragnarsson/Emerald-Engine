@@ -19,6 +19,9 @@ void cull_models()
     for (auto model : Model::get_loaded_models()) {
         model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius);
     }
+    for (auto model : Model::get_loaded_flat_models()) {
+        model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius); 
+    }
 }
 
 // --------------------------
@@ -31,17 +34,10 @@ void run()
         handle_mouse_input(camera);
         camera.update_culling_frustum();
 
-
-        glClearColor(0.3, 0.3, 1.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         cull_models();
         renderer.upload_camera_uniforms(camera);
 
-        // This is a call to our renderers member function pointer called render_function
-        (renderer.*renderer.render_function)(Model::get_loaded_models(), Model::get_loaded_flat_models());
-
-        glBindVertexArray(0);
+        renderer.render();
         SDL_GL_SwapWindow(main_window);
     }
 }
