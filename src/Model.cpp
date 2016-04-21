@@ -93,10 +93,10 @@ Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3
   load(path);
   generate_bounding_sphere();
   if (!flat) {
-    this->loaded_models.push_back(this);
+    Model::loaded_models.push_back(this);
   }
   else {
-    this->loaded_flat_models.push_back(this);
+    Model::loaded_flat_models.push_back(this);
   }
 }
 
@@ -137,6 +137,11 @@ glm::vec3 Model::get_center_point()
 
 void Model::attach_light(Light* light, glm::vec3 relative_pos) {
   light_container new_light = {light, relative_pos};
+
+  glm::vec3 light_pos = glm::vec3(m2w_matrix * glm::vec4(relative_pos, 1.f));
+  light->move_to(light_pos);
+  light->upload();
+
   this->attached_lightsources.push_back(new_light);
 }
 

@@ -93,24 +93,20 @@ int main(int argc, char *argv[])
 
     init_uniforms();
 
-    // Load nanosuit model
-    glm::mat4 rot = glm::rotate(glm::mat4(1.0f), 0.3f, glm::vec3(0.f, 1.f, 0.f));
-
     load_scene("scene_file.txt");
 
-    glm::vec3 p1 = glm::vec3(1.f);
-    glm::vec3 p2 = glm::vec3(-3.f, 10.f, 2.f);
-    Model* box1 = new Model("res/models/cube/cube.obj", glm::mat4(1.f), p1, true);
-    Model* box2 = new Model("res/models/cube/cube.obj", glm::mat4(1.f), p2, true);
+    //glm::vec3 p1 = glm::vec3(1.f);
+    //glm::vec3 p2 = glm::vec3(-3.f, 10.f, 2.f);
+    //Model* box1 = new Model("res/models/cube/cube.obj", glm::mat4(1.f), p1, true);
+    //Model* box2 = new Model("res/models/cube/cube.obj", glm::mat4(1.f), p2, true);
 
     // Load light sources into GPU
-    Light light1 = Light(p1, glm::vec3(1.f));
-    Light light2 = Light(p2, glm::vec3(1.f, 0.5f, 0.f));
+    //Light light1 = Light(p1, glm::vec3(1.f));
+    //Light light2 = Light(p2, glm::vec3(1.f, 0.5f, 0.f));
 
     // attach light sources to boxes
-    box1->attach_light(&light1, glm::vec3(0.0f));
-    box2->attach_light(&light2, glm::vec3(0.0f));
-
+    //box1->attach_light(&light1, glm::vec3(0.0f));
+    //box2->attach_light(&light2, glm::vec3(0.0f));
 
     Light::upload_all();
 

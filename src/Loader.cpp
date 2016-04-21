@@ -9,6 +9,7 @@ const char _SECTION_END_ = ']';
 
 const string _MODELS_ = "[models]";
 const string _LIGHTS_ = "[lights]";
+const string _FLAT_ = "[flat]";
 
 const char _SEPARATOR_ = ' ';
 const unsigned int _MINIMUM_ALLOWED_LINE_LENGTH_ = 8;
@@ -34,11 +35,17 @@ vector<string> split_string(string input, char separator)
 
 // ------------------
 // Light::Light(const glm::vec3 world_coord, const glm::vec3 ambient_color,const glm::vec3 diffuse_color, const glm::vec3 specular_color)
-bool load_light(vector<string>& light_line)
+Light* load_light(vector<string> light_line)
 {
-  // This is dummy so far.
-  //new Light(glm::vec3(), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f));
-  return false;
+  float converter;
+  vector<float> numbers;
+
+  for (size_t i = 0; i < light_line.size(); i++) {
+    stringstream(light_line[i]) >> converter;
+    numbers.push_back(converter);
+  }
+
+  return new Light(glm::vec3(numbers[0], numbers[1], numbers[2]), glm::vec3(numbers[3], numbers[4], numbers[5]));
 }
 
 // ------------------
@@ -46,10 +53,13 @@ bool load_light(vector<string>& light_line)
 bool load_model(ifstream* read_file, int* current_line, vector<string>& model_line, bool flat)
 {
   // /path/to/model Xpos Ypos Zpos rotX rotY rotZ nrOfLights
+  vector<float> numbers;
+  float converter;
 
-  vector<double> numbers;
-  double converter;
+  string light_line;
   int nr_of_lights;
+  Light* attach_light;
+  Model* this_model;
 
   for (size_t i = 1; i < model_line.size()-1; i++) {
     stringstream(model_line[i]) >> converter;
@@ -57,10 +67,17 @@ bool load_model(ifstream* read_file, int* current_line, vector<string>& model_li
   }
   stringstream(model_line.back()) >> nr_of_lights;
 
-  new Model(model_line[0], glm::mat4(1.f), glm::vec3(numbers[3], numbers[4], numbers[5]), flat);
+  // Create model
+  this_model = new Model(model_line[0], glm::mat4(1.f), glm::vec3(numbers[3], numbers[4], numbers[5]), flat);
 
-  for (size_t i = 0; i < nr_of_lights; i++) {
-    // Load light
+  // Attach light sources to model
+  if (nr_of_lights > 0) {
+    for (size_t i = 0; i < nr_of_lights; i++) {
+      *current_line++;
+      getline(*read_file,light_line);
+      attach_light = load_light( split_string(light_line, _SEPARATOR_) );
+      this_model->attach_light(attach_light, attach_light->get_pos());
+    }
   }
 
   return true;
@@ -141,11 +158,11 @@ void load_scene(string filepath)
       load_model(&read_file, &current_line, split_line, false);
       continue;
     }
-    else if (current_section == _LIGHTS_){
+    else if (current_section == _FLAT_){
       #ifdef _DEBUG_LOADER_
-      cout << "Loading light!" << endl;
+      cout << "Loading flat shaded model!" << endl;
       #endif
-      load_light(split_line);
+      load_model(&read_file, &current_line, split_line, true);
       continue;
     }
 

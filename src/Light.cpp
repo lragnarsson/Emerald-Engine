@@ -79,6 +79,10 @@ void Light::move_to(glm::vec3 world_coord)
     this->position = world_coord;
 }
 
+glm::vec3 Light::get_pos()
+{
+    return this->position;
+}
 
 void Light::upload_pos()
 {
