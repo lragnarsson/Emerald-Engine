@@ -2,34 +2,7 @@
 #include "Camera.hpp"
 
 
-// --------------------------
 
-void init_renderer()
-{
-    renderer.shader_flat = load_shaders("src/shaders/flat.vert", "src/shaders/flat.frag");
-    renderer.shader_forward = load_shaders("src/shaders/forward.vert", "src/shaders/forward.frag");
-
-    renderer.compiled_shaders.push_back(renderer.shader_flat);
-    renderer.compiled_shaders.push_back(renderer.shader_forward);
-    
-    renderer.set_forward();
-}
-
-// --------------------------
-
-void init_uniforms()
-{
-    w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
-    projection_matrix = glm::perspective(Y_FOV, ASPECT_RATIO, NEAR, FAR);
-    for (int i = 0; i < renderer.compiled_shaders.size(); i ++) {
-        glUseProgram(renderer.compiled_shaders[i]);
-        glUniformMatrix4fv(glGetUniformLocation(renderer.compiled_shaders[i], "view"),
-                           1, GL_FALSE, glm::value_ptr(w2v_matrix));
-        glUniformMatrix4fv(glGetUniformLocation(renderer.compiled_shaders[i], "projection"),
-                           1, GL_FALSE, glm::value_ptr(projection_matrix));
-    }
-    glUseProgram(0);
-}
 
 // --------------------------
 
@@ -66,15 +39,8 @@ void run()
         renderer.upload_camera_uniforms(camera);
         
         // This is a call to our renderers member function pointer called render_function
-        (renderer.*renderer.render_function)(loaded_models);
+        (renderer.*renderer.render_function)(loaded_models, loaded_flat_models);
 
-        // Render flat objects (lightsources)
-        renderer.set_flat();
-        renderer.upload_camera_uniforms(camera);
-        (renderer.*renderer.render_function)(loaded_flat_models);
-
-        renderer.set_forward();
-        
         glBindVertexArray(0);
         SDL_GL_SwapWindow(main_window);
     }
@@ -89,9 +55,9 @@ int main(int argc, char *argv[])
     }
     init_input();
 
-    init_renderer();
+    renderer.init();
 
-    init_uniforms();
+    renderer.init_uniforms(camera);
     
     // Load nanosuit model
     glm::mat4 rot = glm::rotate(glm::mat4(1.0f), 0.3f, glm::vec3(0.f, 1.f, 0.f));
