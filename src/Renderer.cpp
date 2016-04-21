@@ -3,7 +3,7 @@
 
 void Renderer::init()
 {
-    shaders[FORWARD] = load_shaders("src/shaders/forward.vert", "src/shaders/forward.frag"); 
+    shaders[FORWARD] = load_shaders("src/shaders/forward.vert", "src/shaders/forward.frag");
     shaders[GEOMETRY] = load_shaders("src/shaders/flat.vert", "src/shaders/flat.frag");
     shaders[DEFERRED] = load_shaders("src/shaders/flat.vert", "src/shaders/flat.frag");
     shaders[FLAT] = load_shaders("src/shaders/flat.vert", "src/shaders/flat.frag");
@@ -76,8 +76,8 @@ void Renderer::upload_camera_uniforms(const Camera &camera)
 /* Private Renderer functions */
 // --------------------------
 
-void Renderer::render_deferred(std::vector<Model*> &loaded_models,
-                               std::vector<Model*> &loaded_flat_models)
+void Renderer::render_deferred(const std::vector<Model*> &loaded_models,
+                               const std::vector<Model*> &loaded_flat_models)
 {
     glUseProgram(shaders[GEOMETRY]);
     for (auto model : loaded_models) {
@@ -93,8 +93,8 @@ void Renderer::render_deferred(std::vector<Model*> &loaded_models,
 
 // --------------------------
 
-void Renderer::render_forward(std::vector<Model*> &loaded_models,
-                              std::vector<Model*> &loaded_flat_models)
+void Renderer::render_forward(const std::vector<Model*> &loaded_models,
+                              const std::vector<Model*> &loaded_flat_models)
 {
     glUseProgram(shaders[FORWARD]);
     for (auto model : loaded_models) {
@@ -104,7 +104,7 @@ void Renderer::render_forward(std::vector<Model*> &loaded_models,
     glUseProgram(0);
 }
 
-void Renderer::render_flat(std::vector<Model*> &loaded_flat_models)
+void Renderer::render_flat(const std::vector<Model*> &loaded_flat_models)
 {
     glUseProgram(shaders[FLAT]);
     for (auto model : loaded_flat_models) {
@@ -114,32 +114,32 @@ void Renderer::render_flat(std::vector<Model*> &loaded_flat_models)
 
 // --------------------------
 
-void Renderer::render_g_position(std::vector<Model*> &loaded_models,
-                                 std::vector<Model*> &loaded_flat_models)
+void Renderer::render_g_position(const std::vector<Model*> &loaded_models,
+                                 const std::vector<Model*> &loaded_flat_models)
 {
 
 }
 
 // --------------------------
 
-void Renderer::render_g_normal(std::vector<Model*> &loaded_models,
-                               std::vector<Model*> &loaded_flat_models)
+void Renderer::render_g_normal(const std::vector<Model*> &loaded_models,
+                               const std::vector<Model*> &loaded_flat_models)
 {
 
 }
 
 // --------------------------
 
-void Renderer::render_g_albedo(std::vector<Model*> &loaded_models,
-                               std::vector<Model*> &loaded_flat_models)
+void Renderer::render_g_albedo(const std::vector<Model*> &loaded_models,
+                               const std::vector<Model*> &loaded_flat_models)
 {
 
 }
 
 // --------------------------
 
-void Renderer::render_g_specular(std::vector<Model*> &loaded_models,
-                                 std::vector<Model*> &loaded_flat_models)
+void Renderer::render_g_specular(const std::vector<Model*> &loaded_models,
+                                 const std::vector<Model*> &loaded_flat_models)
 {
 
 }

@@ -1,0 +1,14 @@
+
+# Models are loaded using the following syntax:
+# /path/to/model rotX rotY rotZ Xpos Ypos Zpos nr_of_lights
+
+# Lights are placed directly after given model and loaded according to:
+# relativeXpos relativeYpos relativeZpos R G B
+
+[models]
+res/models/nanosuit/nanosuit.obj 0 0 0 0 0 -5 0
+
+[flat]
+res/models/cube/cube.obj 0 0 0 1 1 1 1
+0 0 0 1 1 1
+
