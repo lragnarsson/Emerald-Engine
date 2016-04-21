@@ -16,7 +16,7 @@ void free_resources()
 void cull_models()
 {
     // TODO: Run in parallel
-    for (auto model : Model::get_loaded_models) {
+    for (auto model : Model::get_loaded_models()) {
         model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius);
     }
 }
@@ -39,7 +39,7 @@ void run()
         renderer.upload_camera_uniforms(camera);
 
         // This is a call to our renderers member function pointer called render_function
-        (renderer.*renderer.render_function)(Model::get_loaded_models, Model::get_loaded_flat_models);
+        (renderer.*renderer.render_function)(Model::get_loaded_models(), Model::get_loaded_flat_models());
 
         glBindVertexArray(0);
         SDL_GL_SwapWindow(main_window);

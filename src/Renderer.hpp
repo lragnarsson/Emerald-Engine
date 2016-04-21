@@ -2,11 +2,11 @@
 #define RENDER_STATE_H
 
 #ifdef __linux__
-  #include <GL/glew.h>
+#include <GL/glew.h>
 #endif
 
 #ifdef __APPLE__
-  #include <OpenGL/gl3.h>
+#include <OpenGL/gl3.h>
 #endif
 
 #include <vector>
@@ -19,15 +19,15 @@
 class Renderer
 {
 public:
-    // This is a typedef of a Renderer member function pointer with return type void and argument std::vector<Model*>.
-    typedef void (Renderer::*render_fptr)(std::vector<Model*> &loaded_models,
-                                          std::vector<Model*> &loaded_flat_models);
+  // This is a typedef of a Renderer member function pointer with return type void and argument std::vector<Model*>.
+  typedef void (Renderer::*render_fptr)(const std::vector<Model*> &loaded_models,
+    const std::vector<Model*> &loaded_flat_models);
 
     bool running = false;
     bool wireframe_mode = false; // unused
     bool draw_bounding_spheres = false; //unused
 
-    
+
     // This is a function pointer to the current render function
     render_fptr render_function;
 
@@ -42,31 +42,31 @@ public:
     void set_g_specular();
     void init_uniforms(const Camera &camera);
     void upload_camera_uniforms(const Camera &camera);
-    
-private:
+
+  private:
     enum shader {
-        FORWARD,
-        GEOMETRY,
-        DEFERRED,
-        FLAT
+      FORWARD,
+      GEOMETRY,
+      DEFERRED,
+      FLAT
     };
 
-    GLuint shaders[4]; 
+    GLuint shaders[4];
     glm::mat4 w2v_matrix;
-    
-    void render_deferred(std::vector<Model*> &loaded_models,
-                         std::vector<Model*> &loaded_flat_models);
-    void render_forward(std::vector<Model*> &loaded_models,
-                        std::vector<Model*> &loaded_flat_models);
-    void render_flat(std::vector<Model*> &loaded_flat_models);
-    void render_g_position(std::vector<Model*> &loaded_models,
-                           std::vector<Model*> &loaded_flat_models);
-    void render_g_normal(std::vector<Model*> &loaded_models,
-                         std::vector<Model*> &loaded_flat_models);
-    void render_g_albedo(std::vector<Model*> &loaded_models,
-                         std::vector<Model*> &loaded_flat_models);
-    void render_g_specular(std::vector<Model*> &loaded_models,
-                           std::vector<Model*> &loaded_flat_models);
-};
 
-#endif
+    void render_deferred(const std::vector<Model*> &loaded_models,
+      const std::vector<Model*> &loaded_flat_models);
+      void render_forward(const std::vector<Model*> &loaded_models,
+        const std::vector<Model*> &loaded_flat_models);
+        void render_flat(const std::vector<Model*> &loaded_flat_models);
+        void render_g_position(const std::vector<Model*> &loaded_models,
+          const std::vector<Model*> &loaded_flat_models);
+          void render_g_normal(const std::vector<Model*> &loaded_models,
+            const std::vector<Model*> &loaded_flat_models);
+            void render_g_albedo(const std::vector<Model*> &loaded_models,
+              const std::vector<Model*> &loaded_flat_models);
+              void render_g_specular(const std::vector<Model*> &loaded_models,
+                const std::vector<Model*> &loaded_flat_models);
+              };
+
+              #endif
