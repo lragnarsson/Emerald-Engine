@@ -12,7 +12,7 @@ const string _LIGHTS_ = "[lights]";
 const string _FLAT_ = "[flat]";
 
 const char _SEPARATOR_ = ' ';
-const unsigned int _MINIMUM_ALLOWED_LINE_LENGTH_ = 8;
+const unsigned int _MINIMUM_ALLOWED_LINE_LENGTH_ = 6;
 
 // ------------------
 
@@ -138,11 +138,11 @@ void load_scene(string filepath)
         #endif
         current_section = _MODELS_;
       }
-      else if (split_line.at(0) == _LIGHTS_) {
+      else if (split_line.at(0) == _FLAT_) {
         #ifdef _DEBUG_LOADER_
-        cout << "Line " << current_line << " starts a lights section: " << endl;
+        cout << "Line " << current_line << " starts a flat section: " << endl;
         #endif
-        current_section = _LIGHTS_;
+        current_section = _FLAT_;
       }
       else {
         Error::throw_error(Error::invalid_file_syntax, "On line " + to_string(current_line));
