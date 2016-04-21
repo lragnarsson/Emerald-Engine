@@ -20,7 +20,7 @@ class Renderer
 {
 public:
     // This is a typedef of a Renderer member function pointer with return type void and argument std::vector<Model*>.
-    typedef void (Renderer::*render_fptr)(std::vector<Model*> &loaded_models);
+    typedef void (Renderer::*render_fptr)(const std::vector<Model*> &loaded_models);
 
     bool running = false;
     bool wireframe_mode = false; // unused
@@ -29,7 +29,7 @@ public:
     GLuint shader_forward, shader_geometry, shader_deferred, shader_flat;
     std::vector<GLuint> current_shaders;
     std::vector<GLuint> compiled_shaders;
-    
+
     // This is a function pointer to the current render function
     render_fptr render_function;
 
@@ -45,13 +45,13 @@ public:
     void upload_camera_uniforms(const Camera &camera);
 
 private:
-    void render_deferred(std::vector<Model*> &loaded_models);
-    void render_forward(std::vector<Model*> &loaded_models);
-    void render_flat(std::vector<Model*> &loaded_models);
-    void render_g_position(std::vector<Model*> &loaded_models);
-    void render_g_normal(std::vector<Model*> &loaded_models);
-    void render_g_albedo(std::vector<Model*> &loaded_models);
-    void render_g_specular(std::vector<Model*> &loaded_models);
+    void render_deferred(const std::vector<Model*> &loaded_models);
+    void render_forward(const std::vector<Model*> &loaded_models);
+    void render_flat(const std::vector<Model*> &loaded_models);
+    void render_g_position(const std::vector<Model*> &loaded_models);
+    void render_g_normal(const std::vector<Model*> &loaded_models);
+    void render_g_albedo(const std::vector<Model*> &loaded_models);
+    void render_g_specular(const std::vector<Model*> &loaded_models);
 };
 
 #endif

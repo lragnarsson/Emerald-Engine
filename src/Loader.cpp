@@ -38,6 +38,32 @@ bool load_light(vector<string>& light_line)
 {
   // This is dummy so far.
   //new Light(glm::vec3(), glm::vec3(0.1f), glm::vec3(0.8f), glm::vec3(1.f));
+  return false;
+}
+
+// ------------------
+
+bool load_model(ifstream* read_file, int* current_line, vector<string>& model_line, bool flat)
+{
+  // /path/to/model Xpos Ypos Zpos rotX rotY rotZ nrOfLights
+
+  vector<double> numbers;
+  double converter;
+  int nr_of_lights;
+
+  for (size_t i = 1; i < model_line.size()-1; i++) {
+    stringstream(model_line[i]) >> converter;
+    numbers.push_back(converter);
+  }
+  stringstream(model_line.back()) >> nr_of_lights;
+
+  new Model(model_line[0], glm::mat4(1.f), glm::vec3(numbers[3], numbers[4], numbers[5]), flat);
+
+  for (size_t i = 0; i < nr_of_lights; i++) {
+    // Load light
+  }
+
+  return true;
 }
 
 // ------------------
@@ -60,8 +86,16 @@ void load_scene(string filepath)
 
   while ( getline(read_file,line) ) {
     current_line++;
+
+    #ifdef _DEBUG_LOADER_
+    cout << "Current line: " << current_line << endl;
+    #endif
+
     if ( line.length() < _MINIMUM_ALLOWED_LINE_LENGTH_ ) {
       // This line is assumed empty, see file format specification in Loader.hpp
+      #ifdef _DEBUG_LOADER_
+      cout << "Line " << current_line << " too short: " << endl;
+      #endif
       continue;
     }
 
@@ -70,16 +104,27 @@ void load_scene(string filepath)
 
     // Check for comment
     if (first_char == _COMMENT_) {
+      #ifdef _DEBUG_LOADER_
+      cout << "Line " << current_line << " is a comment: " << endl;
+      #endif
       continue;
     }
 
     // Check for a section
     if ( first_char == _SECTION_STARTER_) {
+      #ifdef _DEBUG_LOADER_
+      cout << "Line " << current_line << " starts with [" << endl;
+      #endif
       if (split_line.at(0) == _MODELS_){
-        cout << "Models not implemented yet." << endl;
+        #ifdef _DEBUG_LOADER_
+        cout << "Line " << current_line << " starts a model section " << endl;
+        #endif
         current_section = _MODELS_;
       }
       else if (split_line.at(0) == _LIGHTS_) {
+        #ifdef _DEBUG_LOADER_
+        cout << "Line " << current_line << " starts a lights section: " << endl;
+        #endif
         current_section = _LIGHTS_;
       }
       else {
@@ -89,11 +134,18 @@ void load_scene(string filepath)
     }
 
     // Load the type that is needed
-    if (current_section == _LIGHTS_) {
-      load_light(split_line);
+    if (current_section == _MODELS_) {
+      #ifdef _DEBUG_LOADER_
+      cout << "Loading model!" << endl;
+      #endif
+      load_model(&read_file, &current_line, split_line, false);
       continue;
     }
-    else if (current_section == _MODELS_){
+    else if (current_section == _LIGHTS_){
+      #ifdef _DEBUG_LOADER_
+      cout << "Loading light!" << endl;
+      #endif
+      load_light(split_line);
       continue;
     }
 

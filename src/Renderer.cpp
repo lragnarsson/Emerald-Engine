@@ -63,7 +63,7 @@ void Renderer::upload_camera_uniforms(const Camera &camera)
 /* Private Renderer functions */
 // --------------------------
 
-void Renderer::render_deferred(std::vector<Model*> &loaded_models)
+void Renderer::render_deferred(const std::vector<Model*> &loaded_models)
 {
     glUseProgram(shader_deferred);
     for (auto model : loaded_models) {
@@ -74,7 +74,7 @@ void Renderer::render_deferred(std::vector<Model*> &loaded_models)
 
 // --------------------------
 
-void Renderer::render_forward(std::vector<Model*> &loaded_models)
+void Renderer::render_forward(const std::vector<Model*> &loaded_models)
 {
     glUseProgram(shader_forward);
     for (auto model : loaded_models) {
@@ -83,39 +83,39 @@ void Renderer::render_forward(std::vector<Model*> &loaded_models)
     glUseProgram(0);
 }
 
-void Renderer::render_flat(std::vector<Model*> &loaded_models)
+void Renderer::render_flat(const std::vector<Model*> &loaded_models)
 {
     glUseProgram(shader_flat);
     for (auto model : loaded_models) {
         model->draw_forward(current_shaders[0]);
     }
     glUseProgram(0);
-    
+
 }
 // --------------------------
 
-void Renderer::render_g_position(std::vector<Model*> &loaded_models)
+void Renderer::render_g_position(const std::vector<Model*> &loaded_models)
 {
 
 }
 
 // --------------------------
 
-void Renderer::render_g_normal(std::vector<Model*> &loaded_models)
+void Renderer::render_g_normal(const std::vector<Model*> &loaded_models)
 {
 
 }
 
 // --------------------------
 
-void Renderer::render_g_albedo(std::vector<Model*> &loaded_models)
+void Renderer::render_g_albedo(const std::vector<Model*> &loaded_models)
 {
 
 }
 
 // --------------------------
 
-void Renderer::render_g_specular(std::vector<Model*> &loaded_models)
+void Renderer::render_g_specular(const std::vector<Model*> &loaded_models)
 {
 
 }

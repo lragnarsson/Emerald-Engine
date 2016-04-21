@@ -69,13 +69,15 @@ public:
     bool draw_me = true;
 
     Model() { };
-    Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3 world_coord);
+    Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3 world_coord, bool flat);
 
     ~Model() { };
 
     void draw_forward(GLuint shader_program);
     void draw_deferred(GLuint shader_program);
     void load(std::string path);
+    static const std::vector<Model*> get_loaded_models();
+    static const std::vector<Model*> get_loaded_flat_models();
 
     void attach_light(Light* light, glm::vec3 relative_pos);
     void move_to(glm::vec3 world_coord);
@@ -89,6 +91,8 @@ private:
         Light* light;
         glm::vec3 relative_pos;
     };
+
+    static std::vector<Model*> loaded_models, loaded_flat_models;
     static std::vector<Texture*> loaded_textures;
     std::vector<light_container> attached_lightsources;
     std::vector<Mesh> meshes;
