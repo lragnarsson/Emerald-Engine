@@ -24,6 +24,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include "Light.hpp"
 
 
 enum texture_type {
@@ -51,9 +52,9 @@ public:
     Mesh() { };
     ~Mesh() { };
 
-    void draw_forward(GLuint shader_program);
     /* Upload vertices, normals etc to the GPU */
-    void upload_mesh_data(GLuint shader_program);
+    void upload_mesh_data();
+    GLuint get_VAO();
 
 private:
     GLuint VAO, EBO;
@@ -63,32 +64,40 @@ private:
 
 class Model {
 public:
-    std::vector<GLuint> shader_programs;
     glm::mat4 m2w_matrix, rot_matrix;
     float bounding_sphere_radius = -1.f;
     bool draw_me = true;
 
     Model() { };
-    Model(std::string path, const GLuint shader_program,
-          const glm::mat4 rot_matrix, const glm::mat4 m2w_matrix);
-    Model(std::string path, const GLuint shader_program,
-          const glm::mat4 rot_matrix, const glm::mat4 m2w_matrix,
-          const float bounding_sphere_radius);
+    Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3 world_coord, bool flat);
 
     ~Model() { };
 
-    void draw_forward(GLuint shader_program);
-    void draw_geometry(GLuint shader_program);
-    void draw_deferred(GLuint shader_program);
     void load(std::string path);
+    static const std::vector<Model*> get_loaded_models();
+    static const std::vector<Model*> get_loaded_flat_models();
+    const std::vector<Mesh> get_meshes();
+
+    void attach_light(Light* light, glm::vec3 relative_pos);
+    void move_to(glm::vec3 world_coord);
+    void move(glm::vec3 relative);
+    void rotate(glm::vec3 axis, float angle);
+    std::vector<Light*> get_lights();
     glm::vec3 get_center_point();
 
 private:
-    static std::vector<Texture*> loaded_textures;
+    struct light_container {
+        Light* light;
+        glm::vec3 relative_pos;
+    };
 
+    static std::vector<Model*> loaded_models, loaded_flat_models;
+    static std::vector<Texture*> loaded_textures;
+    std::vector<light_container> attached_lightsources;
     std::vector<Mesh> meshes;
     std::string directory;
     glm::vec3 bounding_sphere_center;
+    glm::vec3 world_coord;
 
     void unfold_assimp_node(aiNode* node, const aiScene* scene);
     Mesh load_mesh(aiMesh* mesh, const aiScene* scene);

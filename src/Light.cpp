@@ -67,6 +67,32 @@ void Light::upload_all()
     glUseProgram(0);
 }
 
+
+glm::vec3 Light::get_color()
+{
+    return this->color;
+}
+
+
+void Light::move_to(glm::vec3 world_coord)
+{
+    this->position = world_coord;
+}
+
+glm::vec3 Light::get_pos()
+{
+    return this->position;
+}
+
+void Light::upload_pos()
+{
+    glUseProgram(shader_program);
+    const char* name = ("lights[" + std::to_string(this->id) + "].position").c_str();
+    GLuint pos_loc = glGetUniformLocation(shader_program, name);
+    glUniform3fv(pos_loc, 1, glm::value_ptr(this->position));
+    glUseProgram(0);
+}
+
 // ------------
 // Changes color of light
 
@@ -74,9 +100,4 @@ void Light::set_color(glm::vec3 color)
 {
     this->color = color;
     this->upload();
-}
-
-glm::vec3 Light::get_color()
-{
-    return this->color;
 }

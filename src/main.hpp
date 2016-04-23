@@ -5,7 +5,7 @@
 #include "Light.hpp"
 #include "Error.hpp"
 #include "Renderer.hpp"
-
+#include "Loader.hpp"
 
 
 SDL_Window* main_window;
@@ -21,5 +21,4 @@ Camera camera = Camera(glm::vec3(0.f, 0.f, 3.f),    // Position
 glm::mat4 w2v_matrix;
 glm::mat4 projection_matrix;
 
-std::vector<Model*> loaded_models;
 Renderer renderer;

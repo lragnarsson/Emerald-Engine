@@ -34,22 +34,22 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                 renderer.running = false;
                 break;
             case SDLK_1:
-                renderer.set_forward();
+                renderer.set_mode(FORWARD_MODE);
                 break;
             case SDLK_2:
-                renderer.set_deferred();
+                renderer.set_mode(DEFERRED_MODE);
                 break;
             case SDLK_3:
-                renderer.set_g_position();
+                renderer.set_mode(DEFERRED_MODE);
                 break;
             case SDLK_4:
-                renderer.set_g_normal();
+                renderer.set_mode(DEFERRED_MODE);
                 break;
             case SDLK_5:
-                renderer.set_g_albedo();
+                renderer.set_mode(DEFERRED_MODE);
                 break;
             case SDLK_6:
-                renderer.set_g_specular();
+                renderer.set_mode(DEFERRED_MODE);
                 break;
             }
         }
