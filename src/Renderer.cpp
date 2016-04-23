@@ -70,10 +70,6 @@ void Renderer::set_g_specular()
 
 // --------------------------
 
-void Renderer::foo() {
-
-}
-
 void Renderer::init_g_buffer()
 {
     glUseProgram(shader_geometry);
