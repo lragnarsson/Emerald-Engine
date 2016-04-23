@@ -6,13 +6,12 @@ using namespace std;
 const char _COMMENT_ = '#';
 const char _SECTION_STARTER_ =  '[';
 const char _SECTION_END_ = ']';
+const char _SEPARATOR_ = ' ';
+const unsigned int _MINIMUM_ALLOWED_LINE_LENGTH_ = 6;
 
 const string _MODELS_ = "[models]";
 const string _LIGHTS_ = "[lights]";
 const string _FLAT_ = "[flat]";
-
-const char _SEPARATOR_ = ' ';
-const unsigned int _MINIMUM_ALLOWED_LINE_LENGTH_ = 6;
 
 // ------------------
 
