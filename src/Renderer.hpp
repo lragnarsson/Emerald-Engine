@@ -55,8 +55,10 @@ private:
     GLuint shaders[4];
     GLuint g_buffer;
     GLuint g_position, g_normal, g_albedo_specular;
+    GLuint quad_vao, quad_vbo;
     glm::mat4 w2v_matrix;
 
+    void init_quad();
     void init_g_buffer();
 
     void render_deferred();
