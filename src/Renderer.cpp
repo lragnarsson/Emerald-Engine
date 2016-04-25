@@ -7,6 +7,8 @@ void Renderer::init()
     shaders[GEOMETRY] = load_shaders("src/shaders/geometry.vert", "src/shaders/geometry.frag");
     shaders[DEFERRED] = load_shaders("src/shaders/deferred.vert", "src/shaders/deferred.frag");
     shaders[FLAT] = load_shaders("src/shaders/flat.vert", "src/shaders/flat.frag");
+    shaders[G_COMPONENT] = load_shaders("src/shaders/g_component.vert", "src/shaders/g_component.frag");
+    shaders[G_SPECULAR] = load_shaders("src/shaders/g_component.vert", "src/shaders/specular.frag");
 
     init_g_buffer();
     init_quad();
@@ -57,16 +59,20 @@ void Renderer::set_mode(render_mode mode)
         glClearColor(0, 0, 0, 1.0);
         break;
     case POSITION_MODE:
-        Light::shader_program = shaders[DEFERRED];
+        glUseProgram(shaders[G_COMPONENT]);
+        glUniform1i(glGetUniformLocation(shaders[G_COMPONENT], "g_component"), 0);
         break;
     case NORMAL_MODE:
-        Light::shader_program = shaders[DEFERRED];
+        glUseProgram(shaders[G_COMPONENT]);
+        glUniform1i(glGetUniformLocation(shaders[G_COMPONENT], "g_component"), 0);
         break;
     case ALBEDO_MODE:
-        Light::shader_program = shaders[DEFERRED];
+        glUseProgram(shaders[G_COMPONENT]);
+        glUniform1i(glGetUniformLocation(shaders[G_COMPONENT], "g_component"), 0);
         break;
     case SPECULAR_MODE:
-        Light::shader_program = shaders[DEFERRED];
+        glUseProgram(shaders[G_COMPONENT]);
+        glUniform1i(glGetUniformLocation(shaders[G_COMPONENT], "g_component"), 0);
         break;
     }
     Light::upload_all();
@@ -271,30 +277,134 @@ void Renderer::render_flat()
 
 // --------------------------
 
+void Renderer::render_geometry(std::vector<Model*> models)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[GEOMETRY]);
+
+    for (auto model : models) {
+        if (false && !model->draw_me) {
+            continue;
+        }
+        GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
+        GLuint rot_location = glGetUniformLocation(shaders[GEOMETRY], "modelRot");
+        glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
+
+        for (auto mesh : model->get_meshes()) {
+            GLuint diffuse_num = 1;
+            GLuint specular_num = 1;
+
+            for(GLuint i = 0; i < mesh.textures.size(); i++) {
+                glActiveTexture(GL_TEXTURE0 + i);
+                if(mesh.textures[i]->type == DIFFUSE) {
+                    const char* str = ("texture_Diffuse" + std::to_string(diffuse_num++)).c_str();
+                    GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY], str);
+                    glUniform1i(diffuse_loc, i);
+                    glBindTexture(GL_TEXTURE_2D, mesh.textures[i]->id);
+                }
+                else if(mesh.textures[i]->type == SPECULAR) {
+                    const char* str2 = ("texture_Specular" + std::to_string(specular_num++)).c_str();
+                    GLuint specular_loc = glGetUniformLocation(shaders[GEOMETRY], str2);
+                    glUniform1i(specular_loc, i);
+                    glBindTexture(GL_TEXTURE_2D, mesh.textures[i]->id);
+                }
+            }
+
+            glBindVertexArray(mesh.get_VAO());
+
+            /* DRAW GEOMETRY */
+            glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
+
+            glBindVertexArray(0);
+
+            for (GLuint i = 0; i < mesh.textures.size(); i++) {
+                glActiveTexture(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
+        }
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+
 void Renderer::render_g_position()
 {
+    render_geometry(Model::get_loaded_models());
+    render_geometry(Model::get_loaded_flat_models());
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[G_COMPONENT]);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, g_position);
+
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 // --------------------------
 
 void Renderer::render_g_normal()
 {
+    render_geometry(Model::get_loaded_models());
+    render_geometry(Model::get_loaded_flat_models());
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[G_COMPONENT]);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, g_normal);
+
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 // --------------------------
 
 void Renderer::render_g_albedo()
 {
+    render_geometry(Model::get_loaded_models());
+    render_geometry(Model::get_loaded_flat_models());
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[G_COMPONENT]);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
+
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 // --------------------------
 
 void Renderer::render_g_specular()
 {
+    render_geometry(Model::get_loaded_models());
+    render_geometry(Model::get_loaded_flat_models());
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[G_SPECULAR]);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
+
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 // --------------------------
@@ -307,7 +417,7 @@ void Renderer::init_quad()
         1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
         1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
     };
-    glUseProgram(shaders[DEFERRED]);
+
     glGenVertexArrays(1, &quad_vao);
     glGenBuffers(1, &quad_vbo);
     glBindVertexArray(quad_vao);
