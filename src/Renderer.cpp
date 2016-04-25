@@ -103,7 +103,7 @@ void Renderer::upload_camera_uniforms(const Camera &camera)
 void Renderer::render_deferred()
 {
 
-    
+
 }
 
 // --------------------------
@@ -119,7 +119,7 @@ void Renderer::render_forward()
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
         GLuint rot_location = glGetUniformLocation(shaders[FORWARD], "modelRot");
         glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
-        
+
         for (auto mesh : model->get_meshes()) {
             GLuint diffuse_num = 1;
             GLuint specular_num = 1;
@@ -146,10 +146,10 @@ void Renderer::render_forward()
             glUniform3fv(glGetUniformLocation(shaders[FORWARD], "m.specular"), 1, glm::value_ptr(mesh.specular_color));
 
             glBindVertexArray(mesh.get_VAO());
-            
+
             /* DRAW */
             glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
-            
+
             glBindVertexArray(0);
 
             for (GLuint i = 0; i < mesh.textures.size(); i++) {
@@ -184,7 +184,7 @@ void Renderer::render_flat()
 
             /* DRAW */
             glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
-            
+
             glBindVertexArray(0);
         }
     }
