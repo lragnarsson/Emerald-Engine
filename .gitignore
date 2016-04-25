@@ -9,8 +9,9 @@
 *.app
 *.user
 
-# Our own excutable
+# Our own excutable and build directory
 exec
+build
 
 # Merge files
 *.orig
