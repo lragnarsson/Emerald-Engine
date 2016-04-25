@@ -1,5 +1,4 @@
 #include "main.hpp"
-#include "Camera.hpp"
 
 
 
@@ -55,7 +54,7 @@ int main(int argc, char *argv[])
 
     renderer.init_uniforms(camera);
 
-    load_scene("scene_file.txt");
+    load_scene(get_scene_file_from_command_line(argc, argv));
 
     Light::upload_all();
 
