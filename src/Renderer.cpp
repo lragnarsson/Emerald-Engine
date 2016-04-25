@@ -158,10 +158,9 @@ void Renderer::render_forward()
             }
 
         }
-
-        render_flat();
-        glUseProgram(0);
     }
+    render_flat();
+    glUseProgram(0);
 }
 
 
