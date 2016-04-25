@@ -49,6 +49,7 @@ void Renderer::set_mode(render_mode mode)
     this->mode = mode;
     switch (mode) {
     case FORWARD_MODE:
+        glClearColor(0, 0, 0, 1.0);
         Light::shader_program = shaders[FORWARD];
         break;
     case DEFERRED_MODE:
@@ -103,9 +104,7 @@ void Renderer::upload_camera_uniforms(const Camera &camera)
     glUseProgram(0);
 }
 
-
 /* Private Renderer functions */
-
 // --------------------------
 
 void Renderer::render_deferred()
@@ -146,6 +145,12 @@ void Renderer::render_deferred()
 
             glBindVertexArray(mesh.get_VAO());
 
+            glUniform1f(glGetUniformLocation(shaders[GEOMETRY], "m.shininess"), mesh.shininess);
+            glUniform3fv(glGetUniformLocation(shaders[GEOMETRY], "m.ambient"), 1, glm::value_ptr(mesh.ambient_color));
+            glUniform3fv(glGetUniformLocation(shaders[GEOMETRY], "m.diffuse"), 1, glm::value_ptr(mesh.diffuse_color));
+            glUniform3fv(glGetUniformLocation(shaders[GEOMETRY], "m.specular"), 1, glm::value_ptr(mesh.specular_color));
+
+
             /* DRAW GEOMETRY */
             glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
 
@@ -159,6 +164,7 @@ void Renderer::render_deferred()
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    /* DEFERRED SHADING PASS */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[DEFERRED]);
 
@@ -172,6 +178,13 @@ void Renderer::render_deferred()
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
+    /* RENDER FLAT OBJECTS WITH DEPTH BUFFER */
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBlitFramebuffer(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    render_flat();
+
     glBindVertexArray(0);
     glUseProgram(0);
 }
@@ -180,10 +193,9 @@ void Renderer::render_deferred()
 
 void Renderer::render_forward()
 {
-    glClearColor(0, 0, 0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     glUseProgram(shaders[FORWARD]);
+
     for (auto model : Model::get_loaded_models()) {
         if (!model->draw_me) {
             continue;

@@ -47,7 +47,7 @@ vec3 PhongShading(Light l) {
 
     vec3 viewDir = normalize(camPos - FragPos);
     float s = pow(max(dot(viewDir, reflection), 0.0), m.shininess);
-    vec3 specular = s * l.color * vec3(texture(texture_Specular1, TexCoord));
+    vec3 specular = s * l.color * m.specular * vec3(texture(texture_Specular1, TexCoord));
 
     return attenuation * (diffuse + specular) + ambient;
 }
