@@ -46,7 +46,7 @@ void Mesh::upload_mesh_data()
 
 GLuint Mesh::get_VAO()
 {
-    return VAO;
+  return VAO;
 }
 
 
@@ -175,42 +175,40 @@ Mesh Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         }
     }
 
-    if(ai_mesh->mMaterialIndex >= 0) {
-        aiMaterial* material = scene->mMaterials[ai_mesh->mMaterialIndex];
+  aiMaterial* material = scene->mMaterials[ai_mesh->mMaterialIndex];
 
-        GLfloat shininess;
-        material->Get(AI_MATKEY_SHININESS, shininess);
-        m.shininess = shininess / 4.f; // Assimp multiplies shininess by 4 because reasons
+  GLfloat shininess;
+  material->Get(AI_MATKEY_SHININESS, shininess);
+  m.shininess = shininess / 4.f; // Assimp multiplies shininess by 4 because reasons
 
-        aiColor3D ambient, diffuse, specular;
-        material->Get(AI_MATKEY_COLOR_AMBIENT, ambient);
-        material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
-        material->Get(AI_MATKEY_COLOR_SPECULAR, specular);
+  aiColor3D ambient, diffuse, specular;
+  material->Get(AI_MATKEY_COLOR_AMBIENT, ambient);
+  material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
+  material->Get(AI_MATKEY_COLOR_SPECULAR, specular);
 
-        m.ambient_color = glm::vec3(ambient.r, ambient.g, ambient.b);
-        m.diffuse_color = glm::vec3(diffuse.r, diffuse.g, diffuse.b);
-        m.specular_color = glm::vec3(specular.r, specular.g, specular.b);
+  m.ambient_color = glm::vec3(ambient.r, ambient.g, ambient.b);
+  m.diffuse_color = glm::vec3(diffuse.r, diffuse.g, diffuse.b);
+  m.specular_color = glm::vec3(specular.r, specular.g, specular.b);
 
-        for(GLuint i = 0; i < material->GetTextureCount(aiTextureType_DIFFUSE); i++) {
-            aiString filepath;
-            material->GetTexture(aiTextureType_DIFFUSE, i, &filepath);
-            Texture* texture;
-            texture = load_texture(filepath.C_Str(), this->directory);
-            texture->type = DIFFUSE;
-            texture->path = filepath;
-            m.textures.push_back(texture);
-        }
+  for(GLuint i = 0; i < material->GetTextureCount(aiTextureType_DIFFUSE); i++) {
+    aiString filepath;
+    material->GetTexture(aiTextureType_DIFFUSE, i, &filepath);
+    Texture* texture;
+    texture = load_texture(filepath.C_Str(), this->directory);
+    texture->type = DIFFUSE;
+    texture->path = filepath;
+    m.textures.push_back(texture);
+  }
 
-        for(GLuint i = 0; i < material->GetTextureCount(aiTextureType_SPECULAR); i++) {
-            aiString filepath;
-            material->GetTexture(aiTextureType_SPECULAR, i, &filepath);
-            Texture* texture;
-            texture = load_texture(filepath.C_Str(), this->directory);
-            texture->type = SPECULAR;
-            texture->path = filepath;
-            m.textures.push_back(texture);
-        }
-    }
+  for(GLuint i = 0; i < material->GetTextureCount(aiTextureType_SPECULAR); i++) {
+    aiString filepath;
+    material->GetTexture(aiTextureType_SPECULAR, i, &filepath);
+    Texture* texture;
+    texture = load_texture(filepath.C_Str(), this->directory);
+    texture->type = SPECULAR;
+    texture->path = filepath;
+    m.textures.push_back(texture);
+  }
 
     m.upload_mesh_data();
     return m;
@@ -305,5 +303,5 @@ const std::vector<Model*> Model::get_loaded_flat_models()
 
 const std::vector<Mesh> Model::get_meshes()
 {
-    return meshes;
+  return meshes;
 }
