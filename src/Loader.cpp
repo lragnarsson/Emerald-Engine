@@ -6,13 +6,12 @@ using namespace std;
 const char _COMMENT_ = '#';
 const char _SECTION_STARTER_ =  '[';
 const char _SECTION_END_ = ']';
+const char _SEPARATOR_ = ' ';
+const unsigned int _MINIMUM_ALLOWED_LINE_LENGTH_ = 6;
 
 const string _MODELS_ = "[models]";
 const string _LIGHTS_ = "[lights]";
 const string _FLAT_ = "[flat]";
-
-const char _SEPARATOR_ = ' ';
-const unsigned int _MINIMUM_ALLOWED_LINE_LENGTH_ = 6;
 
 // ------------------
 
@@ -61,20 +60,33 @@ bool load_model(ifstream* read_file, int* current_line, vector<string>& model_li
   Light* attach_light;
   Model* this_model;
 
+
   for (size_t i = 1; i < model_line.size()-1; i++) {
     stringstream(model_line[i]) >> converter;
     numbers.push_back(converter);
   }
   stringstream(model_line.back()) >> nr_of_lights;
 
+  // Create rotational matrix for model.
+  glm::mat4 rotX = glm::rotate(glm::mat4(1.0f), -numbers[0], glm::vec3(1.f, 0.f, 0.f));
+  glm::mat4 rotY = glm::rotate(glm::mat4(1.0f), -numbers[1], glm::vec3(0.f, 1.f, 0.f));
+  glm::mat4 rotZ = glm::rotate(glm::mat4(1.0f), numbers[2], glm::vec3(0.f, 0.f, 1.f));
+
+  glm::mat4 total_rot = rotX * rotY * rotZ;
+
   // Create model
-  this_model = new Model(model_line[0], glm::mat4(1.f), glm::vec3(numbers[3], numbers[4], numbers[5]), flat);
+  this_model = new Model(model_line[0], total_rot, glm::vec3(numbers[3], numbers[4], numbers[5]), flat);
 
   // Attach light sources to model
   if (nr_of_lights > 0) {
     for (size_t i = 0; i < nr_of_lights; i++) {
-      *current_line++;
       getline(*read_file,light_line);
+
+      #ifdef _DEBUG_LOADER_
+      *current_line++;
+      cout << "Light source attached to model: " << light_line << endl;
+      #endif
+
       attach_light = load_light( split_string(light_line, _SEPARATOR_) );
       this_model->attach_light(attach_light, attach_light->get_pos());
     }
@@ -154,6 +166,7 @@ void load_scene(string filepath)
     if (current_section == _MODELS_) {
       #ifdef _DEBUG_LOADER_
       cout << "Loading model!" << endl;
+      cout << line << endl;
       #endif
       load_model(&read_file, &current_line, split_line, false);
       continue;
@@ -161,6 +174,7 @@ void load_scene(string filepath)
     else if (current_section == _FLAT_){
       #ifdef _DEBUG_LOADER_
       cout << "Loading flat shaded model!" << endl;
+      cout << line << endl;
       #endif
       load_model(&read_file, &current_line, split_line, true);
       continue;

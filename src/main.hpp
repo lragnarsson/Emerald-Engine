@@ -6,6 +6,7 @@
 #include "Error.hpp"
 #include "Renderer.hpp"
 #include "Loader.hpp"
+#include "Parser.hpp"
 
 
 SDL_Window* main_window;
