@@ -20,7 +20,7 @@ void cull_models()
         model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius);
     }
     for (auto model : Model::get_loaded_flat_models()) {
-        model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius); 
+        model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius);
     }
 }
 
