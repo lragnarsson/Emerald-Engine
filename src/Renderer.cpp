@@ -3,10 +3,10 @@
 
 void Renderer::init()
 {
-    shaders[FORWARD] = load_shaders("src/shaders/forward.vert", "src/shaders/forward.frag");
-    shaders[GEOMETRY] = load_shaders("src/shaders/geometry.vert", "src/shaders/geometry.frag");
-    shaders[DEFERRED] = load_shaders("src/shaders/deferred.vert", "src/shaders/deferred.frag");
-    shaders[FLAT] = load_shaders("src/shaders/flat.vert", "src/shaders/flat.frag");
+    shaders[FORWARD] = load_shaders("build/shaders/forward.vert", "build/shaders/forward.frag");
+    shaders[GEOMETRY] = load_shaders("build/shaders/geometry.vert", "build/shaders/geometry.frag");
+    shaders[DEFERRED] = load_shaders("build/shaders/deferred.vert", "build/shaders/deferred.frag");
+    shaders[FLAT] = load_shaders("build/shaders/flat.vert", "build/shaders/flat.frag");
 
     init_g_buffer();
     init_quad();
@@ -372,4 +372,3 @@ void Renderer::init_g_buffer()
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
-
