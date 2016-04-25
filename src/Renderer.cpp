@@ -53,6 +53,7 @@ void Renderer::set_mode(render_mode mode)
         break;
     case DEFERRED_MODE:
         Light::shader_program = shaders[DEFERRED];
+        glClearColor(0, 0, 0, 1.0);
         break;
     case POSITION_MODE:
         Light::shader_program = shaders[DEFERRED];
@@ -67,6 +68,7 @@ void Renderer::set_mode(render_mode mode)
         Light::shader_program = shaders[DEFERRED];
         break;
     }
+    Light::upload_all();
 }
 
 // --------------------------
@@ -110,10 +112,9 @@ void Renderer::render_deferred()
 {
     /* GEOMETRY PASS */
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
-    glClearColor(0, 0, 0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     glUseProgram(shaders[GEOMETRY]);
+
     for (auto model : Model::get_loaded_models()) {
         if (false && !model->draw_me) {
             continue;
@@ -300,7 +301,7 @@ void Renderer::init_quad()
         1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
         1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
     };
-
+    glUseProgram(shaders[DEFERRED]);
     glGenVertexArrays(1, &quad_vao);
     glGenBuffers(1, &quad_vbo);
     glBindVertexArray(quad_vao);
@@ -316,7 +317,11 @@ void Renderer::init_quad()
 
 void Renderer::init_g_buffer()
 {
-    glUseProgram(shaders[GEOMETRY]);
+    glUseProgram(shaders[DEFERRED]);
+
+    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_position"), 0);
+    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_normal"), 1);
+    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_albedo_specular"), 2);
 
     glDisable(GL_BLEND);
     glGenFramebuffers(1, &g_buffer);

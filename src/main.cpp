@@ -16,7 +16,7 @@ void cull_models()
         model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius);
     }
     for (auto model : Model::get_loaded_flat_models()) {
-        model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius); 
+        model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius);
     }
 }
 
@@ -32,7 +32,6 @@ void run()
 
         cull_models();
         renderer.upload_camera_uniforms(camera);
-
         renderer.render();
         SDL_GL_SwapWindow(main_window);
     }

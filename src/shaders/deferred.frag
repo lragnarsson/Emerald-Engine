@@ -53,15 +53,15 @@ void main()
 
         // Diffuse
         float d = max(dot(normalize(normal), light_dir), 0.0);
-        vec3 diffuse_light = d * lights[i].color *albedo;
+        vec3 diffuse_light = d * lights[i].color * albedo;
 
         // Specular
         vec3 reflection = normalize(reflect(-light_dir, normal));
         float s = pow(max(dot(view_direction, reflection), 0.0), 80);
         vec3 specular_light = s * lights[i].color * specular;
 
-        light += attenuation * (diffuse_light + specular_light);
+        light += (diffuse_light + specular_light);
     }
 
-    OutColor = vec4(light, 1.0);
+    OutColor = vec4(light, 1);
 }
