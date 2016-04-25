@@ -2,7 +2,7 @@ UNAME_S := $(shell uname -s)
 
 CC = g++
 EXEC = exec
-CCFLAGS = -std=c++11 -DGL_GLEXT_PROTOTYPES -DGLEW_STATIC -DGLM_FORCE_RADIANS
+CCFLAGS = -std=c++11 -DGL_GLEXT_PROTOTYPES -DGLEW_STATIC -DGLM_FORCE_RADIANS -D_DEFAULT_SCENE_FILE_="\"scene_file.txt\""
 INC =
 LDFLAGS = -lSDL2 -lSDL2_image -lassimp
 
