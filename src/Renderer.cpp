@@ -145,12 +145,6 @@ void Renderer::render_deferred()
 
             glBindVertexArray(mesh.get_VAO());
 
-            glUniform1f(glGetUniformLocation(shaders[GEOMETRY], "m.shininess"), mesh.shininess);
-            glUniform3fv(glGetUniformLocation(shaders[GEOMETRY], "m.ambient"), 1, glm::value_ptr(mesh.ambient_color));
-            glUniform3fv(glGetUniformLocation(shaders[GEOMETRY], "m.diffuse"), 1, glm::value_ptr(mesh.diffuse_color));
-            glUniform3fv(glGetUniformLocation(shaders[GEOMETRY], "m.specular"), 1, glm::value_ptr(mesh.specular_color));
-
-
             /* DRAW GEOMETRY */
             glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
 
