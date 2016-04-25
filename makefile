@@ -27,7 +27,6 @@ OBJS_TMP = $(notdir $(SRC_FILES:.cpp=.o))
 OBJS = $(addprefix $(OBJS_DIR),$(OBJS_TMP))
 SHADER_SETUP_SCRIPT="$(shell pwd)/src/shader_setup.bash"
 
-$(info OBJS="$(OBJS)")
 
 # ------------------------
 
