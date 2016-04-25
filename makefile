@@ -17,12 +17,16 @@ ifeq ($(UNAME_S),Darwin)
 endif
 
 # ------------------------
-# Files we need 
+# Files we need
 
+OBJS_DIR=build/objs/
 SRC_FILES = $(wildcard src/*.cpp)
 H_FILES = $(wildcard src/*.hpp)
-OBJS = $(SRC_FILES:.cpp=.o)
+OBJS_TMP = $(notdir $(SRC_FILES:.cpp=.o))
+OBJS = $(addprefix $(OBJS_DIR),$(OBJS_TMP))
 SHADER_SETUP_SCRIPT="$(shell pwd)/src/shader_setup.bash"
+
+$(info OBJS="$(OBJS)")
 
 # ------------------------
 
@@ -34,9 +38,12 @@ $(EXEC): $(OBJS)
 setup_shaders: $(SHADER_FILES)
 	$(SHADER_SETUP_SCRIPT) $(MAX_LIGHTS)
 
-%.o: %.cpp %.hpp
+$(OBJS_DIR):
+	mkdir -p $(OBJS_DIR)
+
+$(OBJS_DIR)%.o: src/%.cpp src/%.hpp | $(OBJS_DIR)
 	$(CC) $(CCFLAGS) $(INC) -c -o $@ $<
 
 clean:
-	rm -f $(EXEC) $(OBJS) *~ src/*~ 
+	rm -f $(EXEC) $(OBJS) *~ src/*~
 	rm -rf build
