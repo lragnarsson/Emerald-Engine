@@ -29,8 +29,7 @@ const float ATT_CON = 1.0;
 const float ATT_LIN = 0.008;
 const float ATT_QUAD = 0.005;
 
-const int MAX_LIGHTS = 20;
-uniform Light lights[MAX_LIGHTS];
+uniform Light lights[_MAX_LIGHTS_];
 
 
 vec3 PhongShading(Light l) {
@@ -57,7 +56,7 @@ void main(void)
     int i;
     vec3 result = vec3(0.0);
 
-    for (i = 0; i < MAX_LIGHTS; i++) {
+    for (i = 0; i < _MAX_LIGHTS_; i++) {
       if(lights[i].active_light)
       {
         result += PhongShading(lights[i]);
