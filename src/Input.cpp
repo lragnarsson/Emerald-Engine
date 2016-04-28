@@ -24,8 +24,7 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
     if(keystate[SDL_GetScancodeFromKey(SDLK_d)]) {
         camera.position += glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed;
     }
-    
-    
+
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT)
             renderer.running = false;
@@ -39,6 +38,18 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                 break;
             case SDLK_2:
                 renderer.set_mode(DEFERRED_MODE);
+                break;
+            case SDLK_3:
+                renderer.set_mode(POSITION_MODE);
+                break;
+            case SDLK_4:
+                renderer.set_mode(NORMAL_MODE);
+                break;
+            case SDLK_5:
+                renderer.set_mode(ALBEDO_MODE);
+                break;
+            case SDLK_6:
+                renderer.set_mode(SPECULAR_MODE);
                 break;
             }
         }
