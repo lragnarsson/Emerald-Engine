@@ -54,11 +54,13 @@ GLuint Mesh::get_VAO()
 std::vector<Model*> Model::loaded_models, Model::loaded_flat_models;
 std::vector<Texture*> Model::loaded_textures;
 
-Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3 world_coord, bool flat)
+Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3 world_coord, float scale, bool flat)
 {
     this->rot_matrix = rot_matrix;
-    this->m2w_matrix = glm::translate(glm::mat4(1.0f), world_coord) * rot_matrix;
+    glm::mat4 scale_matrix = glm::scale(glm::mat4(1.f), glm::vec3(scale));
+    this->m2w_matrix = glm::translate(glm::mat4(1.f), world_coord) * rot_matrix * scale_matrix;
     this->world_coord = world_coord;
+    this->scale = scale;
 
     load(path);
     generate_bounding_sphere();
@@ -285,8 +287,8 @@ void Model::generate_bounding_sphere()
             }
         }
     }
-    glm::vec3 max_corner = glm::vec3(x_max, y_max, z_max);
-    glm::vec3 min_corner = glm::vec3(x_min, y_min, z_min);
+    glm::vec3 max_corner = scale*glm::vec3(x_max, y_max, z_max);
+    glm::vec3 min_corner = scale*glm::vec3(x_min, y_min, z_min);
 
     glm::vec3 r_vector = 0.5f * (max_corner - min_corner);
     this->bounding_sphere_radius = glm::length(r_vector);

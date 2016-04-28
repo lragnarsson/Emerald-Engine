@@ -68,7 +68,7 @@ public:
     bool draw_me = true;
 
     Model() { };
-    Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3 world_coord, bool flat);
+    Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3 world_coord, float scale, bool flat);
 
     ~Model() { };
 
@@ -90,6 +90,7 @@ private:
         glm::vec3 relative_pos;
     };
 
+    float scale;
     static std::vector<Model*> loaded_models, loaded_flat_models;
     static std::vector<Texture*> loaded_textures;
     std::vector<light_container> attached_lightsources;

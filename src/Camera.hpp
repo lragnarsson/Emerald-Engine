@@ -22,7 +22,7 @@ const GLfloat Y_FOV = 45.f;
 const GLfloat ASPECT_RATIO = (float) SCREEN_WIDTH / (float) SCREEN_HEIGHT;
 
 const GLfloat NEAR = 0.1f;
-const GLfloat FAR = 100.f;
+const GLfloat FAR = 1000.f;
 
 const GLfloat FAR_H = glm::tan(Y_FOV / 2) * FAR;
 const GLfloat FAR_W = FAR_H * ASPECT_RATIO;
