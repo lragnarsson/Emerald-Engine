@@ -1,4 +1,4 @@
-#version 330 core
+
 
 
 struct Light {
@@ -23,8 +23,7 @@ const float ATT_CON = 1.0;
 const float ATT_LIN = 0.001;
 const float ATT_QUAD = 0.0008;
 
-const int MAX_LIGHTS = 20;
-uniform Light lights[MAX_LIGHTS];
+uniform Light lights[_MAX_LIGHTS_];
 
 
 void main()
@@ -39,7 +38,7 @@ void main()
     // Ambient
     vec3 light = 0.1 * albedo;
 
-    for(int i=0; i < MAX_LIGHTS; i++) {
+    for(int i=0; i < _MAX_LIGHTS_; i++) {
         float distance = length(lights[i].position - position);
         float attenuation = 1.0 / (ATT_CON + ATT_LIN * distance + ATT_QUAD * distance * distance);
         vec3 light_dir = normalize(lights[i].position - position);

@@ -1,4 +1,4 @@
-#version 330
+
 
 
 struct Light {
@@ -22,8 +22,7 @@ const float ATT_CON = 1.0;
 const float ATT_LIN = 0.001;
 const float ATT_QUAD = 0.0008;
 
-const int MAX_LIGHTS = 20;
-uniform Light lights[MAX_LIGHTS];
+uniform Light lights[_MAX_LIGHTS_];
 
 
 vec3 PhongShading(Light l) {
@@ -48,7 +47,7 @@ void main(void)
     int i;
     vec3 result = 0.1 * vec3(texture(texture_Diffuse1, TexCoord));
 
-    for (i = 0; i < MAX_LIGHTS; i++) {
+    for (i = 0; i < _MAX_LIGHTS_; i++) {
       if(lights[i].active_light)
       {
         result += PhongShading(lights[i]);

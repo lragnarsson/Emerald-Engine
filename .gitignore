@@ -1,11 +1,35 @@
-./*
-!*.cpp
-!*.hpp
-!makefile
-!*.frag
-!*.vert
-!*.obj
-!*.png
-!*.md
-!*.txt
-!*.mtl
+# Executables #
+###############
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+*.app
+*.user
+
+# Our own excutable and build directory
+exec
+build
+
+# Merge files
+*.orig
+
+# Various projectfiles #
+##############################
+*.dev
+*.layout
+*.win
+*.xcodeproj
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehtthumbs.db
+Thumbs.db
+

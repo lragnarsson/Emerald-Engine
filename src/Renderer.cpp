@@ -3,10 +3,10 @@
 
 void Renderer::init()
 {
-    shaders[FORWARD] = load_shaders("src/shaders/forward.vert", "src/shaders/forward.frag");
-    shaders[GEOMETRY] = load_shaders("src/shaders/geometry.vert", "src/shaders/geometry.frag");
-    shaders[DEFERRED] = load_shaders("src/shaders/deferred.vert", "src/shaders/deferred.frag");
-    shaders[FLAT] = load_shaders("src/shaders/flat.vert", "src/shaders/flat.frag");
+    shaders[FORWARD] = load_shaders("build/shaders/forward.vert", "build/shaders/forward.frag");
+    shaders[GEOMETRY] = load_shaders("build/shaders/geometry.vert", "build/shaders/geometry.frag");
+    shaders[DEFERRED] = load_shaders("build/shaders/deferred.vert", "build/shaders/deferred.frag");
+    shaders[FLAT] = load_shaders("build/shaders/flat.vert", "build/shaders/flat.frag");
 
     init_g_buffer();
     init_quad();
@@ -49,7 +49,6 @@ void Renderer::set_mode(render_mode mode)
     this->mode = mode;
     switch (mode) {
     case FORWARD_MODE:
-        glClearColor(0, 0, 0, 1.0);
         Light::shader_program = shaders[FORWARD];
         break;
     case DEFERRED_MODE:
@@ -57,12 +56,16 @@ void Renderer::set_mode(render_mode mode)
         glClearColor(0, 0, 0, 1.0);
         break;
     case POSITION_MODE:
+        Light::shader_program = shaders[DEFERRED];
         break;
     case NORMAL_MODE:
+        Light::shader_program = shaders[DEFERRED];
         break;
     case ALBEDO_MODE:
+        Light::shader_program = shaders[DEFERRED];
         break;
     case SPECULAR_MODE:
+        Light::shader_program = shaders[DEFERRED];
         break;
     }
     Light::upload_all();
@@ -100,7 +103,9 @@ void Renderer::upload_camera_uniforms(const Camera &camera)
     glUseProgram(0);
 }
 
+
 /* Private Renderer functions */
+
 // --------------------------
 
 void Renderer::render_deferred()
@@ -154,7 +159,6 @@ void Renderer::render_deferred()
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    /* DEFERRED SHADING PASS */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[DEFERRED]);
 
@@ -183,9 +187,10 @@ void Renderer::render_deferred()
 
 void Renderer::render_forward()
 {
+    glClearColor(0, 0, 0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(shaders[FORWARD]);
 
+    glUseProgram(shaders[FORWARD]);
     for (auto model : Model::get_loaded_models()) {
         if (!model->draw_me) {
             continue;
@@ -298,7 +303,7 @@ void Renderer::init_quad()
         1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
         1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
     };
-
+    glUseProgram(shaders[DEFERRED]);
     glGenVertexArrays(1, &quad_vao);
     glGenBuffers(1, &quad_vbo);
     glBindVertexArray(quad_vao);
@@ -369,4 +374,3 @@ void Renderer::init_g_buffer()
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
-
