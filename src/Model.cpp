@@ -146,34 +146,34 @@ void Model::unfold_assimp_node(aiNode* node, const aiScene* scene) {
     }
 }
 
-Mesh Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
-    Mesh m;
+Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
+    Mesh* m = new Mesh();
 
-    m.index_count = 3 * ai_mesh->mNumFaces;
-    m.vertex_count = ai_mesh->mNumVertices;
+    m->index_count = 3 * ai_mesh->mNumFaces;
+    m->vertex_count = ai_mesh->mNumVertices;
 
     for(GLuint i = 0; i < ai_mesh->mNumVertices; i++) {
-        m.vertices.push_back(ai_mesh->mVertices[i].x);
-        m.vertices.push_back(ai_mesh->mVertices[i].y);
-        m.vertices.push_back(ai_mesh->mVertices[i].z);
+        m->vertices.push_back(ai_mesh->mVertices[i].x);
+        m->vertices.push_back(ai_mesh->mVertices[i].y);
+        m->vertices.push_back(ai_mesh->mVertices[i].z);
 
-        m.normals.push_back(ai_mesh->mNormals[i].x);
-        m.normals.push_back(ai_mesh->mNormals[i].y);
-        m.normals.push_back(ai_mesh->mNormals[i].z);
+        m->normals.push_back(ai_mesh->mNormals[i].x);
+        m->normals.push_back(ai_mesh->mNormals[i].y);
+        m->normals.push_back(ai_mesh->mNormals[i].z);
 
         if(ai_mesh->HasTextureCoords(0)) {
-            m.tex_coords.push_back(ai_mesh->mTextureCoords[0][i].x);
-            m.tex_coords.push_back(ai_mesh->mTextureCoords[0][i].y);
+            m->tex_coords.push_back(ai_mesh->mTextureCoords[0][i].x);
+            m->tex_coords.push_back(ai_mesh->mTextureCoords[0][i].y);
         } else {
-            m.tex_coords.push_back(0.0f);
-            m.tex_coords.push_back(0.0f);
+            m->tex_coords.push_back(0.0f);
+            m->tex_coords.push_back(0.0f);
         }
     }
 
     for(GLuint i = 0; i < ai_mesh->mNumFaces; i++) {
         aiFace face = ai_mesh->mFaces[i];
         for(GLuint j = 0; j < face.mNumIndices; j++) {
-            m.indices.push_back(face.mIndices[j]);
+            m->indices.push_back(face.mIndices[j]);
         }
     }
 
@@ -181,7 +181,7 @@ Mesh Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
 
     GLfloat shininess;
     material->Get(AI_MATKEY_SHININESS, shininess);
-    m.shininess = shininess / 4.f; // Assimp multiplies shininess by 4 because reasons
+    m->shininess = shininess / 4.f; // Assimp multiplies shininess by 4 because reasons
 
     for(GLuint i = 0; i < material->GetTextureCount(aiTextureType_DIFFUSE); i++) {
         aiString filepath;
@@ -190,7 +190,7 @@ Mesh Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         texture = load_texture(filepath.C_Str(), this->directory);
         texture->type = DIFFUSE;
         texture->path = filepath;
-        m.textures.push_back(texture);
+        m->textures.push_back(texture);
     }
 
     for(GLuint i = 0; i < material->GetTextureCount(aiTextureType_SPECULAR); i++) {
@@ -200,10 +200,10 @@ Mesh Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         texture = load_texture(filepath.C_Str(), this->directory);
         texture->type = SPECULAR;
         texture->path = filepath;
-        m.textures.push_back(texture);
+        m->textures.push_back(texture);
     }
 
-    m.upload_mesh_data();
+    m->upload_mesh_data();
     return m;
 }
 
@@ -255,33 +255,33 @@ std::vector<Light *> Model::get_lights()
 
 void Model::generate_bounding_sphere()
 {
-    GLfloat v = this->meshes[0].vertices[0];
+    GLfloat v = this->meshes[0]->vertices[0];
     GLfloat x_max = v, y_max = v, z_max = v, x_min = v, y_min = v, z_min = v;
 
     for (auto mesh : this->meshes) {
-        for (int i=0; i < mesh.vertices.size() - 2; i++) {
-            if (mesh.vertices[i] > x_max){
-                x_max = mesh.vertices[i];
+        for (int i=0; i < mesh->vertices.size() - 2; i++) {
+            if (mesh->vertices[i] > x_max){
+                x_max = mesh->vertices[i];
             }
 
-            if (mesh.vertices[i + 1] > y_max){
-                y_max = mesh.vertices[i + 1];
+            if (mesh->vertices[i + 1] > y_max){
+                y_max = mesh->vertices[i + 1];
             }
 
-            if (mesh.vertices[i + 2] > z_max){
-                z_max = mesh.vertices[i + 2];
+            if (mesh->vertices[i + 2] > z_max){
+                z_max = mesh->vertices[i + 2];
             }
 
-            if (mesh.vertices[i] < x_min){
-                x_min = mesh.vertices[i];
+            if (mesh->vertices[i] < x_min){
+                x_min = mesh->vertices[i];
             }
 
-            if (mesh.vertices[i + 1] < y_min){
-                y_min = mesh.vertices[i + 1];
+            if (mesh->vertices[i + 1] < y_min){
+                y_min = mesh->vertices[i + 1];
             }
 
-            if (mesh.vertices[i + 2] < z_min){
-                z_min = mesh.vertices[i + 2];
+            if (mesh->vertices[i + 2] < z_min){
+                z_min = mesh->vertices[i + 2];
             }
         }
     }
@@ -307,7 +307,7 @@ const std::vector<Model*> Model::get_loaded_flat_models()
     return Model::loaded_flat_models;
 }
 
-const std::vector<Mesh> Model::get_meshes()
+const std::vector<Mesh*> Model::get_meshes()
 {
     return meshes;
 }

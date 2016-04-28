@@ -75,7 +75,7 @@ public:
     void load(std::string path);
     static const std::vector<Model*> get_loaded_models();
     static const std::vector<Model*> get_loaded_flat_models();
-    const std::vector<Mesh> get_meshes();
+    const std::vector<Mesh*> get_meshes();
 
     void attach_light(Light* light, glm::vec3 relative_pos);
     void move_to(glm::vec3 world_coord);
@@ -93,13 +93,13 @@ private:
     static std::vector<Model*> loaded_models, loaded_flat_models;
     static std::vector<Texture*> loaded_textures;
     std::vector<light_container> attached_lightsources;
-    std::vector<Mesh> meshes;
+    std::vector<Mesh*> meshes;
     std::string directory;
     glm::vec3 bounding_sphere_center;
     glm::vec3 world_coord;
 
     void unfold_assimp_node(aiNode* node, const aiScene* scene);
-    Mesh load_mesh(aiMesh* mesh, const aiScene* scene);
+    Mesh* load_mesh(aiMesh* mesh, const aiScene* scene);
     Texture* load_texture(const char* filename, std::string basepath);
     void generate_bounding_sphere();
 };
