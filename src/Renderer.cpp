@@ -220,18 +220,13 @@ void Renderer::render_forward()
                 }
             }
 
-            glUniform1f(glGetUniformLocation(shaders[FORWARD], "m.shininess"), mesh.shininess);
-            glUniform3fv(glGetUniformLocation(shaders[FORWARD], "m.ambient"), 1, glm::value_ptr(mesh.ambient_color));
-            glUniform3fv(glGetUniformLocation(shaders[FORWARD], "m.diffuse"), 1, glm::value_ptr(mesh.diffuse_color));
-            glUniform3fv(glGetUniformLocation(shaders[FORWARD], "m.specular"), 1, glm::value_ptr(mesh.specular_color));
-
-            glBindVertexArray(mesh.get_VAO());
+            glUniform1f(glGetUniformLocation(shaders[FORWARD], "shininess"), mesh.shininess);
 
             /* DRAW */
+            glBindVertexArray(mesh.get_VAO());
             glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
 
             glBindVertexArray(0);
-
             for (GLuint i = 0; i < mesh.textures.size(); i++) {
                 glActiveTexture(GL_TEXTURE0 + i);
                 glBindTexture(GL_TEXTURE_2D, 0);
