@@ -116,7 +116,7 @@ void Renderer::render_deferred()
     glUseProgram(shaders[GEOMETRY]);
 
     for (auto model : Model::get_loaded_models()) {
-        if (false && !model->draw_me) {
+        if (!model->draw_me) {
             continue;
         }
         GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY], "model");
@@ -171,6 +171,13 @@ void Renderer::render_deferred()
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    /* RENDER FLAT OBJECTS WITH DEPTH BUFFER */
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBlitFramebuffer(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    render_flat();
 
     glBindVertexArray(0);
     glUseProgram(0);
