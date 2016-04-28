@@ -11,10 +11,11 @@
 
 #include <vector>
 
-#include "Model.hpp"
-#include "Light.hpp"
 #include "Camera.hpp"
+#include "Model.hpp"
 #include "Utils.hpp"
+#include "Error.hpp"
+
 
 
 enum render_mode {
@@ -47,16 +48,25 @@ private:
       FORWARD,
       GEOMETRY,
       DEFERRED,
-      FLAT
+      FLAT,
+      G_COMPONENT,
+      G_SPECULAR
     };
 
     render_mode mode;
     GLuint shaders[4];
+    GLuint g_buffer;
+    GLuint g_position, g_normal, g_albedo_specular;
+    GLuint quad_vao, quad_vbo;
     glm::mat4 w2v_matrix;
+
+    void init_quad();
+    void init_g_buffer();
 
     void render_deferred();
     void render_forward();
     void render_flat();
+    void render_geometry(std::vector<Model*> models);
     void render_g_position();
     void render_g_normal();
     void render_g_albedo();

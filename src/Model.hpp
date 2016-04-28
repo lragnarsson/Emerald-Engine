@@ -55,7 +55,7 @@ public:
     /* Upload vertices, normals etc to the GPU */
     void upload_mesh_data();
     GLuint get_VAO();
-    
+
 private:
     GLuint VAO, EBO;
     GLuint VBO[3]; // Vertices, normals, texCoords
@@ -77,7 +77,7 @@ public:
     static const std::vector<Model*> get_loaded_models();
     static const std::vector<Model*> get_loaded_flat_models();
     const std::vector<Mesh> get_meshes();
-    
+
     void attach_light(Light* light, glm::vec3 relative_pos);
     void move_to(glm::vec3 world_coord);
     void move(glm::vec3 relative);

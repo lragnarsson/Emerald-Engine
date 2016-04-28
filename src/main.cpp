@@ -1,10 +1,6 @@
 #include "main.hpp"
 
 
-
-
-// --------------------------
-
 void free_resources()
 {
     sdl_quit(main_window, main_context);
@@ -35,7 +31,6 @@ void run()
 
         cull_models();
         renderer.upload_camera_uniforms(camera);
-
         renderer.render();
         SDL_GL_SwapWindow(main_window);
     }
