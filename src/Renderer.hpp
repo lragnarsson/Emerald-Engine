@@ -48,7 +48,9 @@ private:
       FORWARD,
       GEOMETRY,
       DEFERRED,
-      FLAT
+      FLAT,
+      G_COMPONENT,
+      G_SPECULAR
     };
 
     render_mode mode;
@@ -64,6 +66,7 @@ private:
     void render_deferred();
     void render_forward();
     void render_flat();
+    void render_geometry(std::vector<Model*> models);
     void render_g_position();
     void render_g_normal();
     void render_g_albedo();

@@ -115,7 +115,65 @@ void Renderer::render_deferred()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[GEOMETRY]);
 
+    for (auto model : Model::get_loaded_models()) {
+        if (false && !model->draw_me) {
+            continue;
+        }
+        GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
+        GLuint rot_location = glGetUniformLocation(shaders[GEOMETRY], "modelRot");
+        glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
 
+        for (auto mesh : model->get_meshes()) {
+            GLuint diffuse_num = 1;
+            GLuint specular_num = 1;
+
+            for(GLuint i = 0; i < mesh.textures.size(); i++) {
+                glActiveTexture(GL_TEXTURE0 + i);
+                if(mesh.textures[i]->type == DIFFUSE) {
+                    const char* str = ("texture_Diffuse" + std::to_string(diffuse_num++)).c_str();
+                    GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY], str);
+                    glUniform1i(diffuse_loc, i);
+                    glBindTexture(GL_TEXTURE_2D, mesh.textures[i]->id);
+                }
+                else if(mesh.textures[i]->type == SPECULAR) {
+                    const char* str2 = ("texture_Specular" + std::to_string(specular_num++)).c_str();
+                    GLuint specular_loc = glGetUniformLocation(shaders[GEOMETRY], str2);
+                    glUniform1i(specular_loc, i);
+                    glBindTexture(GL_TEXTURE_2D, mesh.textures[i]->id);
+                }
+            }
+
+            glBindVertexArray(mesh.get_VAO());
+
+            /* DRAW GEOMETRY */
+            glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
+
+            glBindVertexArray(0);
+
+            for (GLuint i = 0; i < mesh.textures.size(); i++) {
+                glActiveTexture(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
+        }
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[DEFERRED]);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, g_position);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, g_normal);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
+
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 // --------------------------
