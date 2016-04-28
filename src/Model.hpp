@@ -90,7 +90,7 @@ private:
         glm::vec3 relative_pos;
     };
 
-    float scale;
+    glm::mat4 scale_matrix;
     static std::vector<Model*> loaded_models, loaded_flat_models;
     static std::vector<Texture*> loaded_textures;
     std::vector<light_container> attached_lightsources;
@@ -102,7 +102,7 @@ private:
     void unfold_assimp_node(aiNode* node, const aiScene* scene);
     Mesh* load_mesh(aiMesh* mesh, const aiScene* scene);
     Texture* load_texture(const char* filename, std::string basepath);
-    void generate_bounding_sphere();
+    void generate_bounding_sphere(float scale);
 };
 
 #endif
