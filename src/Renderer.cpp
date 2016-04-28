@@ -128,30 +128,30 @@ void Renderer::render_deferred()
             GLuint diffuse_num = 1;
             GLuint specular_num = 1;
 
-            for(GLuint i = 0; i < mesh.textures.size(); i++) {
+            for(GLuint i = 0; i < mesh->textures.size(); i++) {
                 glActiveTexture(GL_TEXTURE0 + i);
-                if(mesh.textures[i]->type == DIFFUSE) {
+                if(mesh->textures[i]->type == DIFFUSE) {
                     const char* str = ("texture_Diffuse" + std::to_string(diffuse_num++)).c_str();
                     GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY], str);
                     glUniform1i(diffuse_loc, i);
-                    glBindTexture(GL_TEXTURE_2D, mesh.textures[i]->id);
+                    glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
                 }
-                else if(mesh.textures[i]->type == SPECULAR) {
+                else if(mesh->textures[i]->type == SPECULAR) {
                     const char* str2 = ("texture_Specular" + std::to_string(specular_num++)).c_str();
                     GLuint specular_loc = glGetUniformLocation(shaders[GEOMETRY], str2);
                     glUniform1i(specular_loc, i);
-                    glBindTexture(GL_TEXTURE_2D, mesh.textures[i]->id);
+                    glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
                 }
             }
 
-            glBindVertexArray(mesh.get_VAO());
+            glBindVertexArray(mesh->get_VAO());
 
             /* DRAW GEOMETRY */
-            glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
 
             glBindVertexArray(0);
 
-            for (GLuint i = 0; i < mesh.textures.size(); i++) {
+            for (GLuint i = 0; i < mesh->textures.size(); i++) {
                 glActiveTexture(GL_TEXTURE0 + i);
                 glBindTexture(GL_TEXTURE_2D, 0);
             }
@@ -204,30 +204,30 @@ void Renderer::render_forward()
             GLuint diffuse_num = 1;
             GLuint specular_num = 1;
 
-            for(GLuint i = 0; i < mesh.textures.size(); i++) {
+            for(GLuint i = 0; i < mesh->textures.size(); i++) {
                 glActiveTexture(GL_TEXTURE0 + i);
-                if(mesh.textures[i]->type == DIFFUSE) {
+                if(mesh->textures[i]->type == DIFFUSE) {
                     const char* str = ("texture_Diffuse" + std::to_string(diffuse_num++)).c_str();
                     GLuint diffuse_loc = glGetUniformLocation(shaders[FORWARD], str);
                     glUniform1i(diffuse_loc, i);
-                    glBindTexture(GL_TEXTURE_2D, mesh.textures[i]->id);
+                    glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
                 }
-                else if(mesh.textures[i]->type == SPECULAR) {
+                else if(mesh->textures[i]->type == SPECULAR) {
                     const char* str2 = ("texture_Specular" + std::to_string(specular_num++)).c_str();
                     GLuint specular_loc = glGetUniformLocation(shaders[FORWARD], str2);
                     glUniform1i(specular_loc, i);
-                    glBindTexture(GL_TEXTURE_2D, mesh.textures[i]->id);
+                    glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
                 }
             }
 
-            glUniform1f(glGetUniformLocation(shaders[FORWARD], "shininess"), mesh.shininess);
+            glUniform1f(glGetUniformLocation(shaders[FORWARD], "shininess"), mesh->shininess);
 
             /* DRAW */
-            glBindVertexArray(mesh.get_VAO());
-            glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
+            glBindVertexArray(mesh->get_VAO());
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
 
             glBindVertexArray(0);
-            for (GLuint i = 0; i < mesh.textures.size(); i++) {
+            for (GLuint i = 0; i < mesh->textures.size(); i++) {
                 glActiveTexture(GL_TEXTURE0 + i);
                 glBindTexture(GL_TEXTURE_2D, 0);
             }
@@ -255,10 +255,10 @@ void Renderer::render_flat()
             glUniform3fv(color, 1, glm::value_ptr(model->get_lights()[0]->get_color()));
         }
         for (auto mesh : model->get_meshes()) {
-            glBindVertexArray(mesh.get_VAO());
+            glBindVertexArray(mesh->get_VAO());
 
             /* DRAW */
-            glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
 
             glBindVertexArray(0);
         }
