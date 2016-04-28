@@ -62,6 +62,5 @@ void main()
 
         light += (diffuse_light + specular_light);
     }
-
     OutColor = vec4(light, 1);
 }

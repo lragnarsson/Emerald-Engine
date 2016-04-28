@@ -111,7 +111,7 @@ void Renderer::render_deferred()
     glUseProgram(shaders[GEOMETRY]);
 
     for (auto model : Model::get_loaded_models()) {
-        if (false && !model->draw_me) {
+        if (!model->draw_me) {
             continue;
         }
         GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY], "model");
