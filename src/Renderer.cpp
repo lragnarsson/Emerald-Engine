@@ -374,4 +374,3 @@ void Renderer::init_g_buffer()
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
-

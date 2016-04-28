@@ -90,9 +90,9 @@ void Model::attach_light(Light* light, glm::vec3 relative_pos) {
 
 
 /* Move model and all attached lights to world_coord and upload
-   the changed values to GPU.
-   Important: the lights does not currently keep their relative
-   position to the model */
+the changed values to GPU.
+Important: the lights does not currently keep their relative
+position to the model */
 void Model::move_to(glm::vec3 world_coord) {
     this->m2w_matrix = glm::translate(glm::mat4(1.f), world_coord) * this->rot_matrix;
     this->world_coord = world_coord;
@@ -175,41 +175,39 @@ Mesh Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         }
     }
 
-    if(ai_mesh->mMaterialIndex >= 0) {
-        aiMaterial* material = scene->mMaterials[ai_mesh->mMaterialIndex];
+    aiMaterial* material = scene->mMaterials[ai_mesh->mMaterialIndex];
 
-        GLfloat shininess;
-        material->Get(AI_MATKEY_SHININESS, shininess);
-        m.shininess = shininess / 4.f; // Assimp multiplies shininess by 4 because reasons
+    GLfloat shininess;
+    material->Get(AI_MATKEY_SHININESS, shininess);
+    m.shininess = shininess / 4.f; // Assimp multiplies shininess by 4 because reasons
 
-        aiColor3D ambient, diffuse, specular;
-        material->Get(AI_MATKEY_COLOR_AMBIENT, ambient);
-        material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
-        material->Get(AI_MATKEY_COLOR_SPECULAR, specular);
+    aiColor3D ambient, diffuse, specular;
+    material->Get(AI_MATKEY_COLOR_AMBIENT, ambient);
+    material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
+    material->Get(AI_MATKEY_COLOR_SPECULAR, specular);
 
-        m.ambient_color = glm::vec3(ambient.r, ambient.g, ambient.b);
-        m.diffuse_color = glm::vec3(diffuse.r, diffuse.g, diffuse.b);
-        m.specular_color = glm::vec3(specular.r, specular.g, specular.b);
+    m.ambient_color = glm::vec3(ambient.r, ambient.g, ambient.b);
+    m.diffuse_color = glm::vec3(diffuse.r, diffuse.g, diffuse.b);
+    m.specular_color = glm::vec3(specular.r, specular.g, specular.b);
 
-        for(GLuint i = 0; i < material->GetTextureCount(aiTextureType_DIFFUSE); i++) {
-            aiString filepath;
-            material->GetTexture(aiTextureType_DIFFUSE, i, &filepath);
-            Texture* texture;
-            texture = load_texture(filepath.C_Str(), this->directory);
-            texture->type = DIFFUSE;
-            texture->path = filepath;
-            m.textures.push_back(texture);
-        }
+    for(GLuint i = 0; i < material->GetTextureCount(aiTextureType_DIFFUSE); i++) {
+        aiString filepath;
+        material->GetTexture(aiTextureType_DIFFUSE, i, &filepath);
+        Texture* texture;
+        texture = load_texture(filepath.C_Str(), this->directory);
+        texture->type = DIFFUSE;
+        texture->path = filepath;
+        m.textures.push_back(texture);
+    }
 
-        for(GLuint i = 0; i < material->GetTextureCount(aiTextureType_SPECULAR); i++) {
-            aiString filepath;
-            material->GetTexture(aiTextureType_SPECULAR, i, &filepath);
-            Texture* texture;
-            texture = load_texture(filepath.C_Str(), this->directory);
-            texture->type = SPECULAR;
-            texture->path = filepath;
-            m.textures.push_back(texture);
-        }
+    for(GLuint i = 0; i < material->GetTextureCount(aiTextureType_SPECULAR); i++) {
+        aiString filepath;
+        material->GetTexture(aiTextureType_SPECULAR, i, &filepath);
+        Texture* texture;
+        texture = load_texture(filepath.C_Str(), this->directory);
+        texture->type = SPECULAR;
+        texture->path = filepath;
+        m.textures.push_back(texture);
     }
 
     m.upload_mesh_data();
@@ -267,18 +265,24 @@ void Model::generate_bounding_sphere()
 
     for (auto mesh : this->meshes) {
         for (int i=0; i < mesh.vertices.size() - 2; i++) {
-            if (mesh.vertices[i] > x_max)
+            if (mesh.vertices[i] > x_max){
                 x_max = mesh.vertices[i];
-            if (mesh.vertices[i + 1] > y_max)
+            }
+            if (mesh.vertices[i + 1] > y_max){
                 y_max = mesh.vertices[i + 1];
-            if (mesh.vertices[i + 2] > z_max)
+            }
+            if (mesh.vertices[i + 2] > z_max){
                 z_max = mesh.vertices[i + 2];
-            if (mesh.vertices[i] < x_min)
+            }
+            if (mesh.vertices[i] < x_min){
                 x_min = mesh.vertices[i];
-            if (mesh.vertices[i + 1] < y_min)
+            }
+            if (mesh.vertices[i + 1] < y_min){
                 y_min = mesh.vertices[i + 1];
-            if (mesh.vertices[i + 2] < z_min)
+            }
+            if (mesh.vertices[i + 2] < z_min){
                 z_min = mesh.vertices[i + 2];
+            }
         }
     }
     glm::vec3 max_corner = glm::vec3(x_max, y_max, z_max);
