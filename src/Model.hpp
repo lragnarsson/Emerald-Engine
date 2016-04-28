@@ -44,7 +44,6 @@ class Mesh {
 public:
     GLuint index_count, vertex_count;
     GLfloat shininess = 80;
-    glm::vec3 ambient_color = glm::vec3(0.8f), diffuse_color = glm::vec3(0.8f), specular_color = glm::vec3(0.8f);
     std::vector<GLuint> indices;
     std::vector<GLfloat> vertices, normals, tex_coords;
     std::vector<Texture*> textures;

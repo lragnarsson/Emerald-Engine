@@ -104,9 +104,11 @@ void Model::move_to(glm::vec3 world_coord) {
     }
 }
 
+
 void Model::move(glm::vec3 relative) {
     move_to(this->world_coord + relative);
 }
+
 
 void Model::rotate(glm::vec3 axis, float angle) {
     rot_matrix = glm::rotate(rot_matrix, angle, axis);
@@ -182,15 +184,6 @@ Mesh Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         material->Get(AI_MATKEY_SHININESS, shininess);
         m.shininess = shininess / 4.f; // Assimp multiplies shininess by 4 because reasons
 
-        aiColor3D ambient, diffuse, specular;
-        material->Get(AI_MATKEY_COLOR_AMBIENT, ambient);
-        material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
-        material->Get(AI_MATKEY_COLOR_SPECULAR, specular);
-
-        m.ambient_color = glm::vec3(ambient.r, ambient.g, ambient.b);
-        m.diffuse_color = glm::vec3(diffuse.r, diffuse.g, diffuse.b);
-        m.specular_color = glm::vec3(specular.r, specular.g, specular.b);
-
         for(GLuint i = 0; i < material->GetTextureCount(aiTextureType_DIFFUSE); i++) {
             aiString filepath;
             material->GetTexture(aiTextureType_DIFFUSE, i, &filepath);
@@ -251,6 +244,7 @@ Texture* Model::load_texture(const char* filename, std::string basepath)
     return texture;
 }
 
+
 std::vector<Light *> Model::get_lights()
 {
     std::vector<Light *> lights;
@@ -259,6 +253,7 @@ std::vector<Light *> Model::get_lights()
     }
     return lights;
 }
+
 
 void Model::generate_bounding_sphere()
 {

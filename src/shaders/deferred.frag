@@ -1,11 +1,5 @@
 #version 330 core
 
-struct Material {
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-    float shininess;
-};
 
 struct Light {
     vec3 position;
@@ -23,12 +17,11 @@ uniform sampler2D g_normal;
 uniform sampler2D g_albedo_specular;
 
 uniform vec3 camPos;
-
-uniform Material m;
+const float shininess = 86.0;
 
 const float ATT_CON = 1.0;
-const float ATT_LIN = 0.008;
-const float ATT_QUAD = 0.005;
+const float ATT_LIN = 0.001;
+const float ATT_QUAD = 0.0008;
 
 const int MAX_LIGHTS = 20;
 uniform Light lights[MAX_LIGHTS];
@@ -48,7 +41,7 @@ void main()
 
     for(int i=0; i < MAX_LIGHTS; i++) {
         float distance = length(lights[i].position - position);
-        float attenuation = 5.0 / (ATT_CON + ATT_LIN * distance + ATT_QUAD * distance * distance);
+        float attenuation = 1.0 / (ATT_CON + ATT_LIN * distance + ATT_QUAD * distance * distance);
         vec3 light_dir = normalize(lights[i].position - position);
 
         // Diffuse
@@ -57,10 +50,10 @@ void main()
 
         // Specular
         vec3 reflection = normalize(reflect(-light_dir, normal));
-        float s = pow(max(dot(view_direction, reflection), 0.0), 80);
+        float s = pow(max(dot(view_direction, reflection), 0.0), shininess);
         vec3 specular_light = s * lights[i].color * specular;
 
-        light += (diffuse_light + specular_light);
+        light += attenuation * (diffuse_light + specular_light);
     }
     OutColor = vec4(light, 1);
 }
