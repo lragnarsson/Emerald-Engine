@@ -268,18 +268,23 @@ void Model::generate_bounding_sphere()
             if (mesh.vertices[i] > x_max){
                 x_max = mesh.vertices[i];
             }
+
             if (mesh.vertices[i + 1] > y_max){
                 y_max = mesh.vertices[i + 1];
             }
+
             if (mesh.vertices[i + 2] > z_max){
                 z_max = mesh.vertices[i + 2];
             }
+
             if (mesh.vertices[i] < x_min){
                 x_min = mesh.vertices[i];
             }
+
             if (mesh.vertices[i + 1] < y_min){
                 y_min = mesh.vertices[i + 1];
             }
+
             if (mesh.vertices[i + 2] < z_min){
                 z_min = mesh.vertices[i + 2];
             }
