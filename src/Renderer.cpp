@@ -372,6 +372,12 @@ void Renderer::init_ssao()
         ssao_noise.push_back(noise);
     }
 
+    glUseProgram(shaders[SSAO]);
+    glUniform1i(glGetUniformLocation(shaders[SSAO], "g_position_depth"), 0);
+    glUniform1i(glGetUniformLocation(shaders[SSAO], "g_normal"), 1);
+    glUniform1i(glGetUniformLocation(shaders[SSAO], "tex_noise"), 2);
+
+
     /*  Noise texture, really small and repeated */
     glGenTextures(1, &noise_texture);
     glBindTexture(GL_TEXTURE_2D, noise_texture);
@@ -391,6 +397,9 @@ void Renderer::init_ssao()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_result, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "SSAO Framebuffer not complete!" << std::endl;
+    glUseProgram(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -428,7 +437,8 @@ void Renderer::init_g_buffer()
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_position_depth"), 0);
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_normal"), 1);
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_albedo_specular"), 2);
-
+    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "ssao_result"), 3);
+    
     glDisable(GL_BLEND);
     glGenFramebuffers(1, &g_buffer);
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
@@ -436,7 +446,7 @@ void Renderer::init_g_buffer()
     /* Position and LINEAR depth buffer */
     glGenTextures(1, &g_position_depth);
     glBindTexture(GL_TEXTURE_2D, g_position_depth);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -446,7 +456,7 @@ void Renderer::init_g_buffer()
     /* Normal buffer */
     glGenTextures(1, &g_normal);
     glBindTexture(GL_TEXTURE_2D, g_normal);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, g_normal, 0);

@@ -63,5 +63,5 @@ void main(void)
         result += PhongShading(lights[i]);
       }
     }
-    out_Color =  vec4(vec3(linearize_depth(gl_FragCoord.z)/FAR), 1.0);
+    out_Color =  vec4(result, 1.0); //vec3(linearize_depth(gl_FragCoord.z)/FAR), 1.0);
 }

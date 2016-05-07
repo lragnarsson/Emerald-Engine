@@ -69,7 +69,7 @@ private:
     GLuint noise_texture; // Really small and tiled across the screen
     std::vector<glm::vec3> ssao_kernel;
     std::vector<glm::vec3> ssao_noise;
-    GLfloat kernel_radius = 10; // Could be interesting to tweak this
+    GLfloat kernel_radius = 1; // Could be interesting to tweak this
         
     void init_quad();
     void init_g_buffer();

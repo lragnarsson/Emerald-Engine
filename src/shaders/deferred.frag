@@ -39,7 +39,7 @@ void main()
     vec3 normal = texture(g_normal, TexCoord).rgb;
     vec3 albedo = texture(g_albedo_specular, TexCoord).rgb;
     float specular = texture(g_albedo_specular, TexCoord).a;
-    float occlusion = texture(ssao_result, TexCoord).r; // Only red component
+    float occlusion = texture(ssao_result, TexCoord).r; // Only red 
     
     vec3 view_direction = normalize(camPos - position);
 

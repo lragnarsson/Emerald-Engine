@@ -5,6 +5,8 @@ uniform sampler2D g_position_depth;
 uniform sampler2D g_normal;
 uniform sampler2D tex_noise;
 
+uniform mat4 view;
+
 uniform vec3 samples[64]; // Kernel samples from surrounding screen space geometry
 uniform mat4 projection;
 
@@ -20,8 +22,8 @@ int kernel_size = 64;
 
 void main()
 {
-    vec3 frag_pos = texture(g_position_depth, TexCoord).xyz;
-    vec3 normal = texture(g_normal, TexCoord).rgb;
+    vec3 frag_pos = vec3(view * vec4(texture(g_position_depth, TexCoord).xyz, 1.0f));
+    vec3 normal = vec3(mat3(view) * texture(g_normal, TexCoord).rgb);
     vec3 random_vec = texture(tex_noise, TexCoord * noise_scale).xyz;
 
     // Create tangent-to-viewspace matrix to transform tangent-space samples to view-space
@@ -45,7 +47,7 @@ void main()
             float range_check = smoothstep(0.0, 1.0, kernel_radius / abs(frag_pos.z - sample_depth));
             occlusion += (sample_depth >= sample.z ? 1.0 : 0.0) * range_check;    
         }  
-    occlusion = 1.0 - occlusion / kernel_radius; // To make sure that the occlusion is [0 1]
+    occlusion = 1.0 - occlusion / kernel_size; // To make sure that the occlusion is [0 1]
 
     FragColor = occlusion;
 }
