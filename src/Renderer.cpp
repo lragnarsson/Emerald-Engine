@@ -455,9 +455,7 @@ void Renderer::init_quad()
         1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
         1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
     };
-    // REMOVE THIS?
-    glUseProgram(shaders[DEFERRED]);
-    // ?
+    
     glGenVertexArrays(1, &quad_vao);
     glGenBuffers(1, &quad_vbo);
     glBindVertexArray(quad_vao);
@@ -497,12 +495,12 @@ void Renderer::init_g_buffer()
     /* Normal buffer */
     glGenTextures(1, &g_normal);
     glBindTexture(GL_TEXTURE_2D, g_normal);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, g_normal, 0);
 
-    /* Normal and Specular buffer*/
+    /* Albedo and Specular buffer*/
     glGenTextures(1, &g_albedo_specular);
     glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);

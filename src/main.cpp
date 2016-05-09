@@ -45,16 +45,12 @@ int main(int argc, char *argv[])
     }
     init_input();
 
-    //    printf("kernel size %lu:\n", renderer.get_kernel_size());
     renderer.init();
 
     renderer.init_uniforms(camera);
 
-    printf("Uniforms initialized\n");
-    
     load_scene(get_scene_file_from_command_line(argc, argv));
 
-    printf("Scene loaded\n");
     
     Light::upload_all();
 

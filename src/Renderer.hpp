@@ -86,9 +86,7 @@ private:
     void render_flat();
     void clear_ssao();
     void render_ssao();
-    // REMOVE
     void render_geometry(std::vector<Model*> models);
-    // THIS?
     void render_g_position();
     void render_g_normal();
     void render_g_albedo();

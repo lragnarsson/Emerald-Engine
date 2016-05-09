@@ -11,14 +11,11 @@ in vec3 Normal;
 uniform sampler2D texture_diffuse1;
 uniform sampler2D texture_specular1;
 
-const float NEAR = 0.1f;
-const float FAR = 100.0f;
-
 
 float linearize_depth(float depth)
 {
     float z = depth * 2.0 - 1.0; // Back to NDC 
-    return (2.0 * NEAR * FAR) / (FAR + NEAR - z * (FAR - NEAR));	
+    return (2.0 * _NEAR_ * _FAR_) / (_FAR_ + _NEAR_ - z * (_FAR_ - _NEAR_));	
 }
 
 void main()
