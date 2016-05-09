@@ -162,11 +162,9 @@ void Renderer::render_deferred()
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    //    printf("Time to render_ssao\n");
-    if (ssao_on) {
+
+    if (this->ssao_on) {
         render_ssao();
-    } else {
-        clear_ssao(); // Should problably make sure that this does not happen every turn if OFF
     }
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -186,13 +184,13 @@ void Renderer::render_deferred()
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     
-    /* RENDER FLAT OBJECTS WITH DEPTH BUFFER */ /*
+    /* RENDER FLAT OBJECTS WITH DEPTH BUFFER */ 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glBlitFramebuffer(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     render_flat();
-                                                */
+                                                
     glBindVertexArray(0);
     glUseProgram(0);
 }
@@ -279,18 +277,58 @@ void Renderer::render_flat()
     }
 }
 
+inline GLfloat lerp(GLfloat a, GLfloat b, GLfloat f)
+{
+    return a + f * (b - a);
+}
+
+void Renderer::set_ssao_n_samples(GLint n)
+{
+    if (n > MAX_SSAO_SAMPLES|| n < 1) {
+        std::string str = "n = " + std::to_string(n);
+        Error::throw_error(Error::ssao_num_samples, str);
+    }
+    ssao_n_samples = n;
+
+    
+    ssao_kernel.clear();
+    /* Create a unit hemisphere with n samples */
+    std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // random floats between 0.0 - 1.0
+    std::default_random_engine generator;
+        
+    GLfloat scale;
+    glm::vec3 sample;
+    for (int i = 0; i < n; ++i) {
+        sample = glm::vec3(
+                           randomFloats(generator) * 2.0 - 1.0, 
+                           randomFloats(generator) * 2.0 - 1.0, 
+                           randomFloats(generator)
+                           );
+        sample = glm::normalize(sample);
+        sample *= randomFloats(generator);
+        scale = GLfloat(i) / n;
+        scale = lerp(0.1f, 1.0f, scale * scale);
+        sample *= scale;
+        ssao_kernel.push_back(sample);
+    }
+}
+
+bool Renderer::toggle_ssao()
+{
+    ssao_on = !ssao_on;
+    if (!ssao_on) {
+        clear_ssao();
+    }
+    return ssao_on;
+}
+    
+
 void Renderer::clear_ssao()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
-    //glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, ssao_result, 0); //Only need to do this once.
-    //glDrawBuffer(GL_COLOR_ATTACHMENT0); //Only need to do this once.
     float clearColor[1] = {1.0};
     glClearBufferfv(GL_COLOR, 0, clearColor);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    /*
-    glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
-    glClearColor(1.0,1.0,1.0,1.0);
-    glClear(GL_COLOR_BUFFER_BIT);*/
 }
 
 void Renderer::render_ssao()
@@ -306,12 +344,14 @@ void Renderer::render_ssao()
     glBindTexture(GL_TEXTURE_2D, noise_texture);
 
     // Upload shader samples
-    for (GLuint i = 0; i < 64; i++) {
+    for (GLuint i = 0; i < ssao_n_samples; i++) {
         GLuint sample_loc = glGetUniformLocation(shaders[SSAO], ("samples[" + std::to_string(i) + "]").c_str());
         glUniform3fv(sample_loc, 1, &ssao_kernel[i][0]);
     }
     GLuint radius_loc = glGetUniformLocation(shaders[SSAO], "kernel_radius");
     glUniform1f(radius_loc, kernel_radius);
+    GLuint size_loc = glGetUniformLocation(shaders[SSAO], "ssao_n_samples");
+    glUniform1i(size_loc, ssao_n_samples);
     // Projection matrix should already be uploaded from init_uniforms
 
     // Render quad
@@ -351,36 +391,19 @@ void Renderer::render_g_specular()
 
 // --------------------------
 
-inline GLfloat lerp(GLfloat a, GLfloat b, GLfloat f)
-{
-    return a + f * (b - a);
-}
 
 void Renderer::init_ssao()
 {
     printf("Init_SSAO\n");
+    ssao_on = true;
+    ssao_n_samples = 64;
+
+    /* Create ssao kernel */
+    set_ssao_n_samples(ssao_n_samples);
+
     std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // random floats between 0.0 - 1.0
     std::default_random_engine generator;
         
-    GLfloat scale;
-    glm::vec3 sample;
-
-    /* Create a unit hemisphere with 64 samples */
-    for (int i = 0; i < 64; ++i) {
-        sample = glm::vec3(
-                           randomFloats(generator) * 2.0 - 1.0, 
-                           randomFloats(generator) * 2.0 - 1.0, 
-                           randomFloats(generator)
-                           );
-        sample = glm::normalize(sample);
-        sample *= randomFloats(generator);
-        scale = GLfloat(i) / 64.0;
-        scale = lerp(0.1f, 1.0f, scale * scale);
-        sample *= scale;
-        ssao_kernel.push_back(sample);
-        
-    }
-
     /* Random rotations of the kernel */
     for (GLuint i = 0; i < 16; i++) {
         glm::vec3 noise(

@@ -7,18 +7,23 @@ uniform sampler2D tex_noise;
 
 uniform mat4 view;
 
-uniform vec3 samples[64]; // Kernel samples from surrounding screen space geometry
-uniform mat4 projection;
 
 uniform float kernel_radius;
+uniform int ssao_n_samples;
 
 const float SCREEN_WIDTH = 800.0;
 const float SCREEN_HEIGHT = 640.0;
+const int MAX_N_SAMPELS = 256;
+
+uniform vec3 samples[256]; // Kernel samples from surrounding screen space geometry
+uniform mat4 projection;
+
+
 
 // scaling for the noise texture coords to ensure that the noise texture tiles across the screen.
 const vec2 noise_scale = vec2(SCREEN_WIDTH / 4.0, SCREEN_HEIGHT / 4.0);
 
-int kernel_size = 64;
+
 
 void main()
 {
@@ -33,7 +38,7 @@ void main()
     mat3 TBN = mat3(tangent, bitangent, normal);
 
     float occlusion = 0.0;
-    for(int i = 0; i < kernel_size; ++i)
+    for(int i = 0; i < ssao_n_samples; ++i)
         {
             // get sample position
             vec3 sample = TBN * samples[i]; // From tangent to view-space
@@ -47,7 +52,7 @@ void main()
             float range_check = smoothstep(0.0, 1.0, kernel_radius / abs(frag_pos.z - sample_depth));
             occlusion += (sample_depth >= sample.z ? 1.0 : 0.0) * range_check;    
         }  
-    occlusion = 1.0 - occlusion / kernel_size; // To make sure that the occlusion is [0 1]
+    occlusion = 1.0 - occlusion / float(ssao_n_samples); // To make sure that the occlusion is [0 1]
 
     FragColor = occlusion;
 }
