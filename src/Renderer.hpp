@@ -44,6 +44,9 @@ public:
     void set_mode(render_mode mode);
     void init_uniforms(const Camera &camera);
     void upload_camera_uniforms(const Camera &camera);
+    void set_kernel_radius(float radius) {kernel_radius = radius;}
+    float get_kernel_radius() {return kernel_radius;}
+    bool toggle_ssao() {ssao_on = !ssao_on; return ssao_on;}
     //unsigned long get_kernel_size() { return ssao_kernel.size(); }
     
 private:
@@ -69,8 +72,9 @@ private:
     GLuint noise_texture; // Really small and tiled across the screen
     std::vector<glm::vec3> ssao_kernel;
     std::vector<glm::vec3> ssao_noise;
-    GLfloat kernel_radius = 1; // Could be interesting to tweak this
-        
+    GLfloat kernel_radius = 3; // Could be interesting to tweak this
+    bool ssao_on = true;
+    
     void init_quad();
     void init_g_buffer();
     void init_ssao();
@@ -78,6 +82,7 @@ private:
     void render_deferred();
     void render_forward();
     void render_flat();
+    void clear_ssao();
     void render_ssao();
     // REMOVE
     void render_geometry(std::vector<Model*> models);

@@ -44,7 +44,7 @@ void main()
     vec3 view_direction = normalize(camPos - position);
 
     // Ambient
-    vec3 light = 0.1 * albedo;
+    vec3 light = occlusion * albedo;
 
     for(int i=0; i < _MAX_LIGHTS_; i++) {
         float distance = length(lights[i].position - position);
@@ -63,5 +63,5 @@ void main()
         light += attenuation * (diffuse_light + specular_light);
     }
     
-    OutColor = vec4(vec3(occlusion), 1);
+    OutColor = vec4(light, 1);
 }

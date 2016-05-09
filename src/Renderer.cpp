@@ -163,7 +163,11 @@ void Renderer::render_deferred()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     //    printf("Time to render_ssao\n");
-    render_ssao();
+    if (ssao_on) {
+        render_ssao();
+    } else {
+        clear_ssao(); // Should problably make sure that this does not happen every turn if OFF
+    }
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[DEFERRED]);
@@ -273,6 +277,20 @@ void Renderer::render_flat()
             glBindVertexArray(0);
         }
     }
+}
+
+void Renderer::clear_ssao()
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
+    //glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, ssao_result, 0); //Only need to do this once.
+    //glDrawBuffer(GL_COLOR_ATTACHMENT0); //Only need to do this once.
+    float clearColor[1] = {1.0};
+    glClearBufferfv(GL_COLOR, 0, clearColor);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    /*
+    glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
+    glClearColor(1.0,1.0,1.0,1.0);
+    glClear(GL_COLOR_BUFFER_BIT);*/
 }
 
 void Renderer::render_ssao()
