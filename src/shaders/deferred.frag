@@ -26,10 +26,6 @@ const float ATT_QUAD = 0.0008;
 
 uniform Light lights[_MAX_LIGHTS_];
 
-const float NEAR = 0.1f;
-const float FAR = 100.0f;
-
-
 void main()
 {
     vec3 position = texture(g_position_depth, TexCoord).rgb;
@@ -39,8 +35,8 @@ void main()
     vec3 normal = texture(g_normal, TexCoord).rgb;
     vec3 albedo = texture(g_albedo_specular, TexCoord).rgb;
     float specular = texture(g_albedo_specular, TexCoord).a;
-    float occlusion = texture(ssao_result, TexCoord).r; // Only red 
-    
+    float occlusion = texture(ssao_result, TexCoord).r; // Only red
+
     vec3 view_direction = normalize(camPos - position);
 
     // Ambient
@@ -62,6 +58,6 @@ void main()
 
         light += attenuation * (diffuse_light + specular_light);
     }
-    
+
     OutColor = vec4(light, 1);
 }
