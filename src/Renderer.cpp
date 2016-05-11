@@ -557,7 +557,7 @@ void Renderer::init_tweak_bar(bool use_tweak_bar)
     // Create bar
     tweak_bar = TwNewBar("Emeralds tweakbar");
 
-    // Test to add a variable to AntTweakBar
+    // FPS counter
     TwAddVarRO(tweak_bar, "FPS", TW_TYPE_UINT32, &fps," label='FPS' help='Frames per second' ");
 }
 
