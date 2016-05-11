@@ -75,7 +75,7 @@ bool load_model(ifstream* read_file, int* current_line, vector<string>& model_li
   glm::mat4 total_rot = rotX * rotY * rotZ;
 
   // Create model
-  this_model = new Model(model_line[0], total_rot, glm::vec3(numbers[3], numbers[4], numbers[5]), flat);
+  this_model = new Model(model_line[0], total_rot, glm::vec3(numbers[3], numbers[4], numbers[5]), numbers[6], flat);
 
   // Attach light sources to model
   if (nr_of_lights > 0) {
