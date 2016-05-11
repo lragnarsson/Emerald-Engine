@@ -29,20 +29,20 @@
   ----------
   # This is a comment
 
-  # The line below starts a section. Available sections are lights, models, and ground.
+  # The line below starts a section. Available sections are models and flat
 
   [models]
-  /path/to/model Xpos Ypos Zpos rotX rotY rotZ nrOfLights
+  /path/to/model Xpos Ypos Zpos rotX rotY rotZ scale nrOfLights
   relativeXpos relativeYpos relativeZpos R G B
 
   [flat]
-  /path/to/model Xpos Ypos Zpos rotX rotY rotZ nrOfLights
+  /path/to/model Xpos Ypos Zpos rotX rotY rotZ scale nrOfLights
   relativeXpos relativeYpos relativeZpos R G B
   ----------
 
-  The minimum allowed line length is derrived from the shortest line that fulfill the specification. In it's current state that is, for a model section:
+  The minimum allowed line length is derrived from the shortest line that fulfill the specification. In it's current state that is, for a flat section:
 
-  [models]
+  [flat]
 
 */
 

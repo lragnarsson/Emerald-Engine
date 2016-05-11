@@ -10,6 +10,7 @@
 #endif
 
 #include <vector>
+#include <random>
 
 #include "Camera.hpp"
 #include "Model.hpp"
@@ -17,6 +18,7 @@
 #include "Error.hpp"
 
 
+#define MAX_SSAO_SAMPLES 256
 
 enum render_mode {
     FORWARD_MODE,
@@ -35,13 +37,18 @@ public:
     bool wireframe_mode = false; // unused
     bool draw_bounding_spheres = false; //unused
 
-    Renderer(){}
+    Renderer() {}
 
     void init();
     void render();
     void set_mode(render_mode mode);
     void init_uniforms(const Camera &camera);
     void upload_camera_uniforms(const Camera &camera);
+    void set_kernel_radius(float radius) {kernel_radius = radius;}
+    float get_kernel_radius() {return kernel_radius;}
+    void set_ssao_n_samples(GLint n);
+    GLint get_ssao_n_samples() {return ssao_n_samples;}
+    bool toggle_ssao();
 
 private:
     enum shader {
@@ -49,25 +56,40 @@ private:
       GEOMETRY,
       DEFERRED,
       FLAT,
+      SSAO,
       G_COMPONENT,
       G_SPECULAR
     };
 
     render_mode mode;
-    GLuint shaders[4];
-    GLuint g_buffer;
-    GLuint g_position, g_normal, g_albedo_specular;
+    GLuint shaders[5];
+    GLuint g_buffer, ssao_fbuffer;
+    GLuint g_position_depth, g_normal, g_albedo_specular, ssao_result;
     GLuint quad_vao, quad_vbo;
     glm::mat4 w2v_matrix;
     Model* sphere;
 
+    //glm::vec3 ssao_kernel[64];
+
+    GLuint noise_texture; // Really small and tiled across the screen
+    std::vector<glm::vec3> ssao_kernel;
+    std::vector<glm::vec3> ssao_noise;
+    GLfloat kernel_radius = 1; // Could be interesting to tweak this
+    GLint ssao_n_samples = 64;
+    bool ssao_on;
+
     void init_quad();
     void init_g_buffer();
+    void init_ssao();
 
     void render_deferred();
     void render_forward();
     void render_flat();
     void render_bounding_spheres();
+
+    void clear_ssao();
+    void render_ssao();
+
     void render_geometry(std::vector<Model*> models);
     void render_g_position();
     void render_g_normal();

@@ -1,17 +1,18 @@
-
-# Models are loaded using the following syntax:
-# /path/to/model rotX rotY rotZ Xpos Ypos Zpos nr_of_lights
-
-# Lights are placed directly after given model and loaded according to:
-# relativeXpos relativeYpos relativeZpos R G B
-
+# Available sections are "flat" and "models".
+# A section is started with:
 [models]
-#res/models/nanosuit/nanosuit.obj 0 0 0 -20 5 10 1 0
+# Models are loaded using the following syntax:
+# /path/to/model rotX rotY rotZ Xpos Ypos Zpos scale nr_of_lights
+res/models/nanosuit/nanosuit.obj 0 0 0 10 2 -5 5 0
+res/models/nanosuit/nanosuit.obj 0 0 0 8 0 -5 1 0
 res/models/nanosuit/nanosuit.obj 0 0 0 -8 0 -5 1 0
+# Now we have loaded three nanosuits
 
+# This will start a new section for loading flat-shaded models.
 [flat]
-res/models/sphere/sphere.obj 0 0 0 10 0 -5 5 0
-res/models/cube/cube.obj 0 0 0 1 1 1 4 1
+# Light sources attatched to models are placed directly after given model and loaded according to:
+# relativeXpos relativeYpos relativeZpos R G B
+res/models/cube/cube.obj 0 0 0 1 1 1 1 1
 0 0 0 0.1 0.3 0.8
 res/models/cube/cube.obj 0 0 0 3 10 1 1 1
 0 0 0 0.2 0.8 0.1
@@ -19,3 +20,4 @@ res/models/cube/cube.obj 0 0 0 -2 8 -10 1 1
 0 0 0 0.8 0.1 0.1
 res/models/cube/cube.obj 0 0 0 -5 7 -10 1 1
 0 0 0 1 1 1
+

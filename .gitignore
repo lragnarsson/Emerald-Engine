@@ -33,3 +33,7 @@ build
 ehtthumbs.db
 Thumbs.db
 
+# Emacs temp files #
+####################
+*~
+*#
