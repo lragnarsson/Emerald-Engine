@@ -8,6 +8,7 @@
 #include "Loader.hpp"
 #include "Parser.hpp"
 
+
 SDL_Window* main_window;
 SDL_GLContext main_context;
 
