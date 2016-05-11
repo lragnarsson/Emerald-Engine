@@ -41,6 +41,7 @@ void Renderer::render()
         render_g_specular();
         break;
     }
+    draw_tweak_bar();
     glBindVertexArray(0);
     glUseProgram(0);
 }
@@ -545,9 +546,11 @@ void Renderer::init_tweak_bar()
 {
     // Initialize AntTweakBar
     TwInit(TW_OPENGL, NULL);
-    tweak_bar = TwNewBar("Emeralds tweakbar");
     // Send the new window size to AntTweakBar
     TwWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+    // Create bar
+    tweak_bar = TwNewBar("Emeralds tweakbar");
 
     // Test to add a variable to AntTweakBar
     TwAddVarRW(tweak_bar, "SSAO samples", TW_TYPE_INT32, &ssao_n_samples, " label='Number of ssao samples' min=1 max=255 keyIncr=c keyDecr=C help='Nr of ssao samples.'");
