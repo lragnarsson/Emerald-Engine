@@ -46,7 +46,8 @@ int main(int argc, char *argv[])
     }
     init_input();
 
-    renderer.init();
+    bool tweak_bar = true;
+    renderer.init(tweak_bar);
 
     renderer.init_uniforms(camera);
 

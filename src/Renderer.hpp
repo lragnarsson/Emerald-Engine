@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <random>
+#include <SDL2/SDL.h>
 #include <AntTweakBar.h>
 
 #include "Camera.hpp"
@@ -40,7 +41,7 @@ public:
 
     Renderer() {}
 
-    void init();
+    void init(bool use_tweak_bar);
     void render();
     void set_mode(render_mode mode);
     void init_uniforms(const Camera &camera);
@@ -80,12 +81,16 @@ private:
 
     // Tweak bar
     TwBar* tweak_bar;
+    bool use_tweak_bar;
+    unsigned fps;
+    unsigned last_time;
+    void count_fps();
 
     void init_quad();
     void init_g_buffer();
     void init_ssao();
 
-    void init_tweak_bar();
+    void init_tweak_bar(bool use_tweak_bar);
     void draw_tweak_bar();
 
     void render_deferred();
