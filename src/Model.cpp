@@ -73,9 +73,15 @@ Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3
 
 
 /* Public Model functions */
-glm::vec3 Model::get_center_point()
+glm::vec3 Model::get_center_point_world()
 {
     return glm::vec3(this->m2w_matrix * glm::vec4(this->bounding_sphere_center, 1.f));
+}
+
+
+glm::vec3 Model::get_center_point()
+{
+    return this->bounding_sphere_center;
 }
 
 
@@ -286,10 +292,10 @@ void Model::generate_bounding_sphere(float scale)
             }
         }
     }
-    glm::vec3 max_corner = scale*glm::vec3(x_max, y_max, z_max);
-    glm::vec3 min_corner = scale*glm::vec3(x_min, y_min, z_min);
+    glm::vec3 max_corner = glm::vec3(x_max, y_max, z_max);
+    glm::vec3 min_corner = glm::vec3(x_min, y_min, z_min);
 
-    glm::vec3 r_vector = 0.5f * (max_corner - min_corner);
+    glm::vec3 r_vector = 0.5f * scale * (max_corner - min_corner);
     this->bounding_sphere_radius = glm::length(r_vector);
     this->bounding_sphere_center = min_corner + r_vector;
 }

@@ -51,6 +51,10 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
             case SDLK_6:
                 renderer.set_mode(SPECULAR_MODE);
                 break;
+            case SDLK_b:
+                renderer.draw_bounding_spheres = !renderer.draw_bounding_spheres;
+                break;
+
             }
         }
     }

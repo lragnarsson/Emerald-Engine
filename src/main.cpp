@@ -12,10 +12,10 @@ void cull_models()
 {
     // TODO: Run in parallel
     for (auto model : Model::get_loaded_models()) {
-        model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius);
+        model->draw_me = camera.sphere_in_frustum(model->get_center_point_world(), model->bounding_sphere_radius);
     }
     for (auto model : Model::get_loaded_flat_models()) {
-        model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius);
+        model->draw_me = camera.sphere_in_frustum(model->get_center_point_world(), model->bounding_sphere_radius);
     }
 }
 

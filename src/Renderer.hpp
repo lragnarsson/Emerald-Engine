@@ -59,6 +59,7 @@ private:
     GLuint g_position, g_normal, g_albedo_specular;
     GLuint quad_vao, quad_vbo;
     glm::mat4 w2v_matrix;
+    Model* sphere;
 
     void init_quad();
     void init_g_buffer();
@@ -66,6 +67,7 @@ private:
     void render_deferred();
     void render_forward();
     void render_flat();
+    void render_bounding_spheres();
     void render_geometry(std::vector<Model*> models);
     void render_g_position();
     void render_g_normal();

@@ -67,6 +67,7 @@ public:
     float bounding_sphere_radius = -1.f;
     bool draw_me = true;
 
+
     Model() { };
     Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3 world_coord, float scale, bool flat);
 
@@ -82,6 +83,7 @@ public:
     void move(glm::vec3 relative);
     void rotate(glm::vec3 axis, float angle);
     std::vector<Light*> get_lights();
+    glm::vec3 get_center_point_world();
     glm::vec3 get_center_point();
 
 private:
@@ -96,8 +98,8 @@ private:
     std::vector<light_container> attached_lightsources;
     std::vector<Mesh*> meshes;
     std::string directory;
-    glm::vec3 bounding_sphere_center;
     glm::vec3 world_coord;
+    glm::vec3 bounding_sphere_center;
 
     void unfold_assimp_node(aiNode* node, const aiScene* scene);
     Mesh* load_mesh(aiMesh* mesh, const aiScene* scene);
