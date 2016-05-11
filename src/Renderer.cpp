@@ -1,19 +1,20 @@
 #include "Renderer.hpp"
 
 
-void Renderer::init()
+void Renderer::init(bool use_tweak_bar)
 {
     shaders[FORWARD] = load_shaders("build/shaders/forward.vert", "build/shaders/forward.frag");
     shaders[GEOMETRY] = load_shaders("build/shaders/geometry.vert", "build/shaders/geometry.frag");
     shaders[DEFERRED] = load_shaders("build/shaders/deferred.vert", "build/shaders/deferred.frag");
     shaders[FLAT] = load_shaders("build/shaders/flat.vert", "build/shaders/flat.frag");
     shaders[SSAO] = load_shaders("build/shaders/ssao.vert", "build/shaders/ssao.frag");
-    
+
     init_g_buffer();
     init_quad();
     init_ssao();
-    
-    set_mode(FORWARD_MODE);
+    init_tweak_bar(use_tweak_bar);
+
+    set_mode(DEFERRED_MODE);
 }
 
 // --------------------------
@@ -39,6 +40,11 @@ void Renderer::render()
     case SPECULAR_MODE:
         render_g_specular();
         break;
+    }
+
+    if (use_tweak_bar) {
+        count_fps();
+        draw_tweak_bar();
     }
     glBindVertexArray(0);
     glUseProgram(0);
@@ -166,7 +172,7 @@ void Renderer::render_deferred()
     if (this->ssao_on) {
         render_ssao();
     }
-    
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[DEFERRED]);
 
@@ -179,18 +185,18 @@ void Renderer::render_deferred()
     // NEW SSAO texture
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, ssao_result);
-    
+
     // Render quad
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    
-    /* RENDER FLAT OBJECTS WITH DEPTH BUFFER */ 
+
+    /* RENDER FLAT OBJECTS WITH DEPTH BUFFER */
     glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glBlitFramebuffer(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     render_flat();
-                                                
+
     glBindVertexArray(0);
     glUseProgram(0);
 }
@@ -290,18 +296,18 @@ void Renderer::set_ssao_n_samples(GLint n)
     }
     ssao_n_samples = n;
 
-    
+
     ssao_kernel.clear();
     /* Create a unit hemisphere with n samples */
     std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // random floats between 0.0 - 1.0
     std::default_random_engine generator;
-        
+
     GLfloat scale;
     glm::vec3 sample;
     for (int i = 0; i < n; ++i) {
         sample = glm::vec3(
-                           randomFloats(generator) * 2.0 - 1.0, 
-                           randomFloats(generator) * 2.0 - 1.0, 
+                           randomFloats(generator) * 2.0 - 1.0,
+                           randomFloats(generator) * 2.0 - 1.0,
                            randomFloats(generator)
                            );
         sample = glm::normalize(sample);
@@ -321,7 +327,7 @@ bool Renderer::toggle_ssao()
     }
     return ssao_on;
 }
-    
+
 
 void Renderer::clear_ssao()
 {
@@ -403,13 +409,13 @@ void Renderer::init_ssao()
 
     std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // random floats between 0.0 - 1.0
     std::default_random_engine generator;
-        
+
     /* Random rotations of the kernel */
     for (GLuint i = 0; i < 16; i++) {
         glm::vec3 noise(
-                        randomFloats(generator) * 2.0 - 1.0, 
-                        randomFloats(generator) * 2.0 - 1.0, 
-                        0.0f); 
+                        randomFloats(generator) * 2.0 - 1.0,
+                        randomFloats(generator) * 2.0 - 1.0,
+                        0.0f);
         ssao_noise.push_back(noise);
     }
 
@@ -455,7 +461,7 @@ void Renderer::init_quad()
         1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
         1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
     };
-    
+
     glGenVertexArrays(1, &quad_vao);
     glGenBuffers(1, &quad_vbo);
     glBindVertexArray(quad_vao);
@@ -477,7 +483,7 @@ void Renderer::init_g_buffer()
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_normal"), 1);
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_albedo_specular"), 2);
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "ssao_result"), 3);
-    
+
     glDisable(GL_BLEND);
     glGenFramebuffers(1, &g_buffer);
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
@@ -489,7 +495,7 @@ void Renderer::init_g_buffer()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_position_depth, 0);
 
     /* Normal buffer */
@@ -528,4 +534,43 @@ void Renderer::init_g_buffer()
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+// -----------------
+
+void Renderer::draw_tweak_bar()
+{
+    // Draw tweak bar
+    TwDraw();
+}
+
+// -----------------
+
+void Renderer::init_tweak_bar(bool use_tweak_bar)
+{
+    this->use_tweak_bar = use_tweak_bar;
+    // Initialize AntTweakBar
+    TwInit(TW_OPENGL_CORE, NULL);
+    // Send the new window size to AntTweakBar
+    TwWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+    // Create bar
+    tweak_bar = TwNewBar("Emeralds tweakbar");
+
+    // FPS counter
+    TwAddVarRO(tweak_bar, "FPS", TW_TYPE_UINT32, &fps," label='FPS' help='Frames per second' ");
+    // n_ssao_samples
+    TwAddVarRW(tweak_bar, "SSAO samples", TW_TYPE_INT32, &ssao_n_samples, " label='Number of SSAO samples' help='Defines the number of SSAO samples used.' ");
+    // SSAO radius
+    TwAddVarRW(tweak_bar, "SSAO kernel radius", TW_TYPE_FLOAT, &kernel_radius, " label='SSAO kernel radius' help='Defines the radius of SSAO samples.' ");
+}
+
+// ---------------
+
+void Renderer::count_fps()
+{
+    unsigned current_time = SDL_GetTicks();
+    fps = 1000/(current_time-last_time);
+
+    last_time = current_time;
 }
