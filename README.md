@@ -22,7 +22,7 @@ Run make
 Install dependencies with brew:
 
 ```shell
-brew install glm assimp sdl2 sdl2_image
+brew install glm assimp sdl2 sdl2_image sdl2_ttf
 ```
 
 Run make
