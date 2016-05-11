@@ -16,13 +16,13 @@
 #include <iostream>
 
 
-const GLuint SCREEN_WIDTH = 800;
-const GLuint SCREEN_HEIGHT = 640;
+const GLuint SCREEN_WIDTH = 1024;
+const GLuint SCREEN_HEIGHT = 600;
 const GLfloat Y_FOV = 45.f;
 const GLfloat ASPECT_RATIO = (float) SCREEN_WIDTH / (float) SCREEN_HEIGHT;
 
-const GLfloat NEAR = 0.1f;
-const GLfloat FAR = 100.f;
+const GLfloat NEAR = _NEAR_;
+const GLfloat FAR = _FAR_;
 
 const GLfloat FAR_H = glm::tan(Y_FOV / 2) * FAR;
 const GLfloat FAR_W = FAR_H * ASPECT_RATIO;

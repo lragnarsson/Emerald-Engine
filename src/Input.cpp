@@ -5,6 +5,9 @@ void init_input()
   // Mouse init
   SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1", SDL_HINT_OVERRIDE);
   SDL_SetRelativeMouseMode(SDL_TRUE);
+
+  // SSAO controls 
+  printf("Toggle SSAO with m \nDecrease/Increse number of ssao samples: u/i\nDecrease/Increase SSAO kernel radius: j/k\n");
 }
 
 void handle_keyboard_input(Camera &camera, Renderer &renderer)
@@ -50,6 +53,29 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                 break;
             case SDLK_6:
                 renderer.set_mode(SPECULAR_MODE);
+                break;
+            case SDLK_k:
+                renderer.set_kernel_radius(renderer.get_kernel_radius() + 0.1f);
+                printf("SSAO kernel radius = %f\n", renderer.get_kernel_radius());
+                break;
+            case SDLK_j:
+                if (renderer.get_kernel_radius() > 0.2f) {
+                    renderer.set_kernel_radius(renderer.get_kernel_radius() - 0.1f);
+                }
+                printf("SSAO kernel radius = %f\n", renderer.get_kernel_radius());
+                break;
+            case SDLK_i:
+                if (renderer.get_ssao_n_samples() < MAX_SSAO_SAMPLES)
+                    renderer.set_ssao_n_samples(renderer.get_ssao_n_samples() + 1);
+                printf("SSAO number of samples: %d\n", renderer.get_ssao_n_samples());
+                break;
+            case SDLK_u:
+                if (renderer.get_ssao_n_samples() > 1)
+                    renderer.set_ssao_n_samples(renderer.get_ssao_n_samples() - 1);
+                printf("SSAO number of samples: %d\n", renderer.get_ssao_n_samples());
+                break;
+            case SDLK_m:
+                printf("SSAO is now %s\n", renderer.toggle_ssao() ? "ON" : "OFF");
                 break;
             }
         }
