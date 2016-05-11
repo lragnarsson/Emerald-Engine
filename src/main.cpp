@@ -32,6 +32,7 @@ void run()
         cull_models();
         renderer.upload_camera_uniforms(camera);
         renderer.render();
+
         SDL_GL_SwapWindow(main_window);
     }
 }
@@ -45,17 +46,19 @@ int main(int argc, char *argv[])
     }
     init_input();
 
-    renderer.init();
+    bool tweak_bar = true;
+    renderer.init(tweak_bar);
 
     renderer.init_uniforms(camera);
 
     load_scene(get_scene_file_from_command_line(argc, argv));
 
-    
+
     Light::upload_all();
 
     run();
 
     free_resources();
+    TwTerminate();
     return 0;
 }
