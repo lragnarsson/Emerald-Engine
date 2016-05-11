@@ -53,12 +53,11 @@ int main(int argc, char *argv[])
 
     load_scene(get_scene_file_from_command_line(argc, argv));
 
-
     Light::upload_all();
 
     run();
 
-    free_resources();
     TwTerminate();
+    free_resources();
     return 0;
 }
