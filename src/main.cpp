@@ -12,10 +12,10 @@ void cull_models()
 {
     // TODO: Run in parallel
     for (auto model : Model::get_loaded_models()) {
-        model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius);
+        model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius * model->scale);
     }
     for (auto model : Model::get_loaded_flat_models()) {
-        model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius);
+        model->draw_me = camera.sphere_in_frustum(model->get_center_point(), model->bounding_sphere_radius * model->scale);
     }
 }
 
@@ -53,12 +53,11 @@ int main(int argc, char *argv[])
 
     load_scene(get_scene_file_from_command_line(argc, argv));
 
-
     Light::upload_all();
 
     run();
 
-    free_resources();
     TwTerminate();
+    free_resources();
     return 0;
 }
