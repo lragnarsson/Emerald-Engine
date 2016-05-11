@@ -57,12 +57,13 @@ std::vector<Texture*> Model::loaded_textures;
 Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3 world_coord, float scale, bool flat)
 {
     this->rot_matrix = rot_matrix;
+    this->scale = scale;
     this->scale_matrix = glm::scale(glm::mat4(1.f), glm::vec3(scale));
     this->m2w_matrix = glm::translate(glm::mat4(1.f), world_coord) * rot_matrix * scale_matrix;
     this->world_coord = world_coord;;
 
     load(path);
-    generate_bounding_sphere(scale);
+    generate_bounding_sphere();
     if (!flat) {
         Model::loaded_models.push_back(this);
     }
@@ -101,8 +102,8 @@ the changed values to GPU.
 Important: the lights does not currently keep their relative
 position to the model */
 void Model::move_to(glm::vec3 world_coord) {
-    this->m2w_matrix = glm::translate(glm::mat4(1.f), world_coord) * this->rot_matrix * this->scale_matrix;
     this->world_coord = world_coord;
+    this->m2w_matrix = glm::translate(glm::mat4(1.f), world_coord) * this->rot_matrix * this->scale_matrix;
 
     for (auto light_container : this->attached_lightsources) {
         glm::vec3 new_pos = glm::vec3(m2w_matrix * glm::vec4(light_container.relative_pos, 1.f));
@@ -119,7 +120,7 @@ void Model::move(glm::vec3 relative) {
 
 void Model::rotate(glm::vec3 axis, float angle) {
     rot_matrix = glm::rotate(rot_matrix, angle, axis);
-    m2w_matrix = glm::translate(glm::mat4(1.0f), world_coord) * rot_matrix;
+    m2w_matrix = glm::translate(glm::mat4(1.0f), world_coord) * rot_matrix * scale_matrix;
 
     for (auto light_container : this->attached_lightsources) {
         glm::vec3 new_pos = glm::vec3(m2w_matrix * glm::vec4(light_container.relative_pos, 1.f));
@@ -152,6 +153,7 @@ void Model::unfold_assimp_node(aiNode* node, const aiScene* scene) {
         unfold_assimp_node(node->mChildren[i], scene);
     }
 }
+
 
 Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
     Mesh* m = new Mesh();
@@ -260,7 +262,7 @@ std::vector<Light *> Model::get_lights()
 }
 
 
-void Model::generate_bounding_sphere(float scale)
+void Model::generate_bounding_sphere()
 {
     GLfloat v = this->meshes[0]->vertices[0];
     GLfloat x_max = v, y_max = v, z_max = v, x_min = v, y_min = v, z_min = v;
@@ -295,7 +297,7 @@ void Model::generate_bounding_sphere(float scale)
     glm::vec3 max_corner = glm::vec3(x_max, y_max, z_max);
     glm::vec3 min_corner = glm::vec3(x_min, y_min, z_min);
 
-    glm::vec3 r_vector = 0.5f * scale * (max_corner - min_corner);
+    glm::vec3 r_vector = 0.5f * (max_corner - min_corner);
     this->bounding_sphere_radius = glm::length(r_vector);
     this->bounding_sphere_center = min_corner + r_vector;
 }

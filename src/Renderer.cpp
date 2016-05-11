@@ -12,7 +12,7 @@ void Renderer::init()
     init_quad();
 
 
-    sphere = new Model("res/models/sphere/sphere.obj", glm::mat4(1.f), glm::vec3(0.f), 0.5f, true);
+    sphere = new Model("res/models/sphere/sphere.obj", glm::mat4(1.f), glm::vec3(0.f), 1/1.5f, true);
     set_mode(FORWARD_MODE);
 }
 
@@ -283,7 +283,7 @@ void Renderer::render_bounding_spheres()
     Mesh* mesh = this->sphere->get_meshes()[0];
 
     for (auto model : Model::get_loaded_flat_models()) {
-        glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), glm::vec3(model->bounding_sphere_radius));
+        glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), 0.6667f * glm::vec3(model->bounding_sphere_radius));
         glm::mat4 bounding_move = glm::translate(glm::mat4(1.f), model->get_center_point());
 
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
@@ -298,8 +298,9 @@ void Renderer::render_bounding_spheres()
     }
 
     for (auto model : Model::get_loaded_models()) {
-        glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), glm::vec3(model->bounding_sphere_radius));
+        glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), 0.6667f * glm::vec3(model->bounding_sphere_radius));
         glm::mat4 bounding_move = glm::translate(glm::mat4(1.f), model->get_center_point());
+
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(bounding_move * model->m2w_matrix * bounding_scale));
         GLuint rot_location = glGetUniformLocation(shaders[FLAT], "modelRot");
