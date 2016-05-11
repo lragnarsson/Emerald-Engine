@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
 
     load_scene(get_scene_file_from_command_line(argc, argv));
 
+    
     Light::upload_all();
 
     run();
