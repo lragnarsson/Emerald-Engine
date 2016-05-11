@@ -13,6 +13,8 @@ void init_input()
 void handle_keyboard_input(Camera &camera, Renderer &renderer)
 {
     SDL_Event event;
+    bool handled;
+
     const Uint8* keystate = SDL_GetKeyboardState(NULL);
 
     if(keystate[SDL_GetScancodeFromKey(SDLK_w)]) {
@@ -31,8 +33,10 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
     while (SDL_PollEvent(&event)) {
 
         // Send event to AntTweakBar first
-        bool handled = TwEventSDL(&event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
-        
+        handled = TwEventSDL(&event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
+        if (handled) {
+            printf("Tweak bar handled \n");
+        }
         if ( !handled ) {
             if (event.type == SDL_QUIT)
             renderer.running = false;
@@ -61,23 +65,19 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     break;
                     case SDLK_k:
                     renderer.set_kernel_radius(renderer.get_kernel_radius() + 0.1f);
-                    printf("SSAO kernel radius = %f\n", renderer.get_kernel_radius());
                     break;
                     case SDLK_j:
                     if (renderer.get_kernel_radius() > 0.2f) {
                         renderer.set_kernel_radius(renderer.get_kernel_radius() - 0.1f);
                     }
-                    printf("SSAO kernel radius = %f\n", renderer.get_kernel_radius());
                     break;
                     case SDLK_i:
                     if (renderer.get_ssao_n_samples() < MAX_SSAO_SAMPLES)
                     renderer.set_ssao_n_samples(renderer.get_ssao_n_samples() + 1);
-                    printf("SSAO number of samples: %d\n", renderer.get_ssao_n_samples());
                     break;
                     case SDLK_u:
                     if (renderer.get_ssao_n_samples() > 1)
                     renderer.set_ssao_n_samples(renderer.get_ssao_n_samples() - 1);
-                    printf("SSAO number of samples: %d\n", renderer.get_ssao_n_samples());
                     break;
                     case SDLK_m:
                     printf("SSAO is now %s\n", renderer.toggle_ssao() ? "ON" : "OFF");
