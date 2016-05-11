@@ -3,7 +3,6 @@
 [models]
 # Models are loaded using the following syntax:
 # /path/to/model rotX rotY rotZ Xpos Ypos Zpos scale nr_of_lights
-res/models/nanosuit/nanosuit.obj 0 0 0 10 2 -5 5 0
 res/models/nanosuit/nanosuit.obj 0 0 0 8 0 -5 1 0
 res/models/nanosuit/nanosuit.obj 0 0 0 -8 0 -5 1 0
 # Now we have loaded three nanosuits
@@ -12,7 +11,7 @@ res/models/nanosuit/nanosuit.obj 0 0 0 -8 0 -5 1 0
 [flat]
 # Light sources attatched to models are placed directly after given model and loaded according to:
 # relativeXpos relativeYpos relativeZpos R G B
-res/models/cube/cube.obj 0 0 0 1 1 1 1 1
+res/models/sphere/sphere.obj 0 0 0 1 1 1 1 1
 0 0 0 0.1 0.3 0.8
 res/models/cube/cube.obj 0 0 0 3 10 1 1 1
 0 0 0 0.2 0.8 0.1
