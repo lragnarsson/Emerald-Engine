@@ -45,13 +45,13 @@ int main(int argc, char *argv[])
     }
     init_input();
 
-    renderer.init();
+    renderer.init(main_window);
 
     renderer.init_uniforms(camera);
 
     load_scene(get_scene_file_from_command_line(argc, argv));
 
-    
+
     Light::upload_all();
 
     run();

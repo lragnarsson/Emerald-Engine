@@ -10,6 +10,7 @@ const ErrorMessage Error::cant_load_shader = {5, "Could not load shader!"};
 const ErrorMessage Error::argument_error = {6, "Argument error!"};
 const ErrorMessage Error::renderer_init_fail = {7, "Renderer could not initiate framebuffer!"};
 const ErrorMessage Error::ssao_num_samples = {8, "Tried to set illegal number of kernel samples!"};
+const ErrorMessage Error::fps_text_init_failed = {9, "FPS text init failed!"};
 
 void Error::throw_error(const ErrorMessage& message, string extra_information)
 {

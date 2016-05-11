@@ -11,6 +11,9 @@
 
 #include <vector>
 #include <random>
+#include <sstream>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 #include "Camera.hpp"
 #include "Model.hpp"
@@ -36,10 +39,10 @@ public:
     bool running = false;
     bool wireframe_mode = false; // unused
     bool draw_bounding_spheres = false; //unused
-    
+
     Renderer() {}
 
-    void init();
+    void init(SDL_Window* main_window);
     void render();
     void set_mode(render_mode mode);
     void init_uniforms(const Camera &camera);
@@ -48,8 +51,8 @@ public:
     float get_kernel_radius() {return kernel_radius;}
     void set_ssao_n_samples(GLint n);
     GLint get_ssao_n_samples() {return ssao_n_samples;}
-    bool toggle_ssao(); 
-        
+    bool toggle_ssao();
+
 private:
     enum shader {
       FORWARD,
@@ -76,11 +79,16 @@ private:
     GLfloat kernel_radius = 1; // Could be interesting to tweak this
     GLint ssao_n_samples = 64;
     bool ssao_on;
-    
+
+    SDL_Surface* fps_text_surface;
+    TTF_Font* fps_text_font;
+    SDL_Rect* fps_text_pos;
+    SDL_Color fps_text_color = {255,255,255};
+
     void init_quad();
     void init_g_buffer();
     void init_ssao();
-    
+
     void render_deferred();
     void render_forward();
     void render_flat();
@@ -91,6 +99,9 @@ private:
     void render_g_normal();
     void render_g_albedo();
     void render_g_specular();
+
+    void draw_fps(const float fps);
+    void init_fps_counter(SDL_Window* main_window);
 };
 
 #endif

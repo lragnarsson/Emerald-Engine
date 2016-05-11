@@ -1,108 +1,109 @@
 #include "Renderer.hpp"
 
 
-void Renderer::init()
+void Renderer::init(SDL_Window* main_window)
 {
-    shaders[FORWARD] = load_shaders("build/shaders/forward.vert", "build/shaders/forward.frag");
-    shaders[GEOMETRY] = load_shaders("build/shaders/geometry.vert", "build/shaders/geometry.frag");
-    shaders[DEFERRED] = load_shaders("build/shaders/deferred.vert", "build/shaders/deferred.frag");
-    shaders[FLAT] = load_shaders("build/shaders/flat.vert", "build/shaders/flat.frag");
-    shaders[SSAO] = load_shaders("build/shaders/ssao.vert", "build/shaders/ssao.frag");
-    
-    init_g_buffer();
-    init_quad();
-    init_ssao();
-    
-    set_mode(FORWARD_MODE);
+  shaders[FORWARD] = load_shaders("build/shaders/forward.vert", "build/shaders/forward.frag");
+  shaders[GEOMETRY] = load_shaders("build/shaders/geometry.vert", "build/shaders/geometry.frag");
+  shaders[DEFERRED] = load_shaders("build/shaders/deferred.vert", "build/shaders/deferred.frag");
+  shaders[FLAT] = load_shaders("build/shaders/flat.vert", "build/shaders/flat.frag");
+  shaders[SSAO] = load_shaders("build/shaders/ssao.vert", "build/shaders/ssao.frag");
+
+  init_g_buffer();
+  init_quad();
+  init_ssao();
+  init_fps_counter(main_window);
+
+  set_mode(DEFERRED_MODE);
 }
 
 // --------------------------
 
 void Renderer::render()
 {
-    switch (mode) {
+  switch (mode) {
     case FORWARD_MODE:
-        render_forward();
-        break;
+    render_forward();
+    break;
     case DEFERRED_MODE:
-        render_deferred();
-        break;
+    render_deferred();
+    break;
     case POSITION_MODE:
-        render_g_position();
-        break;
+    render_g_position();
+    break;
     case NORMAL_MODE:
-        render_g_normal();
-        break;
+    render_g_normal();
+    break;
     case ALBEDO_MODE:
-        render_g_albedo();
-        break;
+    render_g_albedo();
+    break;
     case SPECULAR_MODE:
-        render_g_specular();
-        break;
-    }
-    glBindVertexArray(0);
-    glUseProgram(0);
+    render_g_specular();
+    break;
+  }
+  glBindVertexArray(0);
+  glUseProgram(0);
 }
 
 // --------------------------
 
 void Renderer::set_mode(render_mode mode)
 {
-    this->mode = mode;
-    switch (mode) {
+  this->mode = mode;
+  switch (mode) {
     case FORWARD_MODE:
-        Light::shader_program = shaders[FORWARD];
-        break;
+    Light::shader_program = shaders[FORWARD];
+    break;
     case DEFERRED_MODE:
-        Light::shader_program = shaders[DEFERRED];
-        glClearColor(0, 0, 0, 1.0);
-        break;
+    Light::shader_program = shaders[DEFERRED];
+    glClearColor(0, 0, 0, 1.0);
+    break;
     case POSITION_MODE:
-        Light::shader_program = shaders[DEFERRED];
-        break;
+    Light::shader_program = shaders[DEFERRED];
+    break;
     case NORMAL_MODE:
-        Light::shader_program = shaders[DEFERRED];
-        break;
+    Light::shader_program = shaders[DEFERRED];
+    break;
     case ALBEDO_MODE:
-        Light::shader_program = shaders[DEFERRED];
-        break;
+    Light::shader_program = shaders[DEFERRED];
+    break;
     case SPECULAR_MODE:
-        Light::shader_program = shaders[DEFERRED];
-        break;
-    }
-    Light::upload_all();
+    Light::shader_program = shaders[DEFERRED];
+    break;
+  }
+  Light::upload_all();
 }
 
 // --------------------------
 
 void Renderer::init_uniforms(const Camera &camera)
 {
-    glm::mat4 projection_matrix;
-    w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
-    projection_matrix = glm::perspective(Y_FOV, ASPECT_RATIO, NEAR, FAR);
-    for (int i = 0; i < 5; i ++) {
-        glUseProgram(shaders[i]);
-        glUniformMatrix4fv(glGetUniformLocation(shaders[i], "view"),
-                           1, GL_FALSE, glm::value_ptr(w2v_matrix));
-        glUniformMatrix4fv(glGetUniformLocation(shaders[i], "projection"),
-                           1, GL_FALSE, glm::value_ptr(projection_matrix));
-    }
-    glUseProgram(0);
+  glm::mat4 projection_matrix;
+  w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
+  projection_matrix = glm::perspective(Y_FOV, ASPECT_RATIO, NEAR, FAR);
+  for (int i = 0; i < 5; i ++) {
+    glUseProgram(shaders[i]);
+    glUniformMatrix4fv(glGetUniformLocation(shaders[i], "view"),
+    1, GL_FALSE, glm::value_ptr(w2v_matrix));
+    glUniformMatrix4fv(glGetUniformLocation(shaders[i], "projection"),
+    1, GL_FALSE, glm::value_ptr(projection_matrix));
+  }
+  glUseProgram(0);
 }
 
 // --------------------------
 
 void Renderer::upload_camera_uniforms(const Camera &camera)
 {
-    w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
-    for (int i = 0; i < 5; i ++) {
-        glUseProgram(shaders[i]);
-        glUniformMatrix4fv(glGetUniformLocation(shaders[i], "view"),
-                           1, GL_FALSE, glm::value_ptr(w2v_matrix));
-        glUniform3fv(glGetUniformLocation(shaders[i], "camPos"),
-                     1, glm::value_ptr(camera.position));
-    }
-    glUseProgram(0);
+  w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
+  for (int i = 0; i < 5; i ++) {
+    glUseProgram(shaders[i]);
+    glUniformMatrix4fv(glGetUniformLocation(shaders[i], "view"),
+    1, GL_FALSE, glm::value_ptr(w2v_matrix));
+    glUniform3fv(glGetUniformLocation(shaders[i], "camPos"),
+    1, glm::value_ptr(camera.position));
+  }
+  glUseProgram(0);
 }
 
 
@@ -112,254 +113,254 @@ void Renderer::upload_camera_uniforms(const Camera &camera)
 
 void Renderer::render_deferred()
 {
-    /* GEOMETRY PASS */
-    glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(shaders[GEOMETRY]);
+  /* GEOMETRY PASS */
+  glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glUseProgram(shaders[GEOMETRY]);
 
-    for (auto model : Model::get_loaded_models()) {
-        if (!model->draw_me) {
-            continue;
-        }
-        GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
-        GLuint rot_location = glGetUniformLocation(shaders[GEOMETRY], "modelRot");
-        glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
-
-        for (auto mesh : model->get_meshes()) {
-            GLuint diffuse_num = 1;
-            GLuint specular_num = 1;
-
-            for(GLuint i = 0; i < mesh->textures.size(); i++) {
-                glActiveTexture(GL_TEXTURE0 + i);
-                if(mesh->textures[i]->type == DIFFUSE) {
-                    const char* str = ("texture_Diffuse" + std::to_string(diffuse_num++)).c_str();
-                    GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY], str);
-                    glUniform1i(diffuse_loc, i);
-                    glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
-                }
-                else if(mesh->textures[i]->type == SPECULAR) {
-                    const char* str2 = ("texture_Specular" + std::to_string(specular_num++)).c_str();
-                    GLuint specular_loc = glGetUniformLocation(shaders[GEOMETRY], str2);
-                    glUniform1i(specular_loc, i);
-                    glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
-                }
-            }
-
-            glBindVertexArray(mesh->get_VAO());
-
-            /* DRAW GEOMETRY */
-            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
-
-            glBindVertexArray(0);
-
-            for (GLuint i = 0; i < mesh->textures.size(); i++) {
-                glActiveTexture(GL_TEXTURE0 + i);
-                glBindTexture(GL_TEXTURE_2D, 0);
-            }
-        }
+  for (auto model : Model::get_loaded_models()) {
+    if (!model->draw_me) {
+      continue;
     }
+    GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY], "model");
+    glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
+    GLuint rot_location = glGetUniformLocation(shaders[GEOMETRY], "modelRot");
+    glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    for (auto mesh : model->get_meshes()) {
+      GLuint diffuse_num = 1;
+      GLuint specular_num = 1;
 
+      for(GLuint i = 0; i < mesh->textures.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        if(mesh->textures[i]->type == DIFFUSE) {
+          const char* str = ("texture_Diffuse" + std::to_string(diffuse_num++)).c_str();
+          GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY], str);
+          glUniform1i(diffuse_loc, i);
+          glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
+        }
+        else if(mesh->textures[i]->type == SPECULAR) {
+          const char* str2 = ("texture_Specular" + std::to_string(specular_num++)).c_str();
+          GLuint specular_loc = glGetUniformLocation(shaders[GEOMETRY], str2);
+          glUniform1i(specular_loc, i);
+          glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
+        }
+      }
 
-    if (this->ssao_on) {
-        render_ssao();
+      glBindVertexArray(mesh->get_VAO());
+
+      /* DRAW GEOMETRY */
+      glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+
+      glBindVertexArray(0);
+
+      for (GLuint i = 0; i < mesh->textures.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+      }
     }
-    
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(shaders[DEFERRED]);
+  }
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, g_position_depth);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, g_normal);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
-    // NEW SSAO texture
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, ssao_result);
-    
-    // Render quad
-    glBindVertexArray(quad_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    
-    /* RENDER FLAT OBJECTS WITH DEPTH BUFFER */ 
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glBlitFramebuffer(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    render_flat();
-                                                
-    glBindVertexArray(0);
-    glUseProgram(0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+  if (this->ssao_on) {
+    render_ssao();
+  }
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glUseProgram(shaders[DEFERRED]);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, g_position_depth);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, g_normal);
+  glActiveTexture(GL_TEXTURE2);
+  glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
+  // NEW SSAO texture
+  glActiveTexture(GL_TEXTURE3);
+  glBindTexture(GL_TEXTURE_2D, ssao_result);
+
+  // Render quad
+  glBindVertexArray(quad_vao);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+  /* RENDER FLAT OBJECTS WITH DEPTH BUFFER */
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  glBlitFramebuffer(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  render_flat();
+
+  glBindVertexArray(0);
+  glUseProgram(0);
 }
 
 // --------------------------
 
 void Renderer::render_forward()
 {
-    glClearColor(0, 0, 0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClearColor(0, 0, 0, 1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glUseProgram(shaders[FORWARD]);
-    for (auto model : Model::get_loaded_models()) {
-        if (!model->draw_me) {
-            continue;
-        }
-        GLuint m2w_location = glGetUniformLocation(shaders[FORWARD], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
-        GLuint rot_location = glGetUniformLocation(shaders[FORWARD], "modelRot");
-        glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
-
-        for (auto mesh : model->get_meshes()) {
-            GLuint diffuse_num = 1;
-            GLuint specular_num = 1;
-
-            for(GLuint i = 0; i < mesh->textures.size(); i++) {
-                glActiveTexture(GL_TEXTURE0 + i);
-                if(mesh->textures[i]->type == DIFFUSE) {
-                    const char* str = ("texture_Diffuse" + std::to_string(diffuse_num++)).c_str();
-                    GLuint diffuse_loc = glGetUniformLocation(shaders[FORWARD], str);
-                    glUniform1i(diffuse_loc, i);
-                    glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
-                }
-                else if(mesh->textures[i]->type == SPECULAR) {
-                    const char* str2 = ("texture_Specular" + std::to_string(specular_num++)).c_str();
-                    GLuint specular_loc = glGetUniformLocation(shaders[FORWARD], str2);
-                    glUniform1i(specular_loc, i);
-                    glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
-                }
-            }
-
-            glUniform1f(glGetUniformLocation(shaders[FORWARD], "shininess"), mesh->shininess);
-
-            /* DRAW */
-            glBindVertexArray(mesh->get_VAO());
-            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
-
-            glBindVertexArray(0);
-            for (GLuint i = 0; i < mesh->textures.size(); i++) {
-                glActiveTexture(GL_TEXTURE0 + i);
-                glBindTexture(GL_TEXTURE_2D, 0);
-            }
-        }
+  glUseProgram(shaders[FORWARD]);
+  for (auto model : Model::get_loaded_models()) {
+    if (!model->draw_me) {
+      continue;
     }
-    render_flat();
-    glUseProgram(0);
+    GLuint m2w_location = glGetUniformLocation(shaders[FORWARD], "model");
+    glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
+    GLuint rot_location = glGetUniformLocation(shaders[FORWARD], "modelRot");
+    glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
+
+    for (auto mesh : model->get_meshes()) {
+      GLuint diffuse_num = 1;
+      GLuint specular_num = 1;
+
+      for(GLuint i = 0; i < mesh->textures.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        if(mesh->textures[i]->type == DIFFUSE) {
+          const char* str = ("texture_Diffuse" + std::to_string(diffuse_num++)).c_str();
+          GLuint diffuse_loc = glGetUniformLocation(shaders[FORWARD], str);
+          glUniform1i(diffuse_loc, i);
+          glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
+        }
+        else if(mesh->textures[i]->type == SPECULAR) {
+          const char* str2 = ("texture_Specular" + std::to_string(specular_num++)).c_str();
+          GLuint specular_loc = glGetUniformLocation(shaders[FORWARD], str2);
+          glUniform1i(specular_loc, i);
+          glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
+        }
+      }
+
+      glUniform1f(glGetUniformLocation(shaders[FORWARD], "shininess"), mesh->shininess);
+
+      /* DRAW */
+      glBindVertexArray(mesh->get_VAO());
+      glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+
+      glBindVertexArray(0);
+      for (GLuint i = 0; i < mesh->textures.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+      }
+    }
+  }
+  render_flat();
+  glUseProgram(0);
 }
 
 // --------------------------
 
 void Renderer::render_flat()
 {
-    glUseProgram(shaders[FLAT]);
-    for (auto model : Model::get_loaded_flat_models()) {
-        if (!model->draw_me) {
-            continue;
-        }
-        GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
-        GLuint rot_location = glGetUniformLocation(shaders[FLAT], "modelRot");
-        glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
-        if (model->get_lights().size() > 0) {
-            GLuint color = glGetUniformLocation(shaders[FLAT], "color");
-            glUniform3fv(color, 1, glm::value_ptr(model->get_lights()[0]->get_color()));
-        }
-        for (auto mesh : model->get_meshes()) {
-            glBindVertexArray(mesh->get_VAO());
-
-            /* DRAW */
-            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
-
-            glBindVertexArray(0);
-        }
+  glUseProgram(shaders[FLAT]);
+  for (auto model : Model::get_loaded_flat_models()) {
+    if (!model->draw_me) {
+      continue;
     }
+    GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
+    glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
+    GLuint rot_location = glGetUniformLocation(shaders[FLAT], "modelRot");
+    glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
+    if (model->get_lights().size() > 0) {
+      GLuint color = glGetUniformLocation(shaders[FLAT], "color");
+      glUniform3fv(color, 1, glm::value_ptr(model->get_lights()[0]->get_color()));
+    }
+    for (auto mesh : model->get_meshes()) {
+      glBindVertexArray(mesh->get_VAO());
+
+      /* DRAW */
+      glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+
+      glBindVertexArray(0);
+    }
+  }
 }
 
 inline GLfloat lerp(GLfloat a, GLfloat b, GLfloat f)
 {
-    return a + f * (b - a);
+  return a + f * (b - a);
 }
 
 void Renderer::set_ssao_n_samples(GLint n)
 {
-    if (n > MAX_SSAO_SAMPLES|| n < 1) {
-        std::string str = "n = " + std::to_string(n);
-        Error::throw_error(Error::ssao_num_samples, str);
-    }
-    ssao_n_samples = n;
+  if (n > MAX_SSAO_SAMPLES|| n < 1) {
+    std::string str = "n = " + std::to_string(n);
+    Error::throw_error(Error::ssao_num_samples, str);
+  }
+  ssao_n_samples = n;
 
-    
-    ssao_kernel.clear();
-    /* Create a unit hemisphere with n samples */
-    std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // random floats between 0.0 - 1.0
-    std::default_random_engine generator;
-        
-    GLfloat scale;
-    glm::vec3 sample;
-    for (int i = 0; i < n; ++i) {
-        sample = glm::vec3(
-                           randomFloats(generator) * 2.0 - 1.0, 
-                           randomFloats(generator) * 2.0 - 1.0, 
-                           randomFloats(generator)
-                           );
-        sample = glm::normalize(sample);
-        sample *= randomFloats(generator);
-        scale = GLfloat(i) / n;
-        scale = lerp(0.1f, 1.0f, scale * scale);
-        sample *= scale;
-        ssao_kernel.push_back(sample);
-    }
+
+  ssao_kernel.clear();
+  /* Create a unit hemisphere with n samples */
+  std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // random floats between 0.0 - 1.0
+  std::default_random_engine generator;
+
+  GLfloat scale;
+  glm::vec3 sample;
+  for (int i = 0; i < n; ++i) {
+    sample = glm::vec3(
+      randomFloats(generator) * 2.0 - 1.0,
+      randomFloats(generator) * 2.0 - 1.0,
+      randomFloats(generator)
+    );
+    sample = glm::normalize(sample);
+    sample *= randomFloats(generator);
+    scale = GLfloat(i) / n;
+    scale = lerp(0.1f, 1.0f, scale * scale);
+    sample *= scale;
+    ssao_kernel.push_back(sample);
+  }
 }
 
 bool Renderer::toggle_ssao()
 {
-    ssao_on = !ssao_on;
-    if (!ssao_on) {
-        clear_ssao();
-    }
-    return ssao_on;
+  ssao_on = !ssao_on;
+  if (!ssao_on) {
+    clear_ssao();
+  }
+  return ssao_on;
 }
-    
+
 
 void Renderer::clear_ssao()
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
-    float clearColor[1] = {1.0};
-    glClearBufferfv(GL_COLOR, 0, clearColor);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
+  float clearColor[1] = {1.0};
+  glClearBufferfv(GL_COLOR, 0, clearColor);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Renderer::render_ssao()
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glUseProgram(shaders[SSAO]);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, g_position_depth);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, g_normal);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, noise_texture);
+  glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
+  glClear(GL_COLOR_BUFFER_BIT);
+  glUseProgram(shaders[SSAO]);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, g_position_depth);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, g_normal);
+  glActiveTexture(GL_TEXTURE2);
+  glBindTexture(GL_TEXTURE_2D, noise_texture);
 
-    // Upload shader samples
-    for (GLuint i = 0; i < ssao_n_samples; i++) {
-        GLuint sample_loc = glGetUniformLocation(shaders[SSAO], ("samples[" + std::to_string(i) + "]").c_str());
-        glUniform3fv(sample_loc, 1, &ssao_kernel[i][0]);
-    }
-    GLuint radius_loc = glGetUniformLocation(shaders[SSAO], "kernel_radius");
-    glUniform1f(radius_loc, kernel_radius);
-    GLuint size_loc = glGetUniformLocation(shaders[SSAO], "ssao_n_samples");
-    glUniform1i(size_loc, ssao_n_samples);
-    // Projection matrix should already be uploaded from init_uniforms
+  // Upload shader samples
+  for (GLuint i = 0; i < ssao_n_samples; i++) {
+    GLuint sample_loc = glGetUniformLocation(shaders[SSAO], ("samples[" + std::to_string(i) + "]").c_str());
+    glUniform3fv(sample_loc, 1, &ssao_kernel[i][0]);
+  }
+  GLuint radius_loc = glGetUniformLocation(shaders[SSAO], "kernel_radius");
+  glUniform1f(radius_loc, kernel_radius);
+  GLuint size_loc = glGetUniformLocation(shaders[SSAO], "ssao_n_samples");
+  glUniform1i(size_loc, ssao_n_samples);
+  // Projection matrix should already be uploaded from init_uniforms
 
-    // Render quad
-    glBindVertexArray(quad_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  // Render quad
+  glBindVertexArray(quad_vao);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    glUseProgram(0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glUseProgram(0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 // --------------------------
 
@@ -394,23 +395,23 @@ void Renderer::render_g_specular()
 
 void Renderer::init_ssao()
 {
-    printf("Init_SSAO\n");
-    ssao_on = true;
-    ssao_n_samples = 64;
+  printf("Init_SSAO\n");
+  ssao_on = true;
+  ssao_n_samples = 64;
 
-    /* Create ssao kernel */
-    set_ssao_n_samples(ssao_n_samples);
+  /* Create ssao kernel */
+  set_ssao_n_samples(ssao_n_samples);
 
-    std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // random floats between 0.0 - 1.0
-    std::default_random_engine generator;
-        
-    /* Random rotations of the kernel */
-    for (GLuint i = 0; i < 16; i++) {
-        glm::vec3 noise(
-                        randomFloats(generator) * 2.0 - 1.0, 
-                        randomFloats(generator) * 2.0 - 1.0, 
-                        0.0f); 
-        ssao_noise.push_back(noise);
+  std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // random floats between 0.0 - 1.0
+  std::default_random_engine generator;
+
+  /* Random rotations of the kernel */
+  for (GLuint i = 0; i < 16; i++) {
+    glm::vec3 noise(
+      randomFloats(generator) * 2.0 - 1.0,
+      randomFloats(generator) * 2.0 - 1.0,
+      0.0f);
+      ssao_noise.push_back(noise);
     }
 
     glUseProgram(shaders[SSAO]);
@@ -439,79 +440,78 @@ void Renderer::init_ssao()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_result, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "SSAO Framebuffer not complete!" << std::endl;
+    std::cout << "SSAO Framebuffer not complete!" << std::endl;
     glUseProgram(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
-
 
 // --------------------------
 
 void Renderer::init_quad()
 {
-    GLfloat vertices[] = {
-        -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-        1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-        1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-    };
-    
-    glGenVertexArrays(1, &quad_vao);
-    glGenBuffers(1, &quad_vbo);
-    glBindVertexArray(quad_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, quad_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+  GLfloat vertices[] = {
+    -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+    -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+    1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+    1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+  };
+
+  glGenVertexArrays(1, &quad_vao);
+  glGenBuffers(1, &quad_vbo);
+  glBindVertexArray(quad_vao);
+  glBindBuffer(GL_ARRAY_BUFFER, quad_vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 }
 
 // --------------------------
 
 void Renderer::init_g_buffer()
 {
-    glUseProgram(shaders[DEFERRED]);
+  glUseProgram(shaders[DEFERRED]);
 
-    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_position_depth"), 0);
-    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_normal"), 1);
-    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_albedo_specular"), 2);
-    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "ssao_result"), 3);
-    
-    glDisable(GL_BLEND);
-    glGenFramebuffers(1, &g_buffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
+  glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_position_depth"), 0);
+  glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_normal"), 1);
+  glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_albedo_specular"), 2);
+  glUniform1i(glGetUniformLocation(shaders[DEFERRED], "ssao_result"), 3);
 
-    /* Position and LINEAR depth buffer */
-    glGenTextures(1, &g_position_depth);
-    glBindTexture(GL_TEXTURE_2D, g_position_depth);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_position_depth, 0);
+  glDisable(GL_BLEND);
+  glGenFramebuffers(1, &g_buffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
 
-    /* Normal buffer */
-    glGenTextures(1, &g_normal);
-    glBindTexture(GL_TEXTURE_2D, g_normal);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, g_normal, 0);
+  /* Position and LINEAR depth buffer */
+  glGenTextures(1, &g_position_depth);
+  glBindTexture(GL_TEXTURE_2D, g_position_depth);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_position_depth, 0);
 
-    /* Albedo and Specular buffer*/
-    glGenTextures(1, &g_albedo_specular);
-    glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, g_albedo_specular, 0);
+  /* Normal buffer */
+  glGenTextures(1, &g_normal);
+  glBindTexture(GL_TEXTURE_2D, g_normal);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, g_normal, 0);
 
-    /* Specify color attachments of the buffer */
-    GLuint attachments[3] = {GL_COLOR_ATTACHMENT0,
-                             GL_COLOR_ATTACHMENT1,
-                             GL_COLOR_ATTACHMENT2};
+  /* Albedo and Specular buffer*/
+  glGenTextures(1, &g_albedo_specular);
+  glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, g_albedo_specular, 0);
+
+  /* Specify color attachments of the buffer */
+  GLuint attachments[3] = {GL_COLOR_ATTACHMENT0,
+    GL_COLOR_ATTACHMENT1,
+    GL_COLOR_ATTACHMENT2};
     glDrawBuffers(3, attachments);
 
     /* Attach a depth buffer */
@@ -522,10 +522,58 @@ void Renderer::init_g_buffer()
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        std::ostringstream error_msg;
-        error_msg << "GL enum: " << glCheckFramebufferStatus(GL_FRAMEBUFFER);
-        Error::throw_error(Error::renderer_init_fail, error_msg.str());
+      std::ostringstream error_msg;
+      error_msg << "GL enum: " << glCheckFramebufferStatus(GL_FRAMEBUFFER);
+      Error::throw_error(Error::renderer_init_fail, error_msg.str());
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  }
+
+  // --------------------------
+
+  void Renderer::init_fps_counter(SDL_Window* main_window)
+  {
+    // Initialize SDL_TTF
+    if (TTF_Init() == -1) {
+      Error::throw_error(Error::fps_text_init_failed, std::string("TTF_Init: ") + std::string(TTF_GetError()));
+    }
+
+    // Create a font
+    this->fps_text_font = TTF_OpenFont("res/fonts/OpenSans-Regular.ttf", 24);
+    if ( this->fps_text_font == NULL ){
+      Error::throw_error(Error::fps_text_init_failed, std::string("TTF_OpenFont: ") + std::string(TTF_GetError()));
+    }
+
+    // Create a surface with 0 written in font
+    this->fps_text_surface = TTF_RenderText_Solid(this->fps_text_font, "0", this->fps_text_color);
+    if ( this->fps_text_surface == NULL ){
+      Error::throw_error(Error::fps_text_init_failed, std::string("TTF_RenderText: ") + std::string(TTF_GetError()));
+    }
+
+    // In the top left corner
+    this->fps_text_pos = new SDL_Rect();
+    this->fps_text_pos->x = 0;
+    this->fps_text_pos->y = 0;
+    this->fps_text_pos->h = 0;
+    this->fps_text_pos->w = 0;
+
+    // Copy the surface onto the screen
+    if (SDL_BlitSurface(this->fps_text_surface, NULL, SDL_GetWindowSurface(main_window), this->fps_text_pos) != 0) {
+      Error::throw_error(Error::fps_text_init_failed, SDL_GetError());
+    }
+
+    //SDL_FreeSurface(this->fps_text_surface);
+  }
+
+// --------------------------
+
+void Renderer::draw_fps(const float fps)
+{
+  // Exploit stream to convert float->string
+  std::stringstream ss;
+  ss << fps;
+  std::string fps_string = ss.str();
+
+
 }

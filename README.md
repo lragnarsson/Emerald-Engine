@@ -14,7 +14,7 @@ INSTALLATION
 Install dependencies with apt-get:
 
 ```shell
-sudo apt-get install build-essential libgl1-mesa-dev libsdl2-dev libglew-dev libglm-dev libsdl2-image-dev libassimp-dev
+sudo apt-get install build-essential libgl1-mesa-dev libsdl2-dev libglew-dev libglm-dev libsdl2-image-dev libassimp-dev libsdl2-ttf-dev
 ```
 Run make
 

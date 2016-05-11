@@ -22,6 +22,7 @@ public:
     static const ErrorMessage cant_load_shader;
     static const ErrorMessage argument_error;
     static const ErrorMessage ssao_num_samples;
+    static const ErrorMessage fps_text_init_failed;
 };
 
 #endif
