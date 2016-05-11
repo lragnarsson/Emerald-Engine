@@ -5,6 +5,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <SDL2/SDL.h>
 #include <iostream>
+#include <AntTweakBar.h>
 #include "Renderer.hpp"
 #include "Camera.hpp"
 

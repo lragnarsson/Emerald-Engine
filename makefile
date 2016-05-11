@@ -3,7 +3,7 @@ UNAME_S := $(shell uname -s)
 # Engine constats
 # ----------------
 FRUSTUM_NEAR="_NEAR_=0.1f"
-FRUSTUM_FAR="_FAR_=100.f"
+FRUSTUM_FAR="_FAR_=1000.f"
 # ----------------
 
 CC = g++
@@ -15,13 +15,14 @@ FRAGMENT_SHADER_PRECOMPILE= "_MAX_LIGHTS_=100" $(FRUSTUM_NEAR) $(FRUSTUM_FAR)
 VERTEX_SHADER_PRECOMPILE=
 
 ifeq ($(UNAME_S),Linux)
-	LDFLAGS += -lGLEW -lGL
+	LDFLAGS += /usr/local/lib/libAntTweakBar.so -lGLEW -lGL
+	INC += -I/usr/local/include -L/usr/local/lib
 endif
 
 ifeq ($(UNAME_S),Darwin)
 	CCFLAGS += -Qunused-arguments
 	INC += -F/Library/Frameworks/ -I/usr/local/include -L/usr/local/lib -I/opt/local/include
-	LDFLAGS += -framework OpenGL -framework Cocoa
+	LDFLAGS += /usr/local/lib/libAntTweakBar.dylib -framework OpenGL -framework Cocoa
 endif
 
 # ------------------------

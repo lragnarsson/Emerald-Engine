@@ -1,7 +1,7 @@
 #include "Renderer.hpp"
 
 
-void Renderer::init()
+void Renderer::init(bool use_tweak_bar)
 {
     shaders[FORWARD] = load_shaders("build/shaders/forward.vert", "build/shaders/forward.frag");
     shaders[GEOMETRY] = load_shaders("build/shaders/geometry.vert", "build/shaders/geometry.frag");
@@ -12,10 +12,11 @@ void Renderer::init()
     init_g_buffer();
     init_quad();
     init_ssao();
+    init_tweak_bar(use_tweak_bar);
 
     sphere = new Model("res/models/sphere/sphere.obj");
 
-    set_mode(FORWARD_MODE);
+    set_mode(DEFERRED_MODE);
 }
 
 // --------------------------
@@ -41,6 +42,11 @@ void Renderer::render()
     case SPECULAR_MODE:
         render_g_specular();
         break;
+    }
+
+    if (use_tweak_bar) {
+        count_fps();
+        draw_tweak_bar();
     }
     glBindVertexArray(0);
     glUseProgram(0);
@@ -577,4 +583,43 @@ void Renderer::init_g_buffer()
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+// -----------------
+
+void Renderer::draw_tweak_bar()
+{
+    // Draw tweak bar
+    TwDraw();
+}
+
+// -----------------
+
+void Renderer::init_tweak_bar(bool use_tweak_bar)
+{
+    this->use_tweak_bar = use_tweak_bar;
+    // Initialize AntTweakBar
+    TwInit(TW_OPENGL_CORE, NULL);
+    // Send the new window size to AntTweakBar
+    TwWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+    // Create bar
+    tweak_bar = TwNewBar("Emeralds tweakbar");
+
+    // FPS counter
+    TwAddVarRO(tweak_bar, "FPS", TW_TYPE_UINT32, &fps," label='FPS' help='Frames per second' ");
+    // n_ssao_samples
+    TwAddVarRW(tweak_bar, "SSAO samples", TW_TYPE_INT32, &ssao_n_samples, " label='Number of SSAO samples' help='Defines the number of SSAO samples used.' ");
+    // SSAO radius
+    TwAddVarRW(tweak_bar, "SSAO kernel radius", TW_TYPE_FLOAT, &kernel_radius, " label='SSAO kernel radius' help='Defines the radius of SSAO samples.' ");
+}
+
+// ---------------
+
+void Renderer::count_fps()
+{
+    unsigned current_time = SDL_GetTicks();
+    fps = 1000/(current_time-last_time);
+
+    last_time = current_time;
 }
