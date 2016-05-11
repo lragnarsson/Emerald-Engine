@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <random>
+#include <AntTweakBar.h>
 
 #include "Camera.hpp"
 #include "Model.hpp"
@@ -36,7 +37,7 @@ public:
     bool running = false;
     bool wireframe_mode = false; // unused
     bool draw_bounding_spheres = false; //unused
-    
+
     Renderer() {}
 
     void init();
@@ -48,8 +49,8 @@ public:
     float get_kernel_radius() {return kernel_radius;}
     void set_ssao_n_samples(GLint n);
     GLint get_ssao_n_samples() {return ssao_n_samples;}
-    bool toggle_ssao(); 
-        
+    bool toggle_ssao();
+
 private:
     enum shader {
       FORWARD,
@@ -76,11 +77,17 @@ private:
     GLfloat kernel_radius = 1; // Could be interesting to tweak this
     GLint ssao_n_samples = 64;
     bool ssao_on;
-    
+
+    // Tweak bar
+    TwBar* tweak_bar;
+
     void init_quad();
     void init_g_buffer();
     void init_ssao();
-    
+
+    void init_tweak_bar();
+    void draw_tweak_bar();
+
     void render_deferred();
     void render_forward();
     void render_flat();

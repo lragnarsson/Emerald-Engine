@@ -21,7 +21,7 @@ endif
 ifeq ($(UNAME_S),Darwin)
 	CCFLAGS += -Qunused-arguments
 	INC += -F/Library/Frameworks/ -I/usr/local/include -L/usr/local/lib -I/opt/local/include
-	LDFLAGS += -framework OpenGL -framework Cocoa
+	LDFLAGS += /usr/local/lib/libAntTweakBar.dylib -framework OpenGL -framework Cocoa
 endif
 
 # ------------------------
