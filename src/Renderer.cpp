@@ -391,7 +391,7 @@ void Renderer::render_bounding_spheres()
         glm::mat4 bounding_move = glm::translate(glm::mat4(1.f), model->scale * model->get_center_point());
 
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->move_matrix * bounding_move * model->rot_matrix * model->scale_matrix * bounding_scale));
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->move_matrix * model->rot_matrix * bounding_move * model->scale_matrix * bounding_scale));
 
         /* DRAW */
         glBindVertexArray(mesh->get_VAO());
@@ -404,7 +404,7 @@ void Renderer::render_bounding_spheres()
         glm::mat4 bounding_move = model->scale * glm::translate(glm::mat4(1.f), model->scale * model->get_center_point());
 
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->move_matrix * bounding_move * model->rot_matrix * model->scale_matrix * bounding_scale));
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->move_matrix * model->rot_matrix * bounding_move * model->scale_matrix * bounding_scale));
 
         // DRAW
         glBindVertexArray(mesh->get_VAO());
