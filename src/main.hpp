@@ -7,7 +7,8 @@
 #include "Renderer.hpp"
 #include "Loader.hpp"
 #include "Parser.hpp"
-
+#include "CR_Spline.hpp"
+#include "Animation_Path.hpp"
 
 SDL_Window* main_window;
 SDL_GLContext main_context;

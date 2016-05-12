@@ -10,6 +10,8 @@ const ErrorMessage Error::cant_load_shader = {5, "Could not load shader!"};
 const ErrorMessage Error::argument_error = {6, "Argument error!"};
 const ErrorMessage Error::renderer_init_fail = {7, "Renderer could not initiate framebuffer!"};
 const ErrorMessage Error::ssao_num_samples = {8, "Tried to set illegal number of kernel samples!"};
+const ErrorMessage Error::animation_path_time_error = {9, "Illegal elapsed time input to animation path!"};
+const ErrorMessage Error::animation_path_vector_error = {10, "Circular vector error!"};
 
 void Error::throw_error(const ErrorMessage& message, string extra_information)
 {

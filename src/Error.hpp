@@ -22,6 +22,8 @@ public:
     static const ErrorMessage cant_load_shader;
     static const ErrorMessage argument_error;
     static const ErrorMessage ssao_num_samples;
+    static const ErrorMessage animation_path_time_error;
+    static const ErrorMessage animation_path_vector_error;
 };
 
 #endif
