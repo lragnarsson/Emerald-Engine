@@ -313,13 +313,12 @@ void Renderer::create_ssao_samples()
     }
 }
 
-bool Renderer::toggle_ssao()
+void Renderer::toggle_ssao()
 {
     ssao_on = !ssao_on;
     if (!ssao_on) {
         clear_ssao();
     }
-    return ssao_on;
 }
 
 
@@ -344,14 +343,14 @@ void Renderer::render_ssao()
     glBindTexture(GL_TEXTURE_2D, noise_texture);
 
     // Upload shader samples
-    for (GLuint i = 0; i < ssao_n_samples; i++) {
+    for (GLuint i = 0; i < _SSAO_N_SAMPLES_; i++) {
         GLuint sample_loc = glGetUniformLocation(shaders[SSAO], ("samples[" + std::to_string(i) + "]").c_str());
         glUniform3fv(sample_loc, 1, &ssao_kernel[i][0]);
     }
     GLuint radius_loc = glGetUniformLocation(shaders[SSAO], "kernel_radius");
     glUniform1f(radius_loc, kernel_radius);
     GLuint size_loc = glGetUniformLocation(shaders[SSAO], "ssao_n_samples");
-    glUniform1i(size_loc, ssao_n_samples);
+    glUniform1i(size_loc, _SSAO_N_SAMPLES_);
     // Projection matrix should already be uploaded from init_uniforms
 
     // Render quad
@@ -396,7 +395,7 @@ void Renderer::init_ssao()
 {
     printf("Init_SSAO\n");
     ssao_on = true;
-    ssao_n_samples = 64;
+    ssao_n_samples = _SSAO_N_SAMPLES_;
 
     /* Create ssao kernel */
     create_ssao_samples();
@@ -552,10 +551,10 @@ void Renderer::init_tweak_bar()
 
     // FPS counter
     TwAddVarRO(tweak_bar, "FPS", TW_TYPE_UINT32, &fps," label='FPS' help='Frames per second' ");
-    // n_ssao_samples
+    // SSAO stuff
     TwAddVarRW(tweak_bar, "SSAO samples", TW_TYPE_INT32, &ssao_n_samples, " label='Number of SSAO samples' help='Defines the number of SSAO samples used.' ");
-    // SSAO radius
     TwAddVarRW(tweak_bar, "SSAO kernel radius", TW_TYPE_FLOAT, &kernel_radius, " label='SSAO kernel radius' help='Defines the radius of SSAO samples.' ");
+    TwAddVarRW(tweak_bar, "SSAO ON", TW_TYPE_BOOL8, &ssao_on, " label='SSAO ON' help='Status of SSAO' ");
 }
 
 // ---------------

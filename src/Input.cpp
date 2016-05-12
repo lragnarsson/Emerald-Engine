@@ -72,7 +72,7 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     }
                     break;
                     case SDLK_m:
-                    printf("SSAO is now %s\n", renderer.toggle_ssao() ? "ON" : "OFF");
+                    renderer.toggle_ssao();
                     break;
                     case SDLK_t:
                         renderer.toggle_tweak_bar();
