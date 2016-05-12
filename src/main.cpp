@@ -34,7 +34,7 @@ void animate_models()
         }
     }
 }
-    
+
 void create_animation_paths()
 {
     // This is just debug. Should be done in load_scene
@@ -64,7 +64,7 @@ void create_animation_paths()
     models[3]->attach_animation_path(a_path, 3.0f);
     models[4]->attach_animation_path(a_path, 4.0f);
     models[5]->attach_animation_path(a_path, 5.0f);
-    
+
     // END DEBUG
 }
 // --------------------------
@@ -72,7 +72,7 @@ void create_animation_paths()
 void run()
 {
 
-    
+
     renderer.running = true;
     while (renderer.running) {
         handle_keyboard_input(camera, renderer);
@@ -81,7 +81,7 @@ void run()
 
         cull_models();
         animate_models();
-        
+
         renderer.upload_camera_uniforms(camera);
         renderer.render();
 
@@ -102,13 +102,13 @@ int main(int argc, char *argv[])
 
     renderer.init_uniforms(camera);
 
-    load_scene(get_scene_file_from_command_line(argc, argv));
+    Loader::load_scene(get_scene_file_from_command_line(argc, argv));
 
     create_animation_paths();
-    
+
     Light::upload_all();
 
-    
+
     run();
 
     TwTerminate();

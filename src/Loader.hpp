@@ -46,6 +46,14 @@
 
 */
 
-void load_scene(std::string filepath);
+class Loader{
+public:
+    static void load_scene(std::string filepath);
+
+private:
+    static std::vector<std::string> split_string(std::string input, char separator);
+    static Light* load_light(std::vector<std::string> light_line);
+    static bool load_model(std::ifstream* read_file, int* current_line, std::vector<std::string>& model_line, bool flat);
+};
 
 #endif

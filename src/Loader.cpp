@@ -15,7 +15,7 @@ const string _FLAT_ = "[flat]";
 
 // ------------------
 
-vector<string> split_string(string input, char separator)
+vector<string> Loader::split_string(string input, char separator)
 {
   vector<string> tokens;
   size_t start = 0, end = 0;
@@ -34,7 +34,7 @@ vector<string> split_string(string input, char separator)
 
 // ------------------
 // Light::Light(const glm::vec3 world_coord, const glm::vec3 ambient_color,const glm::vec3 diffuse_color, const glm::vec3 specular_color)
-Light* load_light(vector<string> light_line)
+Light* Loader::load_light(vector<string> light_line)
 {
   float converter;
   vector<float> numbers;
@@ -49,7 +49,7 @@ Light* load_light(vector<string> light_line)
 
 // ------------------
 
-bool load_model(ifstream* read_file, int* current_line, vector<string>& model_line, bool flat)
+bool Loader::load_model(ifstream* read_file, int* current_line, vector<string>& model_line, bool flat)
 {
   // /path/to/model Xpos Ypos Zpos rotX rotY rotZ nrOfLights
   vector<float> numbers;
@@ -97,7 +97,7 @@ bool load_model(ifstream* read_file, int* current_line, vector<string>& model_li
 
 // ------------------
 
-void load_scene(string filepath)
+void Loader::load_scene(string filepath)
 {
   // Input
   ifstream read_file(filepath);
