@@ -82,6 +82,8 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     case SDLK_m:
                     printf("SSAO is now %s\n", renderer.toggle_ssao() ? "ON" : "OFF");
                     break;
+                    case SDLK_t:
+                        renderer.toggle_tweak_bar();
                 }
             }
         }

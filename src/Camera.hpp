@@ -15,9 +15,6 @@
 
 #include <iostream>
 
-
-const GLuint SCREEN_WIDTH = 1024;
-const GLuint SCREEN_HEIGHT = 600;
 const GLfloat Y_FOV = 45.f;
 const GLfloat ASPECT_RATIO = (float) SCREEN_WIDTH / (float) SCREEN_HEIGHT;
 
