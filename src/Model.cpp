@@ -285,7 +285,7 @@ void Model::generate_bounding_sphere()
     GLfloat x_max = v, y_max = v, z_max = v, x_min = v, y_min = v, z_min = v;
 
     for (auto mesh : this->meshes) {
-        for (int i=0; i < mesh->vertices.size() - 2; i++) {
+        for (int i=0; i < mesh->vertices.size() - 2; i+=3) {
             if (mesh->vertices[i] > x_max){
                 x_max = mesh->vertices[i];
             }

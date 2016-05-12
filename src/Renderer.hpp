@@ -38,6 +38,7 @@ public:
     bool running = false;
     bool wireframe_mode = false; // unused
     bool draw_bounding_spheres = false; //unused
+    uint objects_drawn;
 
     Renderer() {}
 
