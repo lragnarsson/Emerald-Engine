@@ -12,6 +12,7 @@ const ErrorMessage Error::renderer_init_fail = {7, "Renderer could not initiate 
 const ErrorMessage Error::ssao_num_samples = {8, "Tried to set illegal number of kernel samples!"};
 const ErrorMessage Error::animation_path_time_error = {9, "Illegal elapsed time input to animation path!"};
 const ErrorMessage Error::animation_path_vector_error = {10, "Circular vector error!"};
+const ErrorMessage Error::model_has_no_path = {11, "Model has no animation path to follow!"};
 
 void Error::throw_error(const ErrorMessage& message, string extra_information)
 {

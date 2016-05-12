@@ -27,7 +27,8 @@
 #include <algorithm>
 
 #include "Light.hpp"
-
+#include "Error.hpp"
+#include "Animation_Path.hpp"
 
 enum texture_type {
     DIFFUSE,
@@ -85,8 +86,9 @@ public:
     void rotate(glm::vec3 axis, float angle);
     std::vector<Light*> get_lights();
     glm::vec3 get_center_point();
-    // DEBUG
-    static std::vector<Model*> loaded_models, loaded_flat_models;
+    void attach_animation_path(Animation_Path* path, float start_parameter);
+    bool has_animation_path() {return has_animation;}
+    void move_along_path(float elapsed_time);
     
 private:
     struct light_container {
@@ -97,12 +99,16 @@ private:
     glm::mat4 scale_matrix;
     
     static std::vector<Texture*> loaded_textures;
+    static std::vector<Model*> loaded_models, loaded_flat_models; 
     std::vector<light_container> attached_lightsources;
     std::vector<Mesh*> meshes;
     std::string directory;
     glm::vec3 bounding_sphere_center;
     glm::vec3 world_coord;
-
+    float spline_parameter;
+    bool has_animation;
+    Animation_Path* anim_path;
+    
     void unfold_assimp_node(aiNode* node, const aiScene* scene);
     Mesh* load_mesh(aiMesh* mesh, const aiScene* scene);
     Texture* load_texture(const char* filename, std::string basepath);
