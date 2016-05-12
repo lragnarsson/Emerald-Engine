@@ -31,13 +31,6 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
     }
 
     while (SDL_PollEvent(&event)) {
-
-        // Send event to AntTweakBar first
-        handled = TwEventSDL(&event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
-        if (handled) {
-            printf("Tweak bar handled \n");
-        }
-        if (!handled) {
             if (event.type == SDL_QUIT)
                 renderer.running = false;
 
@@ -88,7 +81,6 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                         renderer.toggle_tweak_bar();
                 }
             }
-        }
     }
 }
 
