@@ -23,8 +23,45 @@ void cull_models()
 
 void run()
 {
+    // DEBUG test CR_Spline
+    std::vector<glm::vec3> points;
+
+    glm::vec3 p1 = glm::vec3(3.0f, 10.0f, 1.0f);
+    glm::vec3 p2 = glm::vec3(-2.0f, 8.0f, -10.0f);
+    glm::vec3 p3 = glm::vec3(-2.0f, 7.0f, -7.0f);
+    glm::vec3 p4 = glm::vec3(-5.0f, 7.0f, -10.f);
+    glm::vec3 p5 = glm::vec3(-1.0f, 10.0f, -8.0f);
+    glm::vec3 p6 = glm::vec3(-3.0f, 5.0f, -1.0f);
+
+    points.push_back(p1);
+    points.push_back(p2);
+    points.push_back(p3);
+    points.push_back(p4);
+    points.push_back(p5);
+    points.push_back(p6);
+
+    Animation_Path a_path = Animation_Path(points, 10.0f);
+    printf("created animation path \n");
+    glm::vec3 pos;
+    /*
+      printf("4x3: %s\n", (glm::to_string(glm::mat4x3(p1,p2,p3,p4))).c_str());
+    printf("(4x3)': %s\n", (glm::to_string(glm::transpose(glm::mat4x3(p1,p2,p3,p4)))).c_str());
+    //    printf("CR_matrix: %s\n", (glm::to_string(CR_Spline::CR_matrix)).c_str());
+
+    for  (float u = 0; u<1.05f; u += 0.1f) {
+        printf("u_vec: %s\n", (glm::to_string(glm::vec4(std::pow(u,3), std::pow(u,2), u, 1))).c_str());
+        pos= CR_Spline::calc_pos_on_spline(u, p1,p2,p3,p4);
+        printf("u = %f, pos = %s\n",u, (glm::to_string(pos)).c_str());
+        printf("pos (x,y,z): (%f,%f,%f)\n", pos.x,pos.y,pos.z);
+        }*/
+    for (int i = 0; i < 1000; i++) {
+        pos = a_path.get_pos(0.1f);
+        printf("pos (x,y,z): (%f,%f,%f)\n", pos.x,pos.y,pos.z);
+    }
+    
     renderer.running = true;
     while (renderer.running) {
+        Model::loaded_flat_models[0]->move_to(a_path.get_pos(0.1f));
         handle_keyboard_input(camera, renderer);
         handle_mouse_input(camera);
         camera.update_culling_frustum();
@@ -55,41 +92,7 @@ int main(int argc, char *argv[])
 
     Light::upload_all();
 
-    // DEBUG test CR_Spline
-    std::vector<glm::vec3> points;
-
-    glm::vec3 p1 = glm::vec3(1.0f, 0.0f, 0.0f);
-    glm::vec3 p2 = glm::vec3(1.0f, 0.5f, 0.0f);
-    glm::vec3 p3 = glm::vec3(1.5f, 0.5f, 0.0f);
-    glm::vec3 p4 = glm::vec3(2.0f, 0.8f, 0.2f);
-    glm::vec3 p5 = glm::vec3(2.0f, 1.0f, 0.4f);
-    glm::vec3 p6 = glm::vec3(1.0f, 0.5f, 0.4f);
-
-    points.push_back(p1);
-    points.push_back(p2);
-    points.push_back(p3);
-    points.push_back(p4);
-    points.push_back(p5);
-    points.push_back(p6);
-
-    Animation_Path a_path = Animation_Path(points, 10.0f);
-    printf("created animation path \n");
-    glm::vec3 pos;
-    /*
-      printf("4x3: %s\n", (glm::to_string(glm::mat4x3(p1,p2,p3,p4))).c_str());
-    printf("(4x3)': %s\n", (glm::to_string(glm::transpose(glm::mat4x3(p1,p2,p3,p4)))).c_str());
-    //    printf("CR_matrix: %s\n", (glm::to_string(CR_Spline::CR_matrix)).c_str());
-
-    for  (float u = 0; u<1.05f; u += 0.1f) {
-        printf("u_vec: %s\n", (glm::to_string(glm::vec4(std::pow(u,3), std::pow(u,2), u, 1))).c_str());
-        pos= CR_Spline::calc_pos_on_spline(u, p1,p2,p3,p4);
-        printf("u = %f, pos = %s\n",u, (glm::to_string(pos)).c_str());
-        printf("pos (x,y,z): (%f,%f,%f)\n", pos.x,pos.y,pos.z);
-        }*/
-    for (int i = 0; i < 100; i++) {
-        pos = a_path.get_pos(0.1f);
-        printf("pos (x,y,z): (%f,%f,%f)\n", pos.x,pos.y,pos.z);
-    }
+    
     run();
 
     TwTerminate();

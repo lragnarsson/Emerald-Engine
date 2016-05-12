@@ -85,7 +85,9 @@ public:
     void rotate(glm::vec3 axis, float angle);
     std::vector<Light*> get_lights();
     glm::vec3 get_center_point();
-
+    // DEBUG
+    static std::vector<Model*> loaded_models, loaded_flat_models;
+    
 private:
     struct light_container {
         Light* light;
@@ -93,7 +95,7 @@ private:
     };
 
     glm::mat4 scale_matrix;
-    static std::vector<Model*> loaded_models, loaded_flat_models;
+    
     static std::vector<Texture*> loaded_textures;
     std::vector<light_container> attached_lightsources;
     std::vector<Mesh*> meshes;
