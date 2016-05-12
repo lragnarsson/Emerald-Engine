@@ -69,6 +69,7 @@ private:
     GLuint g_position_depth, g_normal, g_albedo_specular, ssao_result;
     GLuint quad_vao, quad_vbo;
     glm::mat4 w2v_matrix;
+    Model* sphere;
 
     //glm::vec3 ssao_kernel[64];
 
@@ -96,9 +97,11 @@ private:
     void render_deferred();
     void render_forward();
     void render_flat();
+    void render_bounding_spheres();
+
     void clear_ssao();
     void render_ssao();
-    void create_ssao_samples();
+
     void render_geometry(std::vector<Model*> models);
     void render_g_position();
     void render_g_normal();
