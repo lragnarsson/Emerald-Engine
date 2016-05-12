@@ -288,12 +288,8 @@ inline GLfloat lerp(GLfloat a, GLfloat b, GLfloat f)
     return a + f * (b - a);
 }
 
-void Renderer::set_ssao_n_samples()
+void Renderer::create_ssao_samples()
 {
-    // if (n > MAX_SSAO_SAMPLES|| n < 1) {
-    //     std::string str = "n = " + std::to_string(n);
-    //     Error::throw_error(Error::ssao_num_samples, str);
-    // }
 
     ssao_kernel.clear();
     /* Create a unit hemisphere with n samples */
@@ -403,7 +399,7 @@ void Renderer::init_ssao()
     ssao_n_samples = 64;
 
     /* Create ssao kernel */
-    set_ssao_n_samples();
+    create_ssao_samples();
 
     std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // random floats between 0.0 - 1.0
     std::default_random_engine generator;
