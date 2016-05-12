@@ -48,7 +48,7 @@ public:
     void upload_camera_uniforms(const Camera &camera);
     void set_kernel_radius(float radius) {kernel_radius = radius;}
     float get_kernel_radius() {return kernel_radius;}
-    void set_ssao_n_samples(GLint n);
+    void set_ssao_n_samples();
     GLint get_ssao_n_samples() {return ssao_n_samples;}
     bool toggle_ssao();
     void toggle_tweak_bar();

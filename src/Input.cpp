@@ -73,11 +73,11 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     break;
                     case SDLK_i:
                     if (renderer.get_ssao_n_samples() < MAX_SSAO_SAMPLES)
-                    renderer.set_ssao_n_samples(renderer.get_ssao_n_samples() + 1);
+                    renderer.set_ssao_n_samples();
                     break;
                     case SDLK_u:
                     if (renderer.get_ssao_n_samples() > 1)
-                    renderer.set_ssao_n_samples(renderer.get_ssao_n_samples() - 1);
+                    renderer.set_ssao_n_samples();
                     break;
                     case SDLK_m:
                     printf("SSAO is now %s\n", renderer.toggle_ssao() ? "ON" : "OFF");
