@@ -14,6 +14,8 @@ void Renderer::init()
     init_ssao();
     init_tweak_bar();
 
+    sphere = new Model("res/models/sphere/sphere.obj");
+
     set_mode(DEFERRED_MODE);
 }
 
@@ -197,6 +199,10 @@ void Renderer::render_deferred()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     render_flat();
 
+    if (draw_bounding_spheres) {
+        render_bounding_spheres();
+    }
+
     glBindVertexArray(0);
     glUseProgram(0);
 }
@@ -252,6 +258,9 @@ void Renderer::render_forward()
         }
     }
     render_flat();
+    if (draw_bounding_spheres) {
+        render_bounding_spheres();
+    }
     glUseProgram(0);
 }
 
@@ -367,6 +376,46 @@ void Renderer::render_ssao()
     glUseProgram(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
+
+// --------------------------
+
+void Renderer::render_bounding_spheres()
+{
+    // TODO: use instancing for bounding spheres!
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glUseProgram(shaders[FLAT]);
+    Mesh* mesh = this->sphere->get_meshes()[0];
+
+    for (auto model : Model::get_loaded_flat_models()) {
+        glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), 0.6667f * glm::vec3(model->bounding_sphere_radius));
+        glm::mat4 bounding_move = glm::translate(glm::mat4(1.f), model->scale * model->get_center_point());
+
+        GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->move_matrix * model->rot_matrix * bounding_move * model->scale_matrix * bounding_scale));
+
+        /* DRAW */
+        glBindVertexArray(mesh->get_VAO());
+        glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+    }
+
+    for (auto model : Model::get_loaded_models()) {
+        glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), 0.6667f * glm::vec3(model->bounding_sphere_radius));
+        glm::mat4 bounding_move = model->scale * glm::translate(glm::mat4(1.f), model->scale * model->get_center_point());
+
+        GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->move_matrix * model->rot_matrix * bounding_move * model->scale_matrix * bounding_scale));
+
+        // DRAW
+        glBindVertexArray(mesh->get_VAO());
+        glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+    }
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
+
 // --------------------------
 
 void Renderer::render_g_position()

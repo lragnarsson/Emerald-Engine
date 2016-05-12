@@ -31,62 +31,56 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
     }
 
     while (SDL_PollEvent(&event)) {
-
-        // Send event to AntTweakBar first
-        handled = TwEventSDL(&event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
-        if (handled) {
-            printf("Tweak bar handled \n");
-        }
-        if ( !handled ) {
             if (event.type == SDL_QUIT)
-            renderer.running = false;
+                renderer.running = false;
+
             if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
-                    case SDLK_ESCAPE:
+                case SDLK_ESCAPE:
                     renderer.running = false;
                     break;
-                    case SDLK_1:
+                case SDLK_1:
                     renderer.set_mode(FORWARD_MODE);
                     break;
-                    case SDLK_2:
+                case SDLK_2:
                     renderer.set_mode(DEFERRED_MODE);
                     break;
-                    case SDLK_3:
+                case SDLK_3:
                     renderer.set_mode(POSITION_MODE);
                     break;
-                    case SDLK_4:
+                case SDLK_4:
                     renderer.set_mode(NORMAL_MODE);
                     break;
-                    case SDLK_5:
+                case SDLK_5:
                     renderer.set_mode(ALBEDO_MODE);
                     break;
-                    case SDLK_6:
+                case SDLK_6:
                     renderer.set_mode(SPECULAR_MODE);
                     break;
-                    case SDLK_k:
+                case SDLK_b:
+                    renderer.draw_bounding_spheres = !renderer.draw_bounding_spheres;
+                case SDLK_k:
                     renderer.set_kernel_radius(renderer.get_kernel_radius() + 0.1f);
                     break;
-                    case SDLK_j:
-                    if (renderer.get_kernel_radius() > 0.2f) {
+                case SDLK_j:
+                    if (renderer.get_kernel_radius() > 0.2f)
                         renderer.set_kernel_radius(renderer.get_kernel_radius() - 0.1f);
-                    }
                     break;
-                    case SDLK_i:
+                case SDLK_i:
                     if (renderer.get_ssao_n_samples() < MAX_SSAO_SAMPLES)
-                    renderer.set_ssao_n_samples(renderer.get_ssao_n_samples() + 1);
+                        renderer.set_ssao_n_samples(renderer.get_ssao_n_samples() + 1);
                     break;
-                    case SDLK_u:
+                case SDLK_u:
                     if (renderer.get_ssao_n_samples() > 1)
-                    renderer.set_ssao_n_samples(renderer.get_ssao_n_samples() - 1);
+                        renderer.set_ssao_n_samples(renderer.get_ssao_n_samples() - 1);
                     break;
-                    case SDLK_m:
+                case SDLK_m:
                     printf("SSAO is now %s\n", renderer.toggle_ssao() ? "ON" : "OFF");
                     break;
                     case SDLK_t:
                         renderer.toggle_tweak_bar();
                 }
             }
-        }
     }
 }
 
