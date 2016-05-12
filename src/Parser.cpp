@@ -2,7 +2,7 @@
 
 using namespace std;
 
-string get_scene_file_from_command_line(int argc, char *argv[])
+string Parser::get_scene_file_from_command_line(int argc, char *argv[])
 {
   string error_information = "Usage: \n";
   error_information += "  ";
