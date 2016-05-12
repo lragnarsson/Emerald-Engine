@@ -101,6 +101,7 @@ private:
 
     void clear_ssao();
     void render_ssao();
+    void create_ssao_samples();
 
     void render_geometry(std::vector<Model*> models);
     void render_g_position();
