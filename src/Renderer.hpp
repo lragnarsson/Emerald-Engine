@@ -41,7 +41,7 @@ public:
 
     Renderer() {}
 
-    void init(bool use_tweak_bar);
+    void init();
     void render();
     void set_mode(render_mode mode);
     void init_uniforms(const Camera &camera);
@@ -51,6 +51,7 @@ public:
     void set_ssao_n_samples(GLint n);
     GLint get_ssao_n_samples() {return ssao_n_samples;}
     bool toggle_ssao();
+    void toggle_tweak_bar();
 
 private:
     enum shader {
@@ -82,7 +83,7 @@ private:
 
     // Tweak bar
     TwBar* tweak_bar;
-    bool use_tweak_bar;
+    bool use_tweak_bar = true;
     unsigned fps;
     unsigned last_time;
     void count_fps();
@@ -91,7 +92,7 @@ private:
     void init_g_buffer();
     void init_ssao();
 
-    void init_tweak_bar(bool use_tweak_bar);
+    void init_tweak_bar();
     void draw_tweak_bar();
 
     void render_deferred();

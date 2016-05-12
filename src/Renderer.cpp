@@ -1,7 +1,7 @@
 #include "Renderer.hpp"
 
 
-void Renderer::init(bool use_tweak_bar)
+void Renderer::init()
 {
     shaders[FORWARD] = load_shaders("build/shaders/forward.vert", "build/shaders/forward.frag");
     shaders[GEOMETRY] = load_shaders("build/shaders/geometry.vert", "build/shaders/geometry.frag");
@@ -12,7 +12,7 @@ void Renderer::init(bool use_tweak_bar)
     init_g_buffer();
     init_quad();
     init_ssao();
-    init_tweak_bar(use_tweak_bar);
+    init_tweak_bar();
 
     sphere = new Model("res/models/sphere/sphere.obj");
 
@@ -595,9 +595,8 @@ void Renderer::draw_tweak_bar()
 
 // -----------------
 
-void Renderer::init_tweak_bar(bool use_tweak_bar)
+void Renderer::init_tweak_bar()
 {
-    this->use_tweak_bar = use_tweak_bar;
     // Initialize AntTweakBar
     TwInit(TW_OPENGL_CORE, NULL);
     // Send the new window size to AntTweakBar
@@ -622,4 +621,11 @@ void Renderer::count_fps()
     fps = 1000/(current_time-last_time);
 
     last_time = current_time;
+}
+
+// ----------------
+
+void Renderer::toggle_tweak_bar()
+{
+    use_tweak_bar = !use_tweak_bar;
 }
