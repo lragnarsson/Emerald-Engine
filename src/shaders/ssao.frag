@@ -6,10 +6,7 @@ uniform sampler2D g_normal;
 uniform sampler2D tex_noise;
 
 uniform mat4 view;
-
-
 uniform float kernel_radius;
-uniform int ssao_n_samples;
 
 const int MAX_N_SAMPELS = 256;
 
@@ -35,7 +32,7 @@ void main()
     mat3 TBN = mat3(tangent, bitangent, normal);
 
     float occlusion = 0.0;
-    for(int i = 0; i < ssao_n_samples; ++i)
+    for(int i = 0; i < _SSAO_N_SAMPLES_; ++i)
         {
             // get sample position
             vec3 sample = TBN * samples[i]; // From tangent to view-space
@@ -49,7 +46,7 @@ void main()
             float range_check = smoothstep(0.0, 1.0, kernel_radius / abs(frag_pos.z - sample_depth));
             occlusion += (sample_depth >= sample.z ? 1.0 : 0.0) * range_check;
         }
-    occlusion = 1.0 - occlusion / float(ssao_n_samples); // To make sure that the occlusion is [0 1]
+    occlusion = 1.0 - occlusion / float(_SSAO_N_SAMPLES_); // To make sure that the occlusion is [0 1]
 
     FragColor = occlusion;
 }
