@@ -42,22 +42,9 @@ void run()
 
     Animation_Path a_path = Animation_Path(points, 10.0f);
     printf("created animation path \n");
-    glm::vec3 pos;
-    /*
-      printf("4x3: %s\n", (glm::to_string(glm::mat4x3(p1,p2,p3,p4))).c_str());
-    printf("(4x3)': %s\n", (glm::to_string(glm::transpose(glm::mat4x3(p1,p2,p3,p4)))).c_str());
-    //    printf("CR_matrix: %s\n", (glm::to_string(CR_Spline::CR_matrix)).c_str());
 
-    for  (float u = 0; u<1.05f; u += 0.1f) {
-        printf("u_vec: %s\n", (glm::to_string(glm::vec4(std::pow(u,3), std::pow(u,2), u, 1))).c_str());
-        pos= CR_Spline::calc_pos_on_spline(u, p1,p2,p3,p4);
-        printf("u = %f, pos = %s\n",u, (glm::to_string(pos)).c_str());
-        printf("pos (x,y,z): (%f,%f,%f)\n", pos.x,pos.y,pos.z);
-        }*/
-    for (int i = 0; i < 1000; i++) {
-        pos = a_path.get_pos(0.1f);
-        printf("pos (x,y,z): (%f,%f,%f)\n", pos.x,pos.y,pos.z);
-    }
+    // END DEBUG
+
     
     renderer.running = true;
     while (renderer.running) {

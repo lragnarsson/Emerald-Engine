@@ -7,10 +7,6 @@ Animation_Path::Animation_Path(std::vector<glm::vec3> points, float period)
     period_time = period;
     time_per_section = period_time / points.size();
     t = 0.0f;
-
-    printf("control_points.size(): %lu\n", control_points.size());
-    printf("period_time: %f\n", period_time);
-    printf("time_per_section: %f\n", time_per_section);
 }
 
 
@@ -22,7 +18,6 @@ glm::vec3 Animation_Path::get_pos(float elapsed_time)
 
     points = get_spline_points(t, u);
     glm::vec3 pos = CR_Spline::calc_pos_on_spline(u, points);
-    printf("pos (x,y,z): (%f,%f,%f)\n", pos.x,pos.y,pos.z);
     return pos;
 }
 
@@ -33,8 +28,6 @@ void Animation_Path::update_time(float elapsed_time)
     } else {
         t += elapsed_time;
     }
-    printf("t = : %f\n", t);
-    printf("period_time: %f\n", period_time);
     while (t > period_time) {
         t = t - period_time;
     }
@@ -54,7 +47,7 @@ glm::mat3x4 Animation_Path::get_spline_points(float t, float &u)
     i1 = get_vector_index_circular(start,1);
     i2 = get_vector_index_circular(start,2);
     i3 = get_vector_index_circular(start,3);
-    printf("start,i1,i2,i3: %u,%u,%u,%u\n", start,i1,i2,i3);
+ 
     p1 = control_points[start];
     p2 = control_points[i1];
     p3 = control_points[i2];
