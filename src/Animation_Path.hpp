@@ -12,9 +12,10 @@
 class Animation_Path {
 public:
     glm::vec3 get_pos(float &spline_time, float elapsed_time);
-    
+
     Animation_Path(std::vector<glm::vec3> points, float period);
     ~Animation_Path() { };
+    static Animation_Path* get_animation_path_with_id(unsigned id);
 private:
     float period_time;
     float time_per_section;

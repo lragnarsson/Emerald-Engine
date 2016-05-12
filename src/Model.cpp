@@ -96,9 +96,9 @@ glm::vec3 Model::get_center_point_world()
     return glm::vec3(this->m2w_matrix * glm::vec4(this->bounding_sphere_center, 1.f));
 }
 
-void Model::attach_animation_path(Animation_Path* path, float start_parameter)
+void Model::attach_animation_path(int animation_id, float start_parameter)
 {
-    this->anim_path = path;
+    this->anim_path = Animation_Path::get_animation_path_with_id(animation_id);
     this->spline_parameter = start_parameter;
     this->has_animation = true;
 }

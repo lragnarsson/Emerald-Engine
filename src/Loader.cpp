@@ -12,6 +12,7 @@ const unsigned int _MINIMUM_ALLOWED_LINE_LENGTH_ = 6;
 const string _MODELS_ = "[models]";
 const string _LIGHTS_ = "[lights]";
 const string _FLAT_ = "[flat]";
+const string _ANIMATIONS_ = "[animations]";
 
 // ------------------
 
@@ -33,7 +34,35 @@ vector<string> Loader::split_string(string input, char separator)
 }
 
 // ------------------
-// Light::Light(const glm::vec3 world_coord, const glm::vec3 ambient_color,const glm::vec3 diffuse_color, const glm::vec3 specular_color)
+// Animation_Path::Animation_Path(std::vector<glm::vec3> points, float period)
+
+void Loader::load_animation(std::vector<string> animation_line){
+    #ifdef _DEBUG_LOADER_
+    int nr_of_points = 0;
+    #endif
+
+    float convert_x, convert_y, convert_z, period;
+    vector<glm::vec3> points;
+
+    for (size_t i = 0; i < animation_line.size()-1; i += 3) {
+        stringstream(animation_line[i]) >> convert_x;
+        stringstream(animation_line[i+1]) >> convert_y;
+        stringstream(animation_line[i+2]) >> convert_z;
+
+        points.push_back(glm::vec3(convert_x, convert_y, convert_z));
+
+        #ifdef _DEBUG_LOADER_
+        nr_of_points++;
+        cout << "Nr of points in animation path is now: " << nr_of_points << endl;
+        #endif
+    }
+    stringstream(animation_line.back()) >> period;
+
+    new Animation_Path(points, period);
+}
+
+// ------------------
+
 Light* Loader::load_light(vector<string> light_line)
 {
   float converter;
@@ -49,22 +78,27 @@ Light* Loader::load_light(vector<string> light_line)
 
 // ------------------
 
-bool Loader::load_model(ifstream* read_file, int* current_line, vector<string>& model_line, bool flat)
+void Loader::load_model(ifstream* read_file, int* current_line, vector<string>& model_line, bool flat)
 {
   // /path/to/model Xpos Ypos Zpos rotX rotY rotZ nrOfLights
   vector<float> numbers;
   float converter;
 
   string light_line;
+  int animation_id = -1;
+  float animation_start_point;
+
   int nr_of_lights;
   Light* attach_light;
   Model* this_model;
 
 
-  for (size_t i = 1; i < model_line.size()-1; i++) {
+  for (size_t i = 1; i < model_line.size()-3; i++) {
     stringstream(model_line[i]) >> converter;
     numbers.push_back(converter);
   }
+  stringstream(model_line.at(model_line.size()-3)) >> animation_id;
+  stringstream(model_line.at(model_line.size()-2)) >> animation_start_point;
   stringstream(model_line.back()) >> nr_of_lights;
 
   // Create rotational matrix for model.
@@ -76,6 +110,11 @@ bool Loader::load_model(ifstream* read_file, int* current_line, vector<string>& 
 
   // Create model
   this_model = new Model(model_line[0], total_rot, glm::vec3(numbers[3], numbers[4], numbers[5]), numbers[6], flat);
+
+  // Attach animation path if any:
+  if (animation_id != -1) {
+      this_model->attach_animation_path(animation_id, animation_start_point);
+  }
 
   // Attach light sources to model
   if (nr_of_lights > 0) {
@@ -91,8 +130,6 @@ bool Loader::load_model(ifstream* read_file, int* current_line, vector<string>& 
       this_model->attach_light(attach_light, attach_light->get_pos());
     }
   }
-
-  return true;
 }
 
 // ------------------
@@ -156,6 +193,12 @@ void Loader::load_scene(string filepath)
         #endif
         current_section = _FLAT_;
       }
+      else if ( split_line.at(0) == _ANIMATIONS_ ){
+          #ifdef _DEBUG_LOADER_
+          cout << "Line " << current_line << " starts a spline section " << endl;
+          #endif
+          current_section = _ANIMATIONS_;
+      }
       else {
         Error::throw_error(Error::invalid_file_syntax, "On line " + to_string(current_line));
       }
@@ -177,6 +220,14 @@ void Loader::load_scene(string filepath)
       cout << line << endl;
       #endif
       load_model(&read_file, &current_line, split_line, true);
+      continue;
+    }
+    else if (current_section == _ANIMATIONS_){
+      #ifdef _DEBUG_LOADER_
+      cout << "Loading animation path!" << endl;
+      cout << line << endl;
+      #endif
+      load_animation(split_line);
       continue;
     }
 

@@ -40,14 +40,14 @@ void Animation_Path::update_time(float &spline_time, float elapsed_time)
 glm::mat3x4 Animation_Path::get_spline_points(float t, float &u)
 {
     glm::vec3 p1,p2,p3,p4;
-    
+
     unsigned int start = uint(t / time_per_section);
 
     unsigned int i1,i2,i3;
     i1 = get_vector_index_circular(start,1);
     i2 = get_vector_index_circular(start,2);
     i3 = get_vector_index_circular(start,3);
- 
+
     p1 = control_points[start];
     p2 = control_points[i1];
     p3 = control_points[i2];
@@ -59,7 +59,7 @@ glm::mat3x4 Animation_Path::get_spline_points(float t, float &u)
                        p1.y,p2.y,p3.y,p4.y,
                        p1.z,p2.z,p3.z,p4.z);
 }
-    
+
 unsigned int Animation_Path::get_vector_index_circular(unsigned int start,
                                                        unsigned int offset)
 {
@@ -73,4 +73,10 @@ unsigned int Animation_Path::get_vector_index_circular(unsigned int start,
         i -= size;
     }
     return i;
+}
+
+// -----------
+
+Animation_Path* Animation_Path::get_animation_path_with_id(unsigned id){
+    return animation_paths.at(id);
 }

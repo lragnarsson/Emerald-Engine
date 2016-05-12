@@ -19,4 +19,3 @@ glm::vec3 CR_Spline::calc_pos_on_spline(float u, glm::mat3x4 points)
     glm::vec4 u_vec = glm::vec4(std::pow(u,3), std::pow(u,2), u, 1);
     return u_vec * CR_matrix * points;
 }
-

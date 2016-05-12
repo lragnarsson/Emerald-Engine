@@ -35,38 +35,6 @@ void animate_models()
     }
 }
 
-void create_animation_paths()
-{
-    // This is just debug. Should be done in load_scene
-    std::vector<glm::vec3> points;
-
-    glm::vec3 p1 = glm::vec3(3.0f, 10.0f, 1.0f);
-    glm::vec3 p2 = glm::vec3(-2.0f, 8.0f, -10.0f);
-    glm::vec3 p3 = glm::vec3(-2.0f, 7.0f, -7.0f);
-    glm::vec3 p4 = glm::vec3(-5.0f, 7.0f, -10.f);
-    glm::vec3 p5 = glm::vec3(-1.0f, 10.0f, -8.0f);
-    glm::vec3 p6 = glm::vec3(-3.0f, 5.0f, -1.0f);
-
-    points.push_back(p1);
-    points.push_back(p2);
-    points.push_back(p3);
-    points.push_back(p4);
-    points.push_back(p5);
-    points.push_back(p6);
-
-    Animation_Path* a_path = new Animation_Path(points, 10.0f);
-
-    // Attaches some lightsources to the animation path
-    std::vector<Model*> models = Model::get_loaded_flat_models();
-    models[0]->attach_animation_path(a_path, 0.0f);
-    models[1]->attach_animation_path(a_path, 1.0f);
-    models[2]->attach_animation_path(a_path, 2.0f);
-    models[3]->attach_animation_path(a_path, 3.0f);
-    models[4]->attach_animation_path(a_path, 4.0f);
-    models[5]->attach_animation_path(a_path, 5.0f);
-
-    // END DEBUG
-}
 // --------------------------
 
 void run()
@@ -102,9 +70,7 @@ int main(int argc, char *argv[])
 
     renderer.init_uniforms(camera);
 
-    Loader::load_scene(get_scene_file_from_command_line(argc, argv));
-
-    create_animation_paths();
+    Loader::load_scene(Parser::get_scene_file_from_command_line(argc, argv));
 
     Light::upload_all();
 

@@ -89,7 +89,7 @@ public:
     std::vector<Light*> get_lights();
     glm::vec3 get_center_point_world();
     glm::vec3 get_center_point();
-    void attach_animation_path(Animation_Path* path, float start_parameter);
+    void attach_animation_path(int animation_id, float start_parameter);
     bool has_animation_path() {return has_animation;}
     void move_along_path(float elapsed_time);
 
