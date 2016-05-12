@@ -54,13 +54,28 @@ GLuint Mesh::get_VAO()
 std::vector<Model*> Model::loaded_models, Model::loaded_flat_models;
 std::vector<Texture*> Model::loaded_textures;
 
+Model::Model(const std::string path)
+{
+    this->rot_matrix = glm::mat4(1.f);
+    this->scale = 1.f;
+    this->scale_matrix = glm::mat4(1.f);
+    this->world_coord = glm::vec3(0.f);
+    this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
+    this->m2w_matrix = move_matrix  * rot_matrix * scale_matrix;
+
+    load(path);
+    generate_bounding_sphere();
+}
+
+
 Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3 world_coord, float scale, bool flat)
 {
     this->rot_matrix = rot_matrix;
     this->scale = scale;
     this->scale_matrix = glm::scale(glm::mat4(1.f), glm::vec3(scale));
-    this->m2w_matrix = glm::translate(glm::mat4(1.f), world_coord) * rot_matrix * scale_matrix;
     this->world_coord = world_coord;;
+    this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
+    this->m2w_matrix = move_matrix  * rot_matrix * scale_matrix;
 
     load(path);
     generate_bounding_sphere();
@@ -76,7 +91,7 @@ Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3
 
 
 /* Public Model functions */
-glm::vec3 Model::get_center_point()
+glm::vec3 Model::get_center_point_world()
 {
     return glm::vec3(this->m2w_matrix * glm::vec4(this->bounding_sphere_center, 1.f));
 }
@@ -101,6 +116,12 @@ void Model::move_along_path(float elapsed_time)
     this->move_to(new_pos);
 }
 
+glm::vec3 Model::get_center_point()
+{
+    return this->bounding_sphere_center;
+}
+
+
 void Model::attach_light(Light* light, glm::vec3 relative_pos) {
     light_container new_light = {light, relative_pos};
 
@@ -117,8 +138,10 @@ the changed values to GPU.
 Important: the lights does not currently keep their relative
 position to the model */
 void Model::move_to(glm::vec3 world_coord) {
-    this->m2w_matrix = glm::translate(glm::mat4(1.f), world_coord) * this->rot_matrix * this->scale_matrix;
     this->world_coord = world_coord;
+
+    move_matrix = glm::translate(glm::mat4(1.f), world_coord);
+    m2w_matrix =  move_matrix * rot_matrix * scale_matrix;
 
     for (auto light_container : this->attached_lightsources) {
         glm::vec3 new_pos = glm::vec3(m2w_matrix * glm::vec4(light_container.relative_pos, 1.f));
@@ -135,7 +158,7 @@ void Model::move(glm::vec3 relative) {
 
 void Model::rotate(glm::vec3 axis, float angle) {
     rot_matrix = glm::rotate(rot_matrix, angle, axis);
-    m2w_matrix = glm::translate(glm::mat4(1.0f), world_coord) * rot_matrix * scale_matrix;
+    m2w_matrix = move_matrix * rot_matrix * scale_matrix;
 
     for (auto light_container : this->attached_lightsources) {
         glm::vec3 new_pos = glm::vec3(m2w_matrix * glm::vec4(light_container.relative_pos, 1.f));
@@ -168,6 +191,7 @@ void Model::unfold_assimp_node(aiNode* node, const aiScene* scene) {
         unfold_assimp_node(node->mChildren[i], scene);
     }
 }
+
 
 Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
     Mesh* m = new Mesh();

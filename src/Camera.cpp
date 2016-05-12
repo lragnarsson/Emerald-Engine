@@ -1,5 +1,6 @@
 #include "Camera.hpp"
 
+
 Camera::Camera(glm::vec3 position, glm::vec3 front, glm::vec3 up, glm::vec3 right, float speed, float rot_speed)
 {
     this->position = position;
