@@ -4,19 +4,19 @@
 # Models are loaded using the following syntax:
 # /path/to/model rotX rotY rotZ Xpos Ypos Zpos scale nr_of_lights
 res/models/nanosuit/nanosuit.obj 0 5 0 20 0 -5 1 0
-res/models/nanosuit/nanosuit.obj 0 0 0 -8 0 -5 1 0
+res/models/crytek-sponza/sponza.obj 0 0 0 0 0 0 0.1 0
 # Now we have loaded three nanosuits
 
 # This will start a new section for loading flat-shaded models.
 [flat]
 # Light sources attatched to models are placed directly after given model and loaded according to:
 # relativeXpos relativeYpos relativeZpos R G B
-res/models/sphere/sphere.obj 0 0 0 1 1 1 1 1
+res/models/sphere/sphere.obj 0 0 0 -10 50 1 1 1
 0 0 0 0.1 0.3 0.8
-res/models/cube/cube.obj 0 0 0 3 10 1 1 1
+res/models/cube/cube.obj 0 0 0 10 10 10 1 1
 0 0 0 0.2 0.8 0.1
 res/models/cube/cube.obj 0 0 0 -2 8 -10 1 1
 0 0 0 0.8 0.1 0.1
-res/models/cube/cube.obj 0 10 5 0 10 6 2 1
+res/models/cube/cube.obj 0 10 5 0 50 6 1 1
 0 0 0 1 1 1
 

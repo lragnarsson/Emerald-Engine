@@ -380,7 +380,7 @@ void Renderer::render_bounding_spheres()
     Mesh* mesh = this->sphere->get_meshes()[0];
 
     for (auto model : Model::get_loaded_flat_models()) {
-        glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), 0.6667f * glm::vec3(model->bounding_sphere_radius));
+        glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), glm::vec3(model->bounding_sphere_radius) / 1.5f);
         glm::mat4 bounding_move = glm::translate(glm::mat4(1.f), model->scale * model->get_center_point());
 
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
@@ -393,7 +393,7 @@ void Renderer::render_bounding_spheres()
     }
 
     for (auto model : Model::get_loaded_models()) {
-        glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), 0.6667f * glm::vec3(model->bounding_sphere_radius));
+        glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), glm::vec3(model->bounding_sphere_radius) / 1.5f);
         glm::mat4 bounding_move = model->scale * glm::translate(glm::mat4(1.f), model->scale * model->get_center_point());
 
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
@@ -603,6 +603,9 @@ void Renderer::init_tweak_bar()
     // SSAO stuff
     TwAddVarRW(tweak_bar, "SSAO samples", TW_TYPE_INT32, &ssao_n_samples, " label='Number of SSAO samples' help='Defines the number of SSAO samples used.' ");
     TwAddVarRW(tweak_bar, "SSAO kernel radius", TW_TYPE_FLOAT, &kernel_radius, " label='SSAO kernel radius' help='Defines the radius of SSAO samples.' ");
+    // Objects drawn
+    TwAddVarRW(tweak_bar, "Objects drawn", TW_TYPE_INT32, &objects_drawn, " label='Objects drawn' help='Objects not removed by frustum culling.' ");
+
     TwAddVarRW(tweak_bar, "SSAO ON", TW_TYPE_BOOL8, &ssao_on, " label='SSAO ON' help='Status of SSAO' ");
 }
 

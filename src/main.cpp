@@ -11,12 +11,20 @@ void free_resources()
 void cull_models()
 {
     // TODO: Run in parallel
+    uint i = 0;
     for (auto model : Model::get_loaded_models()) {
-        model->draw_me = camera.sphere_in_frustum(model->get_center_point_world(), model->bounding_sphere_radius * model->scale);
+        bool draw_me = camera.sphere_in_frustum(model->get_center_point_world(), model->bounding_sphere_radius * model->scale);
+        model->draw_me = draw_me;
+       if (draw_me)
+           i++;
     }
     for (auto model : Model::get_loaded_flat_models()) {
-        model->draw_me = camera.sphere_in_frustum(model->get_center_point_world(), model->bounding_sphere_radius * model->scale);
+        bool draw_me = camera.sphere_in_frustum(model->get_center_point_world(), model->bounding_sphere_radius * model->scale);
+        model->draw_me = draw_me;
+        if (draw_me)
+            i++;
     }
+    renderer.objects_drawn = i;
 }
 
 // --------------------------
