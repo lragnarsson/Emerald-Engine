@@ -1,6 +1,5 @@
 
 
-
 struct Light {
     vec3 position;
     vec3 color;
@@ -40,7 +39,7 @@ void main()
     vec3 view_direction = normalize(camPos - position);
 
     // Ambient
-    vec3 light = occlusion * albedo;
+    vec3 light = 0.1 * occlusion * albedo;
 
     for(int i=0; i < _MAX_LIGHTS_; i++) {
         float distance = length(lights[i].position - position);
