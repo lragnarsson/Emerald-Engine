@@ -6,6 +6,12 @@
 
 #include "Error.hpp"
 
-std::string get_scene_file_from_command_line(int argc, char *argv[]);
+class Parser {
+public:
+    static std::string get_scene_file_from_command_line(int argc, char *argv[]);
+
+private:
+    
+};
 
 #endif

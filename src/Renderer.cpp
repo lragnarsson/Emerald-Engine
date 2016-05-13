@@ -599,7 +599,7 @@ void Renderer::init_tweak_bar()
     tweak_bar = TwNewBar("Emeralds tweakbar");
 
     // FPS counter
-    TwAddVarRO(tweak_bar, "FPS", TW_TYPE_UINT32, &fps," label='FPS' help='Frames per second' ");
+    TwAddVarRO(tweak_bar, "FPS", TW_TYPE_DOUBLE, &fps," label='FPS' help='Frames per second' ");
     // SSAO stuff
     TwAddVarRW(tweak_bar, "SSAO samples", TW_TYPE_INT32, &ssao_n_samples, " label='Number of SSAO samples' help='Defines the number of SSAO samples used.' ");
     TwAddVarRW(tweak_bar, "SSAO kernel radius", TW_TYPE_FLOAT, &kernel_radius, " label='SSAO kernel radius' help='Defines the radius of SSAO samples.' ");
@@ -614,7 +614,11 @@ void Renderer::init_tweak_bar()
 void Renderer::count_fps()
 {
     unsigned current_time = SDL_GetTicks();
-    fps = 1000/(current_time-last_time);
+    double timediff = (current_time-last_time);
+
+    if (timediff != 0) {
+      fps = 1000/timediff;
+    }
 
     last_time = current_time;
 }

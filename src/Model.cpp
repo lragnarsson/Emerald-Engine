@@ -85,6 +85,8 @@ Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3
     else {
         Model::loaded_flat_models.push_back(this);
     }
+
+    has_animation = false;
 }
 
 
@@ -94,6 +96,25 @@ glm::vec3 Model::get_center_point_world()
     return glm::vec3(this->m2w_matrix * glm::vec4(this->bounding_sphere_center, 1.f));
 }
 
+void Model::attach_animation_path(int animation_id, float start_parameter)
+{
+    this->anim_path = Animation_Path::get_animation_path_with_id(animation_id);
+    this->spline_parameter = start_parameter;
+    this->has_animation = true;
+}
+
+void Model::move_along_path(float elapsed_time)
+{
+    glm::vec3 new_pos;
+    // get_pos updates the spline parameter for next iteration
+    if (has_animation) {
+        new_pos = this->anim_path->get_pos(this->spline_parameter,
+                                                     elapsed_time);
+    } else {
+        Error::throw_error(Error::model_has_no_path);
+    }
+    this->move_to(new_pos);
+}
 
 glm::vec3 Model::get_center_point()
 {

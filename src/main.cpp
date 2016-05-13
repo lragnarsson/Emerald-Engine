@@ -27,10 +27,28 @@ void cull_models()
     renderer.objects_drawn = i;
 }
 
+void animate_models()
+{
+    float elapsed_time = 0.1f; // Should be calculated properly so it depends on FPS
+    // TODO: Run in parallel
+    for (auto model : Model::get_loaded_models()) {
+        if (model->has_animation_path()) {
+            model->move_along_path(elapsed_time);
+        }
+    }
+    for (auto model : Model::get_loaded_flat_models()) {
+        if (model->has_animation_path()) {
+            model->move_along_path(elapsed_time);
+        }
+    }
+}
+
 // --------------------------
 
 void run()
 {
+
+
     renderer.running = true;
     while (renderer.running) {
         handle_keyboard_input(camera, renderer);
@@ -38,6 +56,8 @@ void run()
         camera.update_culling_frustum();
 
         cull_models();
+        animate_models();
+
         renderer.upload_camera_uniforms(camera);
         renderer.render();
 
@@ -58,9 +78,10 @@ int main(int argc, char *argv[])
 
     renderer.init_uniforms(camera);
 
-    load_scene(get_scene_file_from_command_line(argc, argv));
+    Loader::load_scene(Parser::get_scene_file_from_command_line(argc, argv));
 
     Light::upload_all();
+
 
     run();
 

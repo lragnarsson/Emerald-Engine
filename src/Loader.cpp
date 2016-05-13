@@ -7,15 +7,25 @@ const char _COMMENT_ = '#';
 const char _SECTION_STARTER_ =  '[';
 const char _SECTION_END_ = ']';
 const char _SEPARATOR_ = ' ';
+const char _INVISIBLE_CHAR_ = '|';
 const unsigned int _MINIMUM_ALLOWED_LINE_LENGTH_ = 6;
 
 const string _MODELS_ = "[models]";
 const string _LIGHTS_ = "[lights]";
 const string _FLAT_ = "[flat]";
+const string _ANIMATIONS_ = "[animations]";
 
 // ------------------
 
-vector<string> split_string(string input, char separator)
+void Loader::replace_in_string(string& str, const string& from, const string& to) {
+    size_t start_pos = str.find(from);
+    if(start_pos == string::npos)
+        return;
+    str.replace(start_pos, from.length(), to);
+    return;
+}
+
+vector<string> Loader::split_string(string input, char separator)
 {
   vector<string> tokens;
   size_t start = 0, end = 0;
@@ -33,15 +43,39 @@ vector<string> split_string(string input, char separator)
 }
 
 // ------------------
-// Light::Light(const glm::vec3 world_coord, const glm::vec3 ambient_color,const glm::vec3 diffuse_color, const glm::vec3 specular_color)
-Light* load_light(vector<string> light_line)
+// Animation_Path::Animation_Path(vector<glm::vec3> points, float period)
+
+void Loader::load_animation(vector<string> animation_line){
+    #ifdef _DEBUG_LOADER_
+    int nr_of_points = 0;
+    #endif
+
+    float convert_x, convert_y, convert_z, period;
+    vector<glm::vec3> points;
+
+    for (size_t i = 0; i < animation_line.size()-1; i += 3) {
+        points.push_back(glm::vec3(stof(animation_line[i]), stof(animation_line[i+1]), stof(animation_line[i+2])));
+
+        #ifdef _DEBUG_LOADER_
+        nr_of_points++;
+        cout << "Added point: {" << stof(animation_line[i]) << "," << stof(animation_line[i+1]) << "," << stof(animation_line[i+2]) << "}" << endl;
+        cout << "Nr of points in animation path is now: " << nr_of_points << endl;
+        #endif
+    }
+    // Period needs to be a number as well
+    period = stof(animation_line.back());
+
+    new Animation_Path(points, period);
+}
+
+// ------------------
+
+Light* Loader::load_light(vector<string> light_line)
 {
-  float converter;
   vector<float> numbers;
 
   for (size_t i = 0; i < light_line.size(); i++) {
-    stringstream(light_line[i]) >> converter;
-    numbers.push_back(converter);
+    numbers.push_back(stof(light_line[i]));
   }
 
   return new Light(glm::vec3(numbers[0], numbers[1], numbers[2]), glm::vec3(numbers[3], numbers[4], numbers[5]));
@@ -49,23 +83,26 @@ Light* load_light(vector<string> light_line)
 
 // ------------------
 
-bool load_model(ifstream* read_file, int* current_line, vector<string>& model_line, bool flat)
+void Loader::load_model(ifstream* read_file, int* current_line, vector<string>& model_line, bool flat)
 {
   // /path/to/model Xpos Ypos Zpos rotX rotY rotZ nrOfLights
   vector<float> numbers;
-  float converter;
 
   string light_line;
+  int animation_id = -1;
+  float animation_start_point;
+
   int nr_of_lights;
   Light* attach_light;
   Model* this_model;
 
 
-  for (size_t i = 1; i < model_line.size()-1; i++) {
-    stringstream(model_line[i]) >> converter;
-    numbers.push_back(converter);
+  for (size_t i = 1; i < model_line.size()-2; i++) {
+    numbers.push_back(stof(model_line[i]));
   }
-  stringstream(model_line.back()) >> nr_of_lights;
+  animation_id = stoi(model_line.at(model_line.size()-3));
+  animation_start_point = stof(model_line.at(model_line.size()-2));
+  nr_of_lights = stof(model_line.back());
 
   // Create rotational matrix for model.
   glm::mat4 rotX = glm::rotate(glm::mat4(1.0f), -numbers[0], glm::vec3(1.f, 0.f, 0.f));
@@ -76,6 +113,14 @@ bool load_model(ifstream* read_file, int* current_line, vector<string>& model_li
 
   // Create model
   this_model = new Model(model_line[0], total_rot, glm::vec3(numbers[3], numbers[4], numbers[5]), numbers[6], flat);
+
+  // Attach animation path if any:
+  if (animation_id != -1) {
+      #ifdef _DEBUG_LOADER_
+      cout << "Attaching animation path with id " << animation_id << " and startpoint " << animation_start_point << endl;
+      #endif
+      this_model->attach_animation_path(animation_id, animation_start_point);
+  }
 
   // Attach light sources to model
   if (nr_of_lights > 0) {
@@ -91,13 +136,11 @@ bool load_model(ifstream* read_file, int* current_line, vector<string>& model_li
       this_model->attach_light(attach_light, attach_light->get_pos());
     }
   }
-
-  return true;
 }
 
 // ------------------
 
-void load_scene(string filepath)
+void Loader::load_scene(string filepath)
 {
   // Input
   ifstream read_file(filepath);
@@ -117,6 +160,7 @@ void load_scene(string filepath)
     current_line++;
 
     #ifdef _DEBUG_LOADER_
+    cout << endl;
     cout << "Current line: " << current_line << endl;
     #endif
 
@@ -128,6 +172,11 @@ void load_scene(string filepath)
       continue;
     }
 
+    // Remove all occurences of the "invisible char"
+    line.erase(remove(line.begin(), line.end(), _INVISIBLE_CHAR_), line.end());
+    // If double spaces, make them into one
+    line = regex_replace(line, regex("  "), " ");
+    // Split string on single space
     split_line = split_string(line, _SEPARATOR_);
     first_char = split_line.at(0).at(0);
 
@@ -156,6 +205,12 @@ void load_scene(string filepath)
         #endif
         current_section = _FLAT_;
       }
+      else if ( split_line.at(0) == _ANIMATIONS_ ){
+          #ifdef _DEBUG_LOADER_
+          cout << "Line " << current_line << " starts an animation section " << endl;
+          #endif
+          current_section = _ANIMATIONS_;
+      }
       else {
         Error::throw_error(Error::invalid_file_syntax, "On line " + to_string(current_line));
       }
@@ -177,6 +232,14 @@ void load_scene(string filepath)
       cout << line << endl;
       #endif
       load_model(&read_file, &current_line, split_line, true);
+      continue;
+    }
+    else if (current_section == _ANIMATIONS_){
+      #ifdef _DEBUG_LOADER_
+      cout << "Loading animation path!" << endl;
+      cout << line << endl;
+      #endif
+      load_animation(split_line);
       continue;
     }
 
