@@ -228,19 +228,19 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         texture->path = filepath;
         m->textures.push_back(texture);
     }
-
     m->upload_mesh_data();
+
     return m;
 }
-
+#include <stdint.h>
 
 Texture* Model::load_texture(const char* filename, std::string basepath)
 {
     glUseProgram(Light::shader_program);
     std::string filepath = basepath + "/" + std::string(filename);
-
     for (uint i = 0; i < Model::loaded_textures.size(); i++) {
         if (!strcmp(Model::loaded_textures[i]->path.C_Str(), filename)) {
+            printf("Already loaded\n");
             return Model::loaded_textures[i];
         }
     }
@@ -260,10 +260,13 @@ Texture* Model::load_texture(const char* filename, std::string basepath)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
+    if (surface->format->BytesPerPixel == 4) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
+    } else {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
+    }
 
     Model::loaded_textures.push_back(texture);
-
     glUseProgram(0);
     return texture;
 }
