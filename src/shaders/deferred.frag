@@ -14,7 +14,7 @@ out vec4 OutColor;
 uniform sampler2D g_position_depth;
 uniform sampler2D g_normal;
 uniform sampler2D g_albedo_specular;
-uniform sampler2D ssao_result;
+uniform sampler2D ssao_blurred;
 
 uniform vec3 camPos;
 const float shininess = 86.0;
@@ -34,7 +34,7 @@ void main()
     vec3 normal = texture(g_normal, TexCoord).rgb;
     vec3 albedo = texture(g_albedo_specular, TexCoord).rgb;
     float specular = texture(g_albedo_specular, TexCoord).a;
-    float occlusion = texture(ssao_result, TexCoord).r; // Only red
+    float occlusion = texture(ssao_blurred, TexCoord).r; // Only red
 
     vec3 view_direction = normalize(camPos - position);
 
@@ -48,7 +48,7 @@ void main()
 
         // Diffuse
         float d = max(dot(normalize(normal), light_dir), 0.0);
-        vec3 diffuse_light = d * lights[i].color * albedo;
+        vec3 diffuse_light = occlusion * d * lights[i].color * albedo;
 
         // Specular
         vec3 reflection = normalize(reflect(-light_dir, normal));

@@ -66,11 +66,16 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     if (renderer.get_kernel_radius() > 0.2f)
                         renderer.set_kernel_radius(renderer.get_kernel_radius() - 0.1f);
                     break;
-                    case SDLK_m:
+                case SDLK_m:
                     renderer.toggle_ssao();
                     break;
-                    case SDLK_t:
-                        renderer.toggle_tweak_bar();
+                case SDLK_t:
+                    renderer.toggle_tweak_bar();
+                    break;
+                case SDLK_p:
+                    glm::vec3 pos = camera.position;
+                    printf("Camera position x,y,z: %f %f %f\n", pos.x, pos.y, pos.z);
+                    break;
                 }
             }
     }

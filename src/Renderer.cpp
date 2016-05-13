@@ -8,10 +8,14 @@ void Renderer::init()
     shaders[DEFERRED] = load_shaders("build/shaders/deferred.vert", "build/shaders/deferred.frag");
     shaders[FLAT] = load_shaders("build/shaders/flat.vert", "build/shaders/flat.frag");
     shaders[SSAO] = load_shaders("build/shaders/ssao.vert", "build/shaders/ssao.frag");
+    shaders[SSAO_BLUR] = load_shaders("build/shaders/ssao_blur.vert", "build/shaders/ssao_blur.frag");
 
+    printf("Init shaders done\n");
+    
     init_g_buffer();
     init_quad();
     init_ssao();
+    printf("init ssao done\n");
     init_tweak_bar();
 
     sphere = new Model("res/models/sphere/sphere.obj");
@@ -170,7 +174,7 @@ void Renderer::render_deferred()
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-
+    // SSAO PASS 
     if (this->ssao_on) {
         render_ssao();
     }
@@ -184,9 +188,8 @@ void Renderer::render_deferred()
     glBindTexture(GL_TEXTURE_2D, g_normal);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
-    // NEW SSAO texture
     glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, ssao_result);
+    glBindTexture(GL_TEXTURE_2D, ssao_blurred);
 
     // Render quad
     glBindVertexArray(quad_vao);
@@ -333,7 +336,7 @@ void Renderer::toggle_ssao()
 
 void Renderer::clear_ssao()
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_fbo);
     float clearColor[1] = {1.0};
     glClearBufferfv(GL_COLOR, 0, clearColor);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -358,14 +361,27 @@ void Renderer::render_ssao()
     }
     GLuint radius_loc = glGetUniformLocation(shaders[SSAO], "kernel_radius");
     glUniform1f(radius_loc, kernel_radius);
-    GLuint size_loc = glGetUniformLocation(shaders[SSAO], "ssao_n_samples");
-    glUniform1i(size_loc, _SSAO_N_SAMPLES_);
+    //    GLuint size_loc = glGetUniformLocation(shaders[SSAO], "ssao_n_samples");
+    //    glUniform1i(size_loc, _SSAO_N_SAMPLES_);
     // Projection matrix should already be uploaded from init_uniforms
 
     // Render quad
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
+    // Blur the ssao result
+    glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_fbo);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glUseProgram(shaders[SSAO_BLUR]);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, ssao_result);
+
+    // No uniforms needed =)
+    // Render quad
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    
     glUseProgram(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -442,7 +458,6 @@ void Renderer::render_g_specular()
 
 void Renderer::init_ssao()
 {
-    printf("Init_SSAO\n");
     ssao_on = true;
     ssao_n_samples = _SSAO_N_SAMPLES_;
 
@@ -479,7 +494,8 @@ void Renderer::init_ssao()
     /* Framebuffer for SSAO shader */
     glGenFramebuffers(1, &ssao_fbuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
-
+    
+    
     glGenTextures(1, &ssao_result);
     glBindTexture(GL_TEXTURE_2D, ssao_result);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
@@ -488,6 +504,27 @@ void Renderer::init_ssao()
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_result, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "SSAO Framebuffer not complete!" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    printf("raw ssao init done\n");
+    /* SSAO blurring */    
+    glUseProgram(shaders[SSAO_BLUR]);
+    glUniform1i(glGetUniformLocation(shaders[SSAO_BLUR], "ssao_input"), 0);
+
+    /* SSAO blurring framebuffer */
+    glGenFramebuffers(1, &ssao_blur_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_fbo);
+    
+    glGenTextures(1, &ssao_blurred);
+    glBindTexture(GL_TEXTURE_2D, ssao_blurred);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_blurred, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "SSAO blur Framebuffer not complete!" << std::endl;
+
+    
     glUseProgram(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -524,7 +561,7 @@ void Renderer::init_g_buffer()
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_position_depth"), 0);
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_normal"), 1);
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_albedo_specular"), 2);
-    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "ssao_result"), 3);
+    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "ssao_blurred"), 3);
 
     glDisable(GL_BLEND);
     glGenFramebuffers(1, &g_buffer);

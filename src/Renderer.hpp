@@ -60,14 +60,15 @@ private:
       DEFERRED,
       FLAT,
       SSAO,
+      SSAO_BLUR,
       G_COMPONENT,
       G_SPECULAR
     };
 
     render_mode mode;
-    GLuint shaders[5];
-    GLuint g_buffer, ssao_fbuffer;
-    GLuint g_position_depth, g_normal, g_albedo_specular, ssao_result;
+    GLuint shaders[6];
+    GLuint g_buffer, ssao_fbuffer, ssao_blur_fbo;
+    GLuint g_position_depth, g_normal, g_albedo_specular, ssao_result, ssao_blurred;
     GLuint quad_vao, quad_vbo;
     glm::mat4 w2v_matrix;
     Model* sphere;
