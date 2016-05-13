@@ -83,7 +83,7 @@ private:
     // Tweak bar
     TwBar* tweak_bar;
     bool use_tweak_bar = true;
-    unsigned fps;
+    double fps;
     unsigned last_time;
     void count_fps();
 
