@@ -7,6 +7,7 @@ const char _COMMENT_ = '#';
 const char _SECTION_STARTER_ =  '[';
 const char _SECTION_END_ = ']';
 const char _SEPARATOR_ = ' ';
+const char _INVISIBLE_CHAR_ = '|';
 const unsigned int _MINIMUM_ALLOWED_LINE_LENGTH_ = 6;
 
 const string _MODELS_ = "[models]";
@@ -56,7 +57,8 @@ void Loader::load_animation(std::vector<string> animation_line){
         cout << "Nr of points in animation path is now: " << nr_of_points << endl;
         #endif
     }
-    stringstream(animation_line.back()) >> period;
+    // Period needs to be a number
+    period = stof(animation_line.back());
 
     new Animation_Path(points, period);
 }
@@ -97,9 +99,9 @@ void Loader::load_model(ifstream* read_file, int* current_line, vector<string>& 
     stringstream(model_line[i]) >> converter;
     numbers.push_back(converter);
   }
-  stringstream(model_line.at(model_line.size()-3)) >> animation_id;
-  stringstream(model_line.at(model_line.size()-2)) >> animation_start_point;
-  stringstream(model_line.back()) >> nr_of_lights;
+  animation_id = stof(model_line.at(model_line.size()-3));
+  animation_start_point = stof(model_line.at(model_line.size()-2));
+  nr_of_lights = stof(model_line.back());
 
   // Create rotational matrix for model.
   glm::mat4 rotX = glm::rotate(glm::mat4(1.0f), -numbers[0], glm::vec3(1.f, 0.f, 0.f));
@@ -165,6 +167,8 @@ void Loader::load_scene(string filepath)
       continue;
     }
 
+    // Remove all occurences of the "invisible char"
+    line.erase(std::remove(line.begin(), line.end(), _INVISIBLE_CHAR_), line.end());
     split_line = split_string(line, _SEPARATOR_);
     first_char = split_line.at(0).at(0);
 
