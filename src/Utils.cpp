@@ -9,8 +9,10 @@ bool sdl_init(const GLuint screen_width, const GLuint screen_height,
         return false;
     }
 
-    /*main_window = SDL_CreateWindow("TSBK07 Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                   screen_width, screen_height, SDL_WINDOW_FULLSCREEN_DESKTOP);*/
+    SDL_GL_SetSwapInterval(0);
+
+    //main_window = SDL_CreateWindow("TSBK07 Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+    //                               screen_width, screen_height, SDL_WINDOW_FULLSCREEN_DESKTOP);
 
     main_window = SDL_CreateWindow("TSBK07 Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screen_width, screen_height, SDL_WINDOW_OPENGL);
     if (!main_window) {

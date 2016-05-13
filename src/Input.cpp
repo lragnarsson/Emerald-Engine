@@ -7,7 +7,7 @@ void init_input()
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
     // SSAO controls
-    printf("Toggle SSAO with m \nDecrease/Increse number of ssao samples: u/i\nDecrease/Increase SSAO kernel radius: j/k\n");
+    printf("Toggle SSAO with m \nDecrease/Increase SSAO kernel radius: j/k\n");
 }
 
 void handle_keyboard_input(Camera &camera, Renderer &renderer)
@@ -31,13 +31,6 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
     }
 
     while (SDL_PollEvent(&event)) {
-
-        // Send event to AntTweakBar first
-        handled = TwEventSDL(&event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
-        if (handled) {
-            printf("Tweak bar handled \n");
-        }
-        if (!handled) {
             if (event.type == SDL_QUIT)
                 renderer.running = false;
 
@@ -73,22 +66,13 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     if (renderer.get_kernel_radius() > 0.2f)
                         renderer.set_kernel_radius(renderer.get_kernel_radius() - 0.1f);
                     break;
-                case SDLK_i:
-                    if (renderer.get_ssao_n_samples() < MAX_SSAO_SAMPLES)
-                        renderer.set_ssao_n_samples(renderer.get_ssao_n_samples() + 1);
-                    break;
-                case SDLK_u:
-                    if (renderer.get_ssao_n_samples() > 1)
-                        renderer.set_ssao_n_samples(renderer.get_ssao_n_samples() - 1);
-                    break;
-                case SDLK_m:
-                    printf("SSAO is now %s\n", renderer.toggle_ssao() ? "ON" : "OFF");
+                    case SDLK_m:
+                    renderer.toggle_ssao();
                     break;
                     case SDLK_t:
                         renderer.toggle_tweak_bar();
                 }
             }
-        }
     }
 }
 

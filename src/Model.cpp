@@ -240,7 +240,6 @@ Texture* Model::load_texture(const char* filename, std::string basepath)
     std::string filepath = basepath + "/" + std::string(filename);
     for (uint i = 0; i < Model::loaded_textures.size(); i++) {
         if (!strcmp(Model::loaded_textures[i]->path.C_Str(), filename)) {
-            printf("Already loaded\n");
             return Model::loaded_textures[i];
         }
     }
