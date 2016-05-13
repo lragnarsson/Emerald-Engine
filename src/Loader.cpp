@@ -17,6 +17,14 @@ const string _ANIMATIONS_ = "[animations]";
 
 // ------------------
 
+void Loader::replace_in_string(string& str, const string& from, const string& to) {
+    size_t start_pos = str.find(from);
+    if(start_pos == string::npos)
+        return;
+    str.replace(start_pos, from.length(), to);
+    return;
+}
+
 vector<string> Loader::split_string(string input, char separator)
 {
   vector<string> tokens;
@@ -35,9 +43,9 @@ vector<string> Loader::split_string(string input, char separator)
 }
 
 // ------------------
-// Animation_Path::Animation_Path(std::vector<glm::vec3> points, float period)
+// Animation_Path::Animation_Path(vector<glm::vec3> points, float period)
 
-void Loader::load_animation(std::vector<string> animation_line){
+void Loader::load_animation(vector<string> animation_line){
     #ifdef _DEBUG_LOADER_
     int nr_of_points = 0;
     #endif
@@ -46,18 +54,15 @@ void Loader::load_animation(std::vector<string> animation_line){
     vector<glm::vec3> points;
 
     for (size_t i = 0; i < animation_line.size()-1; i += 3) {
-        stringstream(animation_line[i]) >> convert_x;
-        stringstream(animation_line[i+1]) >> convert_y;
-        stringstream(animation_line[i+2]) >> convert_z;
-
-        points.push_back(glm::vec3(convert_x, convert_y, convert_z));
+        points.push_back(glm::vec3(stof(animation_line[i]), stof(animation_line[i+1]), stof(animation_line[i+2])));
 
         #ifdef _DEBUG_LOADER_
         nr_of_points++;
+        cout << "Added point: {" << stof(animation_line[i]) << "," << stof(animation_line[i+1]) << "," << stof(animation_line[i+2]) << "}" << endl;
         cout << "Nr of points in animation path is now: " << nr_of_points << endl;
         #endif
     }
-    // Period needs to be a number
+    // Period needs to be a number as well
     period = stof(animation_line.back());
 
     new Animation_Path(points, period);
@@ -67,12 +72,10 @@ void Loader::load_animation(std::vector<string> animation_line){
 
 Light* Loader::load_light(vector<string> light_line)
 {
-  float converter;
   vector<float> numbers;
 
   for (size_t i = 0; i < light_line.size(); i++) {
-    stringstream(light_line[i]) >> converter;
-    numbers.push_back(converter);
+    numbers.push_back(stof(light_line[i]));
   }
 
   return new Light(glm::vec3(numbers[0], numbers[1], numbers[2]), glm::vec3(numbers[3], numbers[4], numbers[5]));
@@ -84,7 +87,6 @@ void Loader::load_model(ifstream* read_file, int* current_line, vector<string>& 
 {
   // /path/to/model Xpos Ypos Zpos rotX rotY rotZ nrOfLights
   vector<float> numbers;
-  float converter;
 
   string light_line;
   int animation_id = -1;
@@ -95,11 +97,10 @@ void Loader::load_model(ifstream* read_file, int* current_line, vector<string>& 
   Model* this_model;
 
 
-  for (size_t i = 1; i < model_line.size()-3; i++) {
-    stringstream(model_line[i]) >> converter;
-    numbers.push_back(converter);
+  for (size_t i = 1; i < model_line.size()-2; i++) {
+    numbers.push_back(stof(model_line[i]));
   }
-  animation_id = stof(model_line.at(model_line.size()-3));
+  animation_id = stoi(model_line.at(model_line.size()-3));
   animation_start_point = stof(model_line.at(model_line.size()-2));
   nr_of_lights = stof(model_line.back());
 
@@ -115,6 +116,9 @@ void Loader::load_model(ifstream* read_file, int* current_line, vector<string>& 
 
   // Attach animation path if any:
   if (animation_id != -1) {
+      #ifdef _DEBUG_LOADER_
+      cout << "Attaching animation path with id " << animation_id << " and startpoint " << animation_start_point << endl;
+      #endif
       this_model->attach_animation_path(animation_id, animation_start_point);
   }
 
@@ -156,6 +160,7 @@ void Loader::load_scene(string filepath)
     current_line++;
 
     #ifdef _DEBUG_LOADER_
+    cout << endl;
     cout << "Current line: " << current_line << endl;
     #endif
 
@@ -168,7 +173,10 @@ void Loader::load_scene(string filepath)
     }
 
     // Remove all occurences of the "invisible char"
-    line.erase(std::remove(line.begin(), line.end(), _INVISIBLE_CHAR_), line.end());
+    line.erase(remove(line.begin(), line.end(), _INVISIBLE_CHAR_), line.end());
+    // If double spaces, make them into one
+    line = regex_replace(line, regex("  "), " ");
+    // Split string on single space
     split_line = split_string(line, _SEPARATOR_);
     first_char = split_line.at(0).at(0);
 
@@ -199,7 +207,7 @@ void Loader::load_scene(string filepath)
       }
       else if ( split_line.at(0) == _ANIMATIONS_ ){
           #ifdef _DEBUG_LOADER_
-          cout << "Line " << current_line << " starts a spline section " << endl;
+          cout << "Line " << current_line << " starts an animation section " << endl;
           #endif
           current_section = _ANIMATIONS_;
       }

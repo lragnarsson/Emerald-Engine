@@ -10,7 +10,7 @@
 # Animations are loaded with at least four (4!) positions, according to:
 # x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4 period
 # ... Where all fields are floats
-3 10 1 | -2.0 8 -10 -2 | 7 -7 -5 | 7 -10 -1.0 | 10.0 -8.0 -3.0 | 5.0 -1.0 10.0
+3 10 1 | -2.0 8 -10 | -2 7 -7 | -5  7 -10 | -1.0 10.0 -8.0 | -3.0  5.0 -1.0 | 10.0
 # This animation path is assigned ID=0 since it's the first created
 # Each animation path is then assigned id=1,2,3...
 
@@ -19,8 +19,8 @@
 # Models are loaded using the following syntax:
 # /path/to/model | rotX rotY rotZ | Xpos Ypos Zpos | scale | animation_path_id startpoint_for_animation | nr_of_lights
 # If animation_path_id=-1, no animation path is chosen
-res/models/nanosuit/nanosuit.obj | 0 0 0 | 10 2 -5 | 5 | -1 -1 0 0
-res/models/nanosuit/nanosuit.obj 0 0 0 8 0 -5 1 -1 -1 0 0
+res/models/nanosuit/nanosuit.obj | 0 0 0 | 10 2 -5 | 5 | -1 -1 | 0
+res/models/nanosuit/nanosuit.obj | 0 0 0 | 8 0 -5 | 1 | -1 -1 | 0
 res/models/nanosuit/nanosuit.obj 0 0 0 -8 0 -5 1 -1 0 0
 
 # Now we have loaded three nanosuits
