@@ -12,7 +12,6 @@ void Renderer::init()
     init_g_buffer();
     init_quad();
     init_ssao();
-    init_tweak_bar();
 
     sphere = new Model("res/models/sphere/sphere.obj");
 
@@ -588,7 +587,7 @@ void Renderer::draw_tweak_bar()
 
 // -----------------
 
-void Renderer::init_tweak_bar()
+void Renderer::init_tweak_bar(Camera* camera)
 {
     // Initialize AntTweakBar
     TwInit(TW_OPENGL_CORE, NULL);
@@ -607,6 +606,11 @@ void Renderer::init_tweak_bar()
     TwAddVarRW(tweak_bar, "Objects drawn", TW_TYPE_INT32, &objects_drawn, " label='Objects drawn' help='Objects not removed by frustum culling.' ");
 
     TwAddVarRW(tweak_bar, "SSAO ON", TW_TYPE_BOOL8, &ssao_on, " label='SSAO ON' help='Status of SSAO' ");
+
+    // Ger camera position
+    TwAddVarRW(tweak_bar, "Current-Xpos", TW_TYPE_FLOAT, &camera->position.x, "label=Current-Xpos help=curent-X-coord");
+    TwAddVarRW(tweak_bar, "Current-Ypos", TW_TYPE_FLOAT, &camera->position.y, "label=Current-Ypos help=curent-Y-coord");
+    TwAddVarRW(tweak_bar, "Current-Zpos", TW_TYPE_FLOAT, &camera->position.z, "label=Current-Zpos help=curent-Z-coord");
 }
 
 // ---------------
