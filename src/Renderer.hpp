@@ -68,7 +68,7 @@ private:
     render_mode mode;
     GLuint shaders[6];
     GLuint g_buffer, ssao_fbuffer, ssao_blur_fbo;
-    GLuint g_position_depth, g_normal, g_albedo_specular, ssao_result, ssao_blurred;
+    GLuint g_position, g_normal, g_albedo_specular, ssao_result, ssao_blurred;
     GLuint quad_vao, quad_vbo;
     glm::mat4 w2v_matrix;
     Model* sphere;

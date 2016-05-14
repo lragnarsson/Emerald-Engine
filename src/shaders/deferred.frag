@@ -11,7 +11,7 @@ struct Light {
 in vec2 TexCoord;
 out vec4 OutColor;
 
-uniform sampler2D g_position_depth;
+uniform sampler2D g_position;
 uniform sampler2D g_normal;
 uniform sampler2D g_albedo_specular;
 uniform sampler2D ssao_blurred;
@@ -27,10 +27,7 @@ uniform Light lights[_MAX_LIGHTS_];
 
 void main()
 {
-    vec3 position = texture(g_position_depth, TexCoord).rgb;
-    // new
-    float depth = texture(g_position_depth, TexCoord).a;
-    //
+    vec3 position = texture(g_position, TexCoord).rgb;
     vec3 normal = texture(g_normal, TexCoord).rgb;
     vec3 albedo = texture(g_albedo_specular, TexCoord).rgb;
     float specular = texture(g_albedo_specular, TexCoord).a;

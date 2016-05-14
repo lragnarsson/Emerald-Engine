@@ -1,7 +1,7 @@
 out float FragColor;
 in vec2 TexCoord;
 
-uniform sampler2D g_position_depth;
+uniform sampler2D g_position;
 uniform sampler2D g_normal;
 uniform sampler2D tex_noise;
 
@@ -21,7 +21,7 @@ const vec2 noise_scale = vec2(SCREEN_WIDTH / 4.0, SCREEN_HEIGHT / 4.0);
 
 void main()
 {
-    vec3 frag_pos = vec3(view * vec4(texture(g_position_depth, TexCoord).xyz, 1.0f));
+    vec3 frag_pos = vec3(view * vec4(texture(g_position, TexCoord).xyz, 1.0f));
     vec3 normal = vec3(mat3(view) * texture(g_normal, TexCoord).rgb);
     vec3 random_vec = texture(tex_noise, TexCoord * noise_scale).xyz;
 
@@ -42,7 +42,12 @@ void main()
             offset = projection * offset; // from view to clip-space
             offset.xyz /= offset.w; // perspective divide
             offset.xyz = offset.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0
-            float sample_depth = -texture(g_position_depth, offset.xy).w;
+            //float sample_depth = -texture(g_position, offset.xy).w;
+            // Avoids storing linear depth and having to store positions and normals at higher res
+            // at the cost of transforming each sample into view-space
+            // This cost would be avoided if the positions and normals would be stored in view-space
+            // BUT then we would have to to our deferred lighting pass in view-space as well
+            float sample_depth = (view * vec4(texture(g_position, offset.xy).xyz, 1.0f)).z;
             float range_check = smoothstep(0.0, 1.0, kernel_radius / abs(frag_pos.z - sample_depth));
             occlusion += (sample_depth >= sample.z ? 1.0 : 0.0) * range_check;
         }
