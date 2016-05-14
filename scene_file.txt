@@ -1,4 +1,4 @@
-# Available sections are "animations", "flat" and "models".
+# Available sections are "animations", "lights", "flat" and "models".
 # A section is started with square brackets:
 [animations]
 # Animation paths neeeds to be created first!
@@ -10,9 +10,13 @@
 # Animations are loaded with at least four (4!) positions, according to:
 # x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4 period
 # ... Where all fields are floats
-3 10 1 | -2.0 8 -10 | -2 7 -7 | -5  7 -10 | -1.0 10.0 -8.0 | -3.0  5.0 -1.0 | 10.0
+100 35 100 | -70.0 100 -10 | -2 7 -7 | -5  200 -10 | -20.0 150.0 -8.0 | 100.0  70.0 -1.0 | 50.0
 # This animation path is assigned ID=0 since it's the first created
 # Each animation path is then assigned id=1,2,3...
+
+[lights]
+# xPos yPos zPos | Red Green Blue
+-50 10 0 | 1.0 0.7 0.5
 
 
 [models]
@@ -28,17 +32,25 @@ res/models/crytek-sponza/sponza.obj 0 0 0 0 0 0 0.1 -1 0 0
 # relativeXpos relativeYpos relativeZpos R G B
 res/models/cube/cube.obj 0 0 0 1 1 1 1 0 0 1
 0 0 0 1.0 1.0 0.5
-res/models/cube/cube.obj 0 0 0 3 10 1 1 0 1 1
+res/models/cube/cube.obj 0 0 0 3 10 1 1 0 3 1
 0 0 0 0.2 0.8 0.1
-res/models/cube/cube.obj 0 0 0 -2 8 -10 1 0 2 1
+res/models/cube/cube.obj 0 0 0 -2 8 -10 1 0 5 1
 0 0 0 0.8 0.1 0.1
-res/models/cube/cube.obj 0 0 0 -2 7 -7 1 0 3 1
+res/models/cube/cube.obj 0 0 0 -2 7 -7 1 0 7 1
 0 0 0 0.8 0.1 0.5
 
-res/models/cube/cube.obj 0 0 0 -5 7 -10 1 0 4 1
+res/models/cube/cube.obj 0 0 0 -5 7 -10 1 0 15 1
 0 0 0 1 1 1
-res/models/cube/cube.obj 0 0 0 -1 10 -8 1 0 5 1
+res/models/cube/cube.obj 0 0 0 -1 10 -8 1 0 20 1
 0 0 0 1 1 1
 res/models/cube/cube.obj 0 0 0 -3 5 -1 1 -1 0 1
 0 0 0 1 1 1
 
+res/models/cube/cube.obj 0 0 0 -100 20 50 1 -1 0 1
+0 0 0 1 1 1
+res/models/cube/cube.obj 0 0 0 -100 20 -50 1 -1 0 1
+0 0 0 1 1 1
+res/models/cube/cube.obj 0 0 0 100 20 -50 1 -1 0 1
+0 0 0 1 1 1
+res/models/cube/cube.obj 0 0 0 100 20 50 1 -1 0 1
+0 0 0 1 1 1

@@ -17,14 +17,6 @@ const string _ANIMATIONS_ = "[animations]";
 
 // ------------------
 
-void Loader::replace_in_string(string& str, const string& from, const string& to) {
-    size_t start_pos = str.find(from);
-    if(start_pos == string::npos)
-        return;
-    str.replace(start_pos, from.length(), to);
-    return;
-}
-
 vector<string> Loader::split_string(string input, char separator)
 {
   vector<string> tokens;
@@ -211,6 +203,12 @@ void Loader::load_scene(string filepath)
           #endif
           current_section = _ANIMATIONS_;
       }
+      else if ( split_line.at(0) == _LIGHTS_ ){
+          #ifdef _DEBUG_LOADER_
+          cout << "Line " << current_line << " starts a lights section " << endl;
+          #endif
+          current_section = _ANIMATIONS_;
+      }
       else {
         Error::throw_error(Error::invalid_file_syntax, "On line " + to_string(current_line));
       }
@@ -240,6 +238,14 @@ void Loader::load_scene(string filepath)
       cout << line << endl;
       #endif
       load_animation(split_line);
+      continue;
+    }
+    else if (current_section == _LIGHTS_){
+      #ifdef _DEBUG_LOADER_
+      cout << "Loading light without model!" << endl;
+      cout << line << endl;
+      #endif
+      load_light(split_line);
       continue;
     }
 
