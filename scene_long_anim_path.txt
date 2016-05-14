@@ -1,0 +1,66 @@
+# Available sections are "animations", "flat" and "models".
+# A section is started with square brackets:
+[animations]
+# Animation paths neeeds to be created first!
+
+# ---
+# There's an invisible char that could be used as a divisor - that char is pipe (|)
+# ---
+
+# Animations are loaded with at least four (4!) positions, according to:
+# x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4 period
+# ... Where all fields are floats
+3 10 1 | -2.0 8 -10 | -2 7 -7 | -5  7 -10 | -1.0 10.0 -8.0 | -3.0  5.0 -1.0 | 10.0
+# This animation path is assigned ID=0 since it's the first created
+# Each animation path is then assigned id=1,2,3...
+
+# Long path created by flying around with camera and printing positions to console
+-2.090424 1.687363 20.521364 | 122.201797 21.461199 -26.092600 | 123.233063 30.446384 -5.829097 | 121.974663 18.459034 19.314043 | 99.777397 5.195719 28.652498 | 68.083588 29.924107 36.501202 | 64.066238 32.750191 12.246916 | 35.041580 32.858536 8.077195 | 32.051208 31.863562 34.184383 | -2.192420 30.148027 40.205063 | -6.328200 31.820652 14.146856 | -39.179531 31.481609 9.214056 | -62.545448 30.956690 42.175236 | -83.249550 33.615189 11.214608 | -94.423004 11.539197 -13.603018 | -81.868263 28.334076 -17.880079 | -62.999191 52.970230 -15.521430 | -71.233788 59.882904 -25.803646 | -59.547909 68.743073 -40.807087 | -52.972031 70.616745 -20.206875 | -53.825573 67.647507 13.207046 | -38.680458 64.788063 28.852625 | -25.582685 75.791557 7.152245 | -8.967767 95.014465 9.060278 | 3.192621 110.409744 8.854080 | 31.807856 113.653526 8.041831 | 38.990822 106.025940 -11.418126 | 59.021889 91.611580 -21.056919 | 76.372086 72.746292 -25.350174 | 100.306870 65.228088 -43.881767 | 98.127762 62.981327 -15.551912 | 74.395142 47.145512 -13.110504 | 63.072697 23.456779 -18.205357 | 46.127651 15.519500 -11.956979 | 21.510204 12.350808 -15.298206 | 14.507964 11.137196 -9.589353 | 14.099794 13.923879 -2.199980 | 24.987877 14.029125 -0.572545 | 26.042503 6.807316 -9.034542 | 17.294249 6.013796 -15.463662 | -2.867810 9.895940 -15.788266 | -7.735363 32.053871 -29.200727 | 5.547978 22.004612 -45.348721 | 68.470337 12.932319 -48.850666 | 106.147369 20.727890 -54.724068 | 123.483574 20.727890 -45.219482 | 112.985237 20.727890 -30.785057 | 96.453400 25.581795 -39.191452 | 93.676239 32.213291 -53.747879 | 102.702759 33.725376 -57.656944 | 121.252441 34.831818 -41.335167 | 121.172203 24.982475 -26.608957 | 30
+
+[models]
+# Models are loaded using the following syntax:
+# /path/to/model | rotX rotY rotZ | Xpos Ypos Zpos | scale | animation_path_id | start_animation | nr_of_lights
+res/models/nanosuit/nanosuit.obj 0 5 0 20 0 -5 1 -1 0 0
+res/models/crytek-sponza/sponza.obj 0 0 0 0 0 0 0.1 -1 0 0
+res/models/muro/muro.obj 0 5 0 | 20 0 5 | 0.08 |-1 0 0
+# Now we have loaded three nanosuits
+
+# This will start a new section for loading flat-shaded models.
+[flat]
+# Light sources attatched to models are placed directly after given model and loaded according to:
+# relativeXpos relativeYpos relativeZpos R G B
+res/models/cube/cube.obj 0 0 0 1 1 1 1 0 0 1
+0 0 0 1.0 1.0 0.5
+res/models/cube/cube.obj 0 0 0 3 10 1 1 0 1 1
+0 0 0 0.2 0.8 0.1
+res/models/cube/cube.obj 0 0 0 -2 8 -10 1 0 2 1
+0 0 0 0.8 0.1 0.1
+res/models/cube/cube.obj 0 0 0 -2 7 -7 1 0 3 1
+0 0 0 0.8 0.1 0.5
+
+res/models/cube/cube.obj 0 0 0 -5 7 -10 1 0 4 1
+0 0 0 1 1 1
+res/models/cube/cube.obj 0 0 0 -1 10 -8 1 0 5 1
+0 0 0 1 1 1
+res/models/cube/cube.obj 0 0 0 -3 5 -1 1 -1 0 1
+0 0 0 1 1 1
+
+
+res/models/cube/cube.obj 0 0 0 -5 7 -10 1 1 0 1
+0 0 0 1 0 0
+res/models/cube/cube.obj 0 0 0 -1 10 -8 1 1 2 1
+0 0 0 0 1 0
+res/models/cube/cube.obj 0 0 0 -3 5 -1 1  1 4 1
+0 0 0 0 0 1
+res/models/cube/cube.obj 0 0 0 -5 7 -10 1 1 6 1
+0 0 0 1 0 0
+res/models/cube/cube.obj 0 0 0 -1 10 -8 1 1 8 1
+0 0 0 0 1 0
+res/models/cube/cube.obj 0 0 0 -3 5 -1 1  1 10 1
+0 0 0 0 0 1
+res/models/cube/cube.obj 0 0 0 -5 7 -10 1 1 12 1
+0 0 0 1 0 0
+res/models/cube/cube.obj 0 0 0 -1 10 -8 1 1 14 1
+0 0 0 0 1 0
+res/models/cube/cube.obj 0 0 0 -3 5 -1 1  1 16 1
+0 0 0 1 1 1

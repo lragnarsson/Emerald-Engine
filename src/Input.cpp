@@ -8,6 +8,7 @@ void init_input()
 
     // SSAO controls
     printf("Toggle SSAO with m \nDecrease/Increase SSAO kernel radius: j/k\n");
+    printf("Toggle SSAO smoothing with n\n");
 }
 
 void handle_keyboard_input(Camera &camera, Renderer &renderer)
@@ -57,6 +58,9 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                 case SDLK_6:
                     renderer.set_mode(SPECULAR_MODE);
                     break;
+                case SDLK_7:
+                    renderer.set_mode(SSAO_MODE);
+                    break;
                 case SDLK_b:
                     renderer.draw_bounding_spheres = !renderer.draw_bounding_spheres;
                 case SDLK_k:
@@ -66,11 +70,19 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     if (renderer.get_kernel_radius() > 0.2f)
                         renderer.set_kernel_radius(renderer.get_kernel_radius() - 0.1f);
                     break;
-                    case SDLK_m:
+                case SDLK_m:
                     renderer.toggle_ssao();
                     break;
-                    case SDLK_t:
-                        renderer.toggle_tweak_bar();
+                case SDLK_n:
+                    renderer.toggle_ssao_smoothing();
+                    break;                
+                case SDLK_t:
+                    renderer.toggle_tweak_bar();
+                    break;
+                case SDLK_p:
+                    glm::vec3 pos = camera.position;
+                    printf("Camera position x,y,z: %f %f %f\n", pos.x, pos.y, pos.z);
+                    break;
                 }
             }
     }

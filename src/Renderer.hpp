@@ -28,7 +28,8 @@ enum render_mode {
     POSITION_MODE,
     NORMAL_MODE,
     ALBEDO_MODE,
-    SPECULAR_MODE
+    SPECULAR_MODE,
+    SSAO_MODE
 };
 
 
@@ -52,6 +53,7 @@ public:
     float get_kernel_radius() {return kernel_radius;}
     GLint get_ssao_n_samples() {return ssao_n_samples;}
     void toggle_ssao();
+    void toggle_ssao_smoothing();
     void toggle_tweak_bar();
 
 private:
@@ -61,14 +63,16 @@ private:
       DEFERRED,
       FLAT,
       SSAO,
-      G_COMPONENT,
-      G_SPECULAR
+      SSAO_BLUR,
+      SHOW_RGB_COMPONENT,
+      SHOW_ALPHA_COMPONENT,
+      SHOW_SSAO
     };
 
     render_mode mode;
-    GLuint shaders[5];
-    GLuint g_buffer, ssao_fbuffer;
-    GLuint g_position_depth, g_normal, g_albedo_specular, ssao_result;
+    GLuint shaders[9];
+    GLuint g_buffer, ssao_fbuffer, ssao_blur_fbo;
+    GLuint g_position, g_normal, g_albedo_specular, ssao_result, ssao_blurred;
     GLuint quad_vao, quad_vbo;
     glm::mat4 w2v_matrix;
     Model* sphere;
@@ -78,9 +82,10 @@ private:
     GLuint noise_texture; // Really small and tiled across the screen
     std::vector<glm::vec3> ssao_kernel;
     std::vector<glm::vec3> ssao_noise;
-    GLfloat kernel_radius = 1; // Could be interesting to tweak this
+    GLfloat kernel_radius = 8; // Could be interesting to tweak this
     GLint ssao_n_samples = 64;
     bool ssao_on;
+    bool smooth_ssao;
 
     // Tweak bar
     TwBar* tweak_bar;
@@ -92,6 +97,10 @@ private:
     void init_quad();
     void init_g_buffer();
     void init_ssao();
+    void init_rgb_component_shader();
+    void init_albedo_component_shader();
+    void init_alpha_component_shader();
+    void init_show_ssao_shader();
 
     void draw_tweak_bar();
 
@@ -101,14 +110,15 @@ private:
     void render_bounding_spheres();
 
     void clear_ssao();
-    void render_ssao();
+    void ssao_pass();
     void create_ssao_samples();
 
-    void render_geometry(std::vector<Model*> models);
+    void geometry_pass();
     void render_g_position();
     void render_g_normal();
     void render_g_albedo();
     void render_g_specular();
+    void render_ssao();
 };
 
 #endif

@@ -8,10 +8,20 @@ void Renderer::init()
     shaders[DEFERRED] = load_shaders("build/shaders/deferred.vert", "build/shaders/deferred.frag");
     shaders[FLAT] = load_shaders("build/shaders/flat.vert", "build/shaders/flat.frag");
     shaders[SSAO] = load_shaders("build/shaders/ssao.vert", "build/shaders/ssao.frag");
+    shaders[SSAO_BLUR] = load_shaders("build/shaders/ssao_blur.vert", "build/shaders/ssao_blur.frag");
+    shaders[SHOW_RGB_COMPONENT] = load_shaders("build/shaders/show_rgb_component.vert",
+                                               "build/shaders/show_rgb_component.frag");
+    shaders[SHOW_ALPHA_COMPONENT] = load_shaders("build/shaders/show_alpha_component.vert",
+                                                 "build/shaders/show_alpha_component.frag");
+    shaders[SHOW_SSAO] = load_shaders("build/shaders/show_red_component.vert",
+                                      "build/shaders/show_red_component.frag");
+
 
     init_g_buffer();
     init_quad();
     init_ssao();
+    init_rgb_component_shader();
+    init_alpha_component_shader();
 
     sphere = new Model("res/models/sphere/sphere.obj");
 
@@ -40,6 +50,9 @@ void Renderer::render()
         break;
     case SPECULAR_MODE:
         render_g_specular();
+        break;
+    case SSAO_MODE:
+        render_ssao();
         break;
     }
 
@@ -74,6 +87,9 @@ void Renderer::set_mode(render_mode mode)
         Light::shader_program = shaders[DEFERRED];
         break;
     case SPECULAR_MODE:
+        Light::shader_program = shaders[DEFERRED];
+        break;
+    case SSAO_MODE:
         Light::shader_program = shaders[DEFERRED];
         break;
     }
@@ -120,72 +136,28 @@ void Renderer::upload_camera_uniforms(const Camera &camera)
 void Renderer::render_deferred()
 {
     /* GEOMETRY PASS */
-    glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(shaders[GEOMETRY]);
+    geometry_pass();
 
-    for (auto model : Model::get_loaded_models()) {
-        if (!model->draw_me) {
-            continue;
-        }
-        GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
-        GLuint rot_location = glGetUniformLocation(shaders[GEOMETRY], "modelRot");
-        glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
-
-        for (auto mesh : model->get_meshes()) {
-            GLuint diffuse_num = 1;
-            GLuint specular_num = 1;
-
-            for(GLuint i = 0; i < mesh->textures.size(); i++) {
-                glActiveTexture(GL_TEXTURE0 + i);
-                if(mesh->textures[i]->type == DIFFUSE) {
-                    const char* str = ("texture_Diffuse" + std::to_string(diffuse_num++)).c_str();
-                    GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY], str);
-                    glUniform1i(diffuse_loc, i);
-                    glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
-                }
-                else if(mesh->textures[i]->type == SPECULAR) {
-                    const char* str2 = ("texture_Specular" + std::to_string(specular_num++)).c_str();
-                    GLuint specular_loc = glGetUniformLocation(shaders[GEOMETRY], str2);
-                    glUniform1i(specular_loc, i);
-                    glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
-                }
-            }
-
-            glBindVertexArray(mesh->get_VAO());
-
-            /* DRAW GEOMETRY */
-            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
-
-            glBindVertexArray(0);
-
-            for (GLuint i = 0; i < mesh->textures.size(); i++) {
-                glActiveTexture(GL_TEXTURE0 + i);
-                glBindTexture(GL_TEXTURE_2D, 0);
-            }
-        }
-    }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
+    // SSAO PASS
     if (this->ssao_on) {
-        render_ssao();
+        ssao_pass();
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[DEFERRED]);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, g_position_depth);
+    glBindTexture(GL_TEXTURE_2D, g_position);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, g_normal);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
-    // NEW SSAO texture
     glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, ssao_result);
+    if (smooth_ssao) {
+        glBindTexture(GL_TEXTURE_2D, ssao_blurred);
+    } else {
+        glBindTexture(GL_TEXTURE_2D, ssao_result);
+    }
 
     // Render quad
     glBindVertexArray(quad_vao);
@@ -291,10 +263,12 @@ void Renderer::render_flat()
     }
 }
 
+
 inline GLfloat lerp(GLfloat a, GLfloat b, GLfloat f)
 {
     return a + f * (b - a);
 }
+
 
 void Renderer::create_ssao_samples()
 {
@@ -321,6 +295,7 @@ void Renderer::create_ssao_samples()
     }
 }
 
+
 void Renderer::toggle_ssao()
 {
     ssao_on = !ssao_on;
@@ -330,21 +305,35 @@ void Renderer::toggle_ssao()
 }
 
 
+void Renderer::toggle_ssao_smoothing()
+{
+    smooth_ssao = !smooth_ssao;
+    if (!ssao_on) {
+        clear_ssao();
+    }
+}
+
+
 void Renderer::clear_ssao()
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_fbo);
     float clearColor[1] = {1.0};
     glClearBufferfv(GL_COLOR, 0, clearColor);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
+    glClearBufferfv(GL_COLOR, 0, clearColor);
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Renderer::render_ssao()
+
+void Renderer::ssao_pass()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(shaders[SSAO]);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, g_position_depth);
+    glBindTexture(GL_TEXTURE_2D, g_position);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, g_normal);
     glActiveTexture(GL_TEXTURE2);
@@ -357,13 +346,27 @@ void Renderer::render_ssao()
     }
     GLuint radius_loc = glGetUniformLocation(shaders[SSAO], "kernel_radius");
     glUniform1f(radius_loc, kernel_radius);
-    GLuint size_loc = glGetUniformLocation(shaders[SSAO], "ssao_n_samples");
-    glUniform1i(size_loc, _SSAO_N_SAMPLES_);
+    //    GLuint size_loc = glGetUniformLocation(shaders[SSAO], "ssao_n_samples");
+    //    glUniform1i(size_loc, _SSAO_N_SAMPLES_);
     // Projection matrix should already be uploaded from init_uniforms
 
     // Render quad
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    if (smooth_ssao) {
+        // Blur the ssao result
+        glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_fbo);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glUseProgram(shaders[SSAO_BLUR]);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, ssao_result);
+
+        // No uniforms needed =)
+        // Render quad
+        glBindVertexArray(quad_vao);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    }
 
     glUseProgram(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -407,32 +410,158 @@ void Renderer::render_bounding_spheres()
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
+// ------------------------
+
+void Renderer::geometry_pass()
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[GEOMETRY]);
+
+    for (auto model : Model::get_loaded_models()) {
+        if (!model->draw_me) {
+            continue;
+        }
+        GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
+        GLuint rot_location = glGetUniformLocation(shaders[GEOMETRY], "modelRot");
+        glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
+
+        for (auto mesh : model->get_meshes()) {
+            GLuint diffuse_num = 1;
+            GLuint specular_num = 1;
+
+            for(GLuint i = 0; i < mesh->textures.size(); i++) {
+                glActiveTexture(GL_TEXTURE0 + i);
+                if(mesh->textures[i]->type == DIFFUSE) {
+                    const char* str = ("texture_Diffuse" + std::to_string(diffuse_num++)).c_str();
+                    GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY], str);
+                    glUniform1i(diffuse_loc, i);
+                    glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
+                }
+                else if(mesh->textures[i]->type == SPECULAR) {
+                    const char* str2 = ("texture_Specular" + std::to_string(specular_num++)).c_str();
+                    GLuint specular_loc = glGetUniformLocation(shaders[GEOMETRY], str2);
+                    glUniform1i(specular_loc, i);
+                    glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
+                }
+            }
+
+            glBindVertexArray(mesh->get_VAO());
+
+            /* DRAW GEOMETRY */
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+
+            glBindVertexArray(0);
+
+            for (GLuint i = 0; i < mesh->textures.size(); i++) {
+                glActiveTexture(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
+        }
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
 // --------------------------
 
 void Renderer::render_g_position()
 {
+    geometry_pass();
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[SHOW_RGB_COMPONENT]);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, g_position);
+
+
+    // Render quad
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glUseProgram(0);
 }
 
 // --------------------------
 
 void Renderer::render_g_normal()
 {
+    geometry_pass();
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[SHOW_RGB_COMPONENT]);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, g_normal);
+
+
+    // Render quad
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glUseProgram(0);
 }
 
 // --------------------------
 
 void Renderer::render_g_albedo()
 {
+    geometry_pass();
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[SHOW_RGB_COMPONENT]);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
+
+
+    // Render quad
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glUseProgram(0);
 }
 
 // --------------------------
 
 void Renderer::render_g_specular()
 {
+    geometry_pass();
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[SHOW_ALPHA_COMPONENT]);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
+
+
+    // Render quad
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glUseProgram(0);
+}
+
+// --------------------------
+
+void Renderer::render_ssao()
+{
+    geometry_pass();
+
+    ssao_pass();
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[SHOW_SSAO]);
+    glActiveTexture(GL_TEXTURE0);
+    if (smooth_ssao) {
+        glBindTexture(GL_TEXTURE_2D, ssao_blurred);
+    } else {
+        glBindTexture(GL_TEXTURE_2D, ssao_result);
+    }
+
+    // Render quad
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glUseProgram(0);
 
 }
 
@@ -441,8 +570,8 @@ void Renderer::render_g_specular()
 
 void Renderer::init_ssao()
 {
-    printf("Init_SSAO\n");
     ssao_on = true;
+    smooth_ssao = true;
     ssao_n_samples = _SSAO_N_SAMPLES_;
 
     /* Create ssao kernel */
@@ -461,7 +590,7 @@ void Renderer::init_ssao()
     }
 
     glUseProgram(shaders[SSAO]);
-    glUniform1i(glGetUniformLocation(shaders[SSAO], "g_position_depth"), 0);
+    glUniform1i(glGetUniformLocation(shaders[SSAO], "g_position"), 0);
     glUniform1i(glGetUniformLocation(shaders[SSAO], "g_normal"), 1);
     glUniform1i(glGetUniformLocation(shaders[SSAO], "tex_noise"), 2);
 
@@ -479,6 +608,7 @@ void Renderer::init_ssao()
     glGenFramebuffers(1, &ssao_fbuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
 
+
     glGenTextures(1, &ssao_result);
     glBindTexture(GL_TEXTURE_2D, ssao_result);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
@@ -487,6 +617,26 @@ void Renderer::init_ssao()
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_result, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "SSAO Framebuffer not complete!" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    /* SSAO blurring */
+    glUseProgram(shaders[SSAO_BLUR]);
+    glUniform1i(glGetUniformLocation(shaders[SSAO_BLUR], "ssao_input"), 0);
+
+    /* SSAO blurring framebuffer */
+    glGenFramebuffers(1, &ssao_blur_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_fbo);
+
+    glGenTextures(1, &ssao_blurred);
+    glBindTexture(GL_TEXTURE_2D, ssao_blurred);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_blurred, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "SSAO blur Framebuffer not complete!" << std::endl;
+
+
     glUseProgram(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -520,24 +670,25 @@ void Renderer::init_g_buffer()
 {
     glUseProgram(shaders[DEFERRED]);
 
-    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_position_depth"), 0);
+    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_position"), 0);
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_normal"), 1);
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_albedo_specular"), 2);
-    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "ssao_result"), 3);
+    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "ssao_blurred"), 3);
+    glUseProgram(0);
 
     glDisable(GL_BLEND);
     glGenFramebuffers(1, &g_buffer);
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
 
-    /* Position and LINEAR depth buffer */
-    glGenTextures(1, &g_position_depth);
-    glBindTexture(GL_TEXTURE_2D, g_position_depth);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    /* Position */
+    glGenTextures(1, &g_position);
+    glBindTexture(GL_TEXTURE_2D, g_position);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_position_depth, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_position, 0);
 
     /* Normal buffer */
     glGenTextures(1, &g_normal);
@@ -579,6 +730,34 @@ void Renderer::init_g_buffer()
 
 // -----------------
 
+void Renderer::init_rgb_component_shader()
+{
+    glUseProgram(shaders[SHOW_RGB_COMPONENT]);
+    // Bind different rgb textures to show them
+    glUniform1i(glGetUniformLocation(shaders[SHOW_RGB_COMPONENT], "input_tex"), 0);
+    glUseProgram(0);
+}
+
+// -----------------
+
+void Renderer::init_alpha_component_shader()
+{
+    glUseProgram(shaders[SHOW_ALPHA_COMPONENT]);
+    glUniform1i(glGetUniformLocation(shaders[SHOW_ALPHA_COMPONENT], "input_tex"), 0);
+    glUseProgram(0);
+}
+
+// -----------------
+
+void Renderer::init_show_ssao_shader()
+{
+    glUseProgram(shaders[SHOW_SSAO]);
+    glUniform1i(glGetUniformLocation(shaders[SHOW_SSAO], "input_tex"), 0);
+    glUseProgram(0);
+}
+
+// -----------------
+
 void Renderer::draw_tweak_bar()
 {
     // Draw tweak bar
@@ -605,6 +784,7 @@ void Renderer::init_tweak_bar(Camera* camera)
     TwAddVarRW(tweak_bar, "SSAO ON", TW_TYPE_BOOL8, &ssao_on, " label='SSAO ON' help='Status of SSAO' ");
     TwAddVarRW(tweak_bar, "SSAO samples", TW_TYPE_INT32, &ssao_n_samples, " label='SSAO samples' help='Defines the number of SSAO samples used.' ");
     TwAddVarRW(tweak_bar, "SSAO kernel radius", TW_TYPE_FLOAT, &kernel_radius, " label='SSAO k-radius' help='Defines the radius of SSAO samples.' ");
+    TwAddVarRW(tweak_bar, "SSAO smoothing", TW_TYPE_BOOL8, &smooth_ssao, " label='SSAO smoothing' help='Blur filter for SSAO' ");
 
     // Camera position
     TwAddVarRW(tweak_bar, "cam-pos-x", TW_TYPE_FLOAT, &camera->position.x, "label=cam-pos-x help=current-camera-x-coord");
