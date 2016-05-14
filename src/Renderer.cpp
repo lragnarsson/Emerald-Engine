@@ -195,17 +195,17 @@ void Renderer::render_forward()
 
         for (auto mesh : model->get_meshes()) {
             glActiveTexture(GL_TEXTURE0);
-            GLuint diffuse_loc = glGetUniformLocation(shaders[FORWARD], "texture_Diffuse");
+            GLuint diffuse_loc = glGetUniformLocation(shaders[FORWARD], "diffuse_map");
             glUniform1i(diffuse_loc, 0);
             glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
 
-            glActiveTexture(GL_TEXTURE0 + 1);
-            GLuint specular_loc = glGetUniformLocation(shaders[FORWARD], "texture_Specular");
+            glActiveTexture(GL_TEXTURE1);
+            GLuint specular_loc = glGetUniformLocation(shaders[FORWARD], "specular_map");
             glUniform1i(specular_loc, 1);
             glBindTexture(GL_TEXTURE_2D, mesh->specular_map->id);
 
-            glActiveTexture(GL_TEXTURE0 + 2);
-            GLuint normal_loc = glGetUniformLocation(shaders[FORWARD], "texture_Normal");
+            glActiveTexture(GL_TEXTURE2);
+            GLuint normal_loc = glGetUniformLocation(shaders[FORWARD], "normal_map");
             glUniform1i(normal_loc, 2);
             glBindTexture(GL_TEXTURE_2D, mesh->normal_map->id);
 
@@ -214,19 +214,20 @@ void Renderer::render_forward()
             /* DRAW */
             glBindVertexArray(mesh->get_VAO());
             glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
-
-            glBindVertexArray(0);
-            for (GLuint i = 0; i < 3; i++) {
-                glActiveTexture(GL_TEXTURE0 + i);
-                glBindTexture(GL_TEXTURE_2D, 0);
-            }
         }
     }
+    glBindVertexArray(0);
+    for (GLuint i = 0; i < 3; i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+    glUseProgram(0);
+
     render_flat();
+
     if (draw_bounding_spheres) {
         render_bounding_spheres();
     }
-    glUseProgram(0);
 }
 
 // --------------------------
@@ -240,12 +241,14 @@ void Renderer::render_flat()
         }
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
-        GLuint rot_location = glGetUniformLocation(shaders[FLAT], "modelRot");
-        glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
+
+        GLuint color = glGetUniformLocation(shaders[FLAT], "color");
         if (model->get_lights().size() > 0) {
-            GLuint color = glGetUniformLocation(shaders[FLAT], "color");
             glUniform3fv(color, 1, glm::value_ptr(model->get_lights()[0]->get_color()));
+        } else {
+            glUniform3fv(color, 1, glm::value_ptr(glm::vec3(1.f)));
         }
+
         for (auto mesh : model->get_meshes()) {
             glBindVertexArray(mesh->get_VAO());
 
@@ -362,8 +365,12 @@ void Renderer::ssao_pass()
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
 
-    glUseProgram(0);
+    for (GLuint i = 0; i < 3; i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glUseProgram(0);
 }
 
 // --------------------------
@@ -418,22 +425,20 @@ void Renderer::geometry_pass()
         }
         GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
-        GLuint rot_location = glGetUniformLocation(shaders[GEOMETRY], "modelRot");
-        glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
 
         for (auto mesh : model->get_meshes()) {
             glActiveTexture(GL_TEXTURE0);
-            GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY], "texture_Diffuse");
+            GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY], "diffuse_map");
             glUniform1i(diffuse_loc, 0);
             glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
 
             glActiveTexture(GL_TEXTURE0 + 1);
-            GLuint specular_loc = glGetUniformLocation(shaders[GEOMETRY], "texture_Specular");
+            GLuint specular_loc = glGetUniformLocation(shaders[GEOMETRY], "specular_map");
             glUniform1i(specular_loc, 1);
             glBindTexture(GL_TEXTURE_2D, mesh->specular_map->id);
 
             glActiveTexture(GL_TEXTURE0 + 2);
-            GLuint normal_loc = glGetUniformLocation(shaders[GEOMETRY], "texture_Normal");
+            GLuint normal_loc = glGetUniformLocation(shaders[GEOMETRY], "normal_map");
             glUniform1i(normal_loc, 2);
             glBindTexture(GL_TEXTURE_2D, mesh->normal_map->id);
 
@@ -441,17 +446,15 @@ void Renderer::geometry_pass()
 
             /* DRAW GEOMETRY */
             glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
-
-            glBindVertexArray(0);
-
-            for (GLuint i = 0; i < 3; i++) {
-                glActiveTexture(GL_TEXTURE0 + i);
-                glBindTexture(GL_TEXTURE_2D, 0);
-            }
         }
     }
-
+    glBindVertexArray(0);
+    for (GLuint i = 0; i < 3; i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glUseProgram(0);
 }
 
 // --------------------------

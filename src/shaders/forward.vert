@@ -19,7 +19,6 @@ out vec3 CamPos;
 out vec3 LightPos[_MAX_LIGHTS_];
 
 uniform mat4 model;
-uniform mat4 modelRot;
 uniform mat4 view;
 uniform mat4 projection;
 uniform vec3 camPos;
