@@ -22,7 +22,6 @@ void Renderer::init()
     init_ssao();
     init_rgb_component_shader();
     init_alpha_component_shader();
-    init_tweak_bar();
 
     sphere = new Model("res/models/sphere/sphere.obj");
 
@@ -762,7 +761,7 @@ void Renderer::draw_tweak_bar()
 
 // -----------------
 
-void Renderer::init_tweak_bar()
+void Renderer::init_tweak_bar(Camera* camera)
 {
     // Initialize AntTweakBar
     TwInit(TW_OPENGL_CORE, NULL);
@@ -770,19 +769,22 @@ void Renderer::init_tweak_bar()
     TwWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 
     // Create bar
-    tweak_bar = TwNewBar("Emeralds tweakbar");
+    tweak_bar = TwNewBar("emerald");
+    TwDefine(" emerald label='Emerald Engine' ");
+    TwDefine(" emerald refresh=1 ");
 
-    // FPS counter
     TwAddVarRO(tweak_bar, "FPS", TW_TYPE_DOUBLE, &fps," label='FPS' help='Frames per second' ");
-    // SSAO stuff
-    TwAddVarRW(tweak_bar, "SSAO samples", TW_TYPE_INT32, &ssao_n_samples, " label='Number of SSAO samples' help='Defines the number of SSAO samples used.' ");
-    TwAddVarRW(tweak_bar, "SSAO kernel radius", TW_TYPE_FLOAT, &kernel_radius, " label='SSAO kernel radius' help='Defines the radius of SSAO samples.' ");
-    // Objects drawn
     TwAddVarRW(tweak_bar, "Objects drawn", TW_TYPE_INT32, &objects_drawn, " label='Objects drawn' help='Objects not removed by frustum culling.' ");
-
+    // SSAO stuff
     TwAddVarRW(tweak_bar, "SSAO ON", TW_TYPE_BOOL8, &ssao_on, " label='SSAO ON' help='Status of SSAO' ");
+    TwAddVarRW(tweak_bar, "SSAO samples", TW_TYPE_INT32, &ssao_n_samples, " label='SSAO samples' help='Defines the number of SSAO samples used.' ");
+    TwAddVarRW(tweak_bar, "SSAO kernel radius", TW_TYPE_FLOAT, &kernel_radius, " label='SSAO k-radius' help='Defines the radius of SSAO samples.' ");
     TwAddVarRW(tweak_bar, "SSAO smoothing", TW_TYPE_BOOL8, &smooth_ssao, " label='SSAO smoothing' help='Blur filter for SSAO' ");
     
+    // Camera position
+    TwAddVarRW(tweak_bar, "cam-pos-x", TW_TYPE_FLOAT, &camera->position.x, "label=cam-pos-x help=current-camera-x-coord");
+    TwAddVarRW(tweak_bar, "cam-pos-y", TW_TYPE_FLOAT, &camera->position.y, "label=cam-pos-y help=current-camera-y-coord");
+    TwAddVarRW(tweak_bar, "cam-pos-z", TW_TYPE_FLOAT, &camera->position.z, "label=cam-pos-z help=current-camera-z-coord");
 }
 
 // ---------------

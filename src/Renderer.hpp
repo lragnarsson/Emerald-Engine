@@ -44,6 +44,7 @@ public:
     Renderer() {}
 
     void init();
+    void init_tweak_bar(Camera* camera);
     void render();
     void set_mode(render_mode mode);
     void init_uniforms(const Camera &camera);
@@ -101,7 +102,6 @@ private:
     void init_alpha_component_shader();
     void init_show_ssao_shader();
     
-    void init_tweak_bar();
     void draw_tweak_bar();
 
     void render_deferred();
