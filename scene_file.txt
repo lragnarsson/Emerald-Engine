@@ -23,7 +23,7 @@
 # Models are loaded using the following syntax:
 # /path/to/model | rotX rotY rotZ | Xpos Ypos Zpos | scale | animation_path_id start_animation | nr_of_lights
 res/models/nanosuit/nanosuit.obj 0 5 0 20 0 -5 1 -1 0 0
-res/models/crytek-sponza/sponza.obj 0 0 0 0 0 0 0.1 -1 0 0
+res/models/sponza/sponza.obj 0 0 0 0 0 0 0.1 -1 0 0
 # Now we have loaded three nanosuits
 
 # This will start a new section for loading flat-shaded models.
@@ -44,6 +44,8 @@ res/models/cube/cube.obj 0 0 0 -5 7 -10 1 0 15 1
 res/models/cube/cube.obj 0 0 0 -1 10 -8 1 0 20 1
 0 0 0 1 1 1
 res/models/cube/cube.obj 0 0 0 -3 5 -1 1 -1 0 1
+0 0 0 1 1 1
+res/models/cube/cube.obj 0 0 0 50 5 -1 1 -1 0 1
 0 0 0 1 1 1
 
 res/models/cube/cube.obj 0 0 0 -100 20 50 1 -1 0 1

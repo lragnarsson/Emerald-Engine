@@ -281,9 +281,11 @@ Texture* Model::load_texture(const char* filename, std::string basepath)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     if (surface->format->BytesPerPixel == 4) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
+        GLenum color_format = surface->format->Rmask == 255 ? GL_RGBA : GL_BGRA;
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, color_format, GL_UNSIGNED_BYTE, surface->pixels);
     } else {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
+        GLenum color_format = surface->format->Rmask == 255 ? GL_RGB : GL_BGR;
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, color_format, GL_UNSIGNED_BYTE, surface->pixels);
     }
     glGenerateMipmap(GL_TEXTURE_2D);
 
