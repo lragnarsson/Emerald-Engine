@@ -16,7 +16,6 @@ void Renderer::init()
     shaders[SHOW_SSAO] = load_shaders("build/shaders/show_red_component.vert",
                                       "build/shaders/show_red_component.frag");
     
-    printf("Init shaders done\n");
     
     init_g_buffer();
     init_quad();
@@ -28,7 +27,6 @@ void Renderer::init()
     sphere = new Model("res/models/sphere/sphere.obj");
 
     set_mode(DEFERRED_MODE);
-    printf("init renderer done\n");
 }
 
 // --------------------------
@@ -637,7 +635,6 @@ void Renderer::init_ssao()
     
     glUseProgram(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    printf("init ssao done\n");
 }
 
 
@@ -725,7 +722,6 @@ void Renderer::init_g_buffer()
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    printf("Init g_buffer done\n");
 }
 
 // -----------------
