@@ -75,8 +75,8 @@ int main(int argc, char *argv[])
     init_input();
 
     renderer.init();
-
     renderer.init_uniforms(camera);
+    renderer.init_tweak_bar(&camera);
 
     Loader::load_scene(Parser::get_scene_file_from_command_line(argc, argv));
 

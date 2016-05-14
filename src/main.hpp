@@ -13,7 +13,7 @@
 SDL_Window* main_window;
 SDL_GLContext main_context;
 
-Camera camera = Camera(glm::vec3(0.f, 0.f, 3.f),    // Position
+Camera camera = Camera(glm::vec3(0.f, 10.f, 3.f),    // Position
                        glm::vec3(0.f, 0.f, -1.f),   // Front
                        glm::vec3(0.0f, 1.0f, 0.0f), // Up
                        glm::vec3(1.f, 0.f, 0.f),    // Right
