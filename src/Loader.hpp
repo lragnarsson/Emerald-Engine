@@ -29,7 +29,6 @@ private:
     static Light* load_light(std::vector<std::string> light_line);
     static void load_model(std::ifstream* read_file, int* current_line, std::vector<std::string>& model_line, bool flat);
     static void load_animation(std::vector<std::string> animation_line);
-    static void replace_in_string(std::string& str, const std::string& from, const std::string& to);
 };
 
 #endif
