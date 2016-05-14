@@ -82,7 +82,7 @@ private:
     GLuint noise_texture; // Really small and tiled across the screen
     std::vector<glm::vec3> ssao_kernel;
     std::vector<glm::vec3> ssao_noise;
-    GLfloat kernel_radius = 1; // Could be interesting to tweak this
+    GLfloat kernel_radius = 8; // Could be interesting to tweak this
     GLint ssao_n_samples = 64;
     bool ssao_on;
     bool smooth_ssao;
@@ -101,7 +101,7 @@ private:
     void init_albedo_component_shader();
     void init_alpha_component_shader();
     void init_show_ssao_shader();
-    
+
     void draw_tweak_bar();
 
     void render_deferred();

@@ -15,8 +15,8 @@ void Renderer::init()
                                                  "build/shaders/show_alpha_component.frag");
     shaders[SHOW_SSAO] = load_shaders("build/shaders/show_red_component.vert",
                                       "build/shaders/show_red_component.frag");
-    
-    
+
+
     init_g_buffer();
     init_quad();
     init_ssao();
@@ -137,8 +137,8 @@ void Renderer::render_deferred()
 {
     /* GEOMETRY PASS */
     geometry_pass();
-    
-    // SSAO PASS 
+
+    // SSAO PASS
     if (this->ssao_on) {
         ssao_pass();
     }
@@ -263,10 +263,12 @@ void Renderer::render_flat()
     }
 }
 
+
 inline GLfloat lerp(GLfloat a, GLfloat b, GLfloat f)
 {
     return a + f * (b - a);
 }
+
 
 void Renderer::create_ssao_samples()
 {
@@ -293,6 +295,7 @@ void Renderer::create_ssao_samples()
     }
 }
 
+
 void Renderer::toggle_ssao()
 {
     ssao_on = !ssao_on;
@@ -300,6 +303,7 @@ void Renderer::toggle_ssao()
         clear_ssao();
     }
 }
+
 
 void Renderer::toggle_ssao_smoothing()
 {
@@ -318,9 +322,10 @@ void Renderer::clear_ssao()
 
     glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
     glClearBufferfv(GL_COLOR, 0, clearColor);
-    
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
+
 
 void Renderer::ssao_pass()
 {
@@ -362,7 +367,7 @@ void Renderer::ssao_pass()
         glBindVertexArray(quad_vao);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
-    
+
     glUseProgram(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -469,8 +474,8 @@ void Renderer::render_g_position()
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, g_position);
-    
-    
+
+
     // Render quad
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -488,8 +493,8 @@ void Renderer::render_g_normal()
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, g_normal);
-    
-    
+
+
     // Render quad
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -507,8 +512,8 @@ void Renderer::render_g_albedo()
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
-    
-    
+
+
     // Render quad
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -526,8 +531,8 @@ void Renderer::render_g_specular()
     glUseProgram(shaders[SHOW_ALPHA_COMPONENT]);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
-    
-    
+
+
     // Render quad
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -542,7 +547,7 @@ void Renderer::render_ssao()
     geometry_pass();
 
     ssao_pass();
-    
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_SSAO]);
     glActiveTexture(GL_TEXTURE0);
@@ -551,13 +556,13 @@ void Renderer::render_ssao()
     } else {
         glBindTexture(GL_TEXTURE_2D, ssao_result);
     }
-    
+
     // Render quad
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     glUseProgram(0);
-    
+
 }
 
 // --------------------------
@@ -602,8 +607,8 @@ void Renderer::init_ssao()
     /* Framebuffer for SSAO shader */
     glGenFramebuffers(1, &ssao_fbuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
-    
-    
+
+
     glGenTextures(1, &ssao_result);
     glBindTexture(GL_TEXTURE_2D, ssao_result);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
@@ -614,14 +619,14 @@ void Renderer::init_ssao()
         std::cout << "SSAO Framebuffer not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    /* SSAO blurring */    
+    /* SSAO blurring */
     glUseProgram(shaders[SSAO_BLUR]);
     glUniform1i(glGetUniformLocation(shaders[SSAO_BLUR], "ssao_input"), 0);
 
     /* SSAO blurring framebuffer */
     glGenFramebuffers(1, &ssao_blur_fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_fbo);
-    
+
     glGenTextures(1, &ssao_blurred);
     glBindTexture(GL_TEXTURE_2D, ssao_blurred);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
@@ -631,7 +636,7 @@ void Renderer::init_ssao()
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "SSAO blur Framebuffer not complete!" << std::endl;
 
-    
+
     glUseProgram(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -780,7 +785,7 @@ void Renderer::init_tweak_bar(Camera* camera)
     TwAddVarRW(tweak_bar, "SSAO samples", TW_TYPE_INT32, &ssao_n_samples, " label='SSAO samples' help='Defines the number of SSAO samples used.' ");
     TwAddVarRW(tweak_bar, "SSAO kernel radius", TW_TYPE_FLOAT, &kernel_radius, " label='SSAO k-radius' help='Defines the radius of SSAO samples.' ");
     TwAddVarRW(tweak_bar, "SSAO smoothing", TW_TYPE_BOOL8, &smooth_ssao, " label='SSAO smoothing' help='Blur filter for SSAO' ");
-    
+
     // Camera position
     TwAddVarRW(tweak_bar, "cam-pos-x", TW_TYPE_FLOAT, &camera->position.x, "label=cam-pos-x help=current-camera-x-coord");
     TwAddVarRW(tweak_bar, "cam-pos-y", TW_TYPE_FLOAT, &camera->position.y, "label=cam-pos-y help=current-camera-y-coord");
