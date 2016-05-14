@@ -207,7 +207,7 @@ void Loader::load_scene(string filepath)
           #ifdef _DEBUG_LOADER_
           cout << "Line " << current_line << " starts a lights section " << endl;
           #endif
-          current_section = _ANIMATIONS_;
+          current_section = _LIGHTS_;
       }
       else {
         Error::throw_error(Error::invalid_file_syntax, "On line " + to_string(current_line));
