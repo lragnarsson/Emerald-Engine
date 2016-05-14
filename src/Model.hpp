@@ -78,8 +78,8 @@ public:
     ~Model() { };
 
     void load(std::string path);
-    static const std::vector<Model*> get_loaded_models();
-    static const std::vector<Model*> get_loaded_flat_models();
+    static const std::vector<Model>* get_loaded_models();
+    static const std::vector<Model>* get_loaded_flat_models();
     const std::vector<Mesh*> get_meshes();
 
     void attach_light(Light* light, glm::vec3 relative_pos);
@@ -99,7 +99,8 @@ private:
         glm::vec3 relative_pos;
     };
 
-    static std::vector<Model*> loaded_models, loaded_flat_models;
+    static std::vector<Model> *loaded_models, *loaded_flat_models;
+
     static std::vector<Texture*> loaded_textures;
     std::vector<light_container> attached_lightsources;
     std::vector<Mesh*> meshes;

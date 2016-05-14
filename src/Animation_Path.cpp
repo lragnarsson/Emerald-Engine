@@ -1,7 +1,7 @@
 #include "Animation_Path.hpp"
 #include "Error.hpp"
 
-std::vector<Animation_Path*> Animation_Path::animation_paths;
+std::vector<Animation_Path> Animation_Path::animation_paths;
 
 Animation_Path::Animation_Path(std::vector<glm::vec3> points, float period)
 {
@@ -9,7 +9,7 @@ Animation_Path::Animation_Path(std::vector<glm::vec3> points, float period)
     period_time = period;
     time_per_section = period_time / points.size();
 
-    Animation_Path::animation_paths.push_back(this);
+    Animation_Path::animation_paths.push_back(*this);
 }
 
 
@@ -78,5 +78,5 @@ unsigned int Animation_Path::get_vector_index_circular(unsigned int start,
 // -----------
 
 Animation_Path* Animation_Path::get_animation_path_with_id(unsigned id){
-    return animation_paths.at(id);
+    return &animation_paths.at(id);
 }

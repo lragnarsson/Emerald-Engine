@@ -25,7 +25,7 @@ private:
     glm::mat3x4 get_spline_points(float t, float &u);
     unsigned int get_vector_index_circular(unsigned int start, unsigned int offset);
 
-    static std::vector<Animation_Path*> animation_paths;
+    static std::vector<Animation_Path> animation_paths;
 };
 
 #endif

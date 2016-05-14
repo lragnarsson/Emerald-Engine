@@ -51,7 +51,8 @@ GLuint Mesh::get_VAO()
 
 
 /* --- MODEL ---*/
-std::vector<Model*> Model::loaded_models, Model::loaded_flat_models;
+std::vector<Model>* Model::loaded_models = new std::vector<Model>();
+std::vector<Model>* Model::loaded_flat_models = new std::vector<Model>();
 std::vector<Texture*> Model::loaded_textures;
 
 Model::Model(const std::string path)
@@ -75,15 +76,15 @@ Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3
     this->scale_matrix = glm::scale(glm::mat4(1.f), glm::vec3(scale));
     this->world_coord = world_coord;;
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
-    this->m2w_matrix = move_matrix  * rot_matrix * scale_matrix;
+    this->m2w_matrix = move_matrix * rot_matrix * scale_matrix;
 
     load(path);
     generate_bounding_sphere();
     if (!flat) {
-        Model::loaded_models.push_back(this);
+        Model::loaded_models->push_back(*this);
     }
     else {
-        Model::loaded_flat_models.push_back(this);
+        Model::loaded_flat_models->push_back(*this);
     }
 
     has_animation = false;
@@ -345,14 +346,14 @@ void Model::generate_bounding_sphere()
 
 // -----------
 
-const std::vector<Model*> Model::get_loaded_models()
+const std::vector<Model>* Model::get_loaded_models()
 {
     return Model::loaded_models;
 }
 
 // -----------
 
-const std::vector<Model*> Model::get_loaded_flat_models()
+const std::vector<Model>* Model::get_loaded_flat_models()
 {
     return Model::loaded_flat_models;
 }

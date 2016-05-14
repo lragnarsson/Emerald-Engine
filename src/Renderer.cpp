@@ -125,16 +125,16 @@ void Renderer::render_deferred()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[GEOMETRY]);
 
-    for (auto model : Model::get_loaded_models()) {
-        if (!model->draw_me) {
+    for (auto model : *Model::get_loaded_models()) {
+        if (!model.draw_me) {
             continue;
         }
         GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model.m2w_matrix));
         GLuint rot_location = glGetUniformLocation(shaders[GEOMETRY], "modelRot");
-        glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
+        glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model.rot_matrix));
 
-        for (auto mesh : model->get_meshes()) {
+        for (auto mesh : model.get_meshes()) {
             GLuint diffuse_num = 1;
             GLuint specular_num = 1;
 
@@ -215,16 +215,16 @@ void Renderer::render_forward()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(shaders[FORWARD]);
-    for (auto model : Model::get_loaded_models()) {
-        if (!model->draw_me) {
+    for (auto model : *Model::get_loaded_models()) {
+        if (!model.draw_me) {
             continue;
         }
         GLuint m2w_location = glGetUniformLocation(shaders[FORWARD], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model.m2w_matrix));
         GLuint rot_location = glGetUniformLocation(shaders[FORWARD], "modelRot");
-        glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
+        glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model.rot_matrix));
 
-        for (auto mesh : model->get_meshes()) {
+        for (auto mesh : model.get_meshes()) {
             GLuint diffuse_num = 1;
             GLuint specular_num = 1;
 
@@ -269,19 +269,19 @@ void Renderer::render_forward()
 void Renderer::render_flat()
 {
     glUseProgram(shaders[FLAT]);
-    for (auto model : Model::get_loaded_flat_models()) {
-        if (!model->draw_me) {
+    for (auto model : *Model::get_loaded_flat_models()) {
+        if (!model.draw_me) {
             continue;
         }
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model.m2w_matrix));
         GLuint rot_location = glGetUniformLocation(shaders[FLAT], "modelRot");
-        glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
-        if (model->get_lights().size() > 0) {
+        glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model.rot_matrix));
+        if (model.get_lights().size() > 0) {
             GLuint color = glGetUniformLocation(shaders[FLAT], "color");
-            glUniform3fv(color, 1, glm::value_ptr(model->get_lights()[0]->get_color()));
+            glUniform3fv(color, 1, glm::value_ptr(model.get_lights()[0]->get_color()));
         }
-        for (auto mesh : model->get_meshes()) {
+        for (auto mesh : model.get_meshes()) {
             glBindVertexArray(mesh->get_VAO());
 
             /* DRAW */
@@ -379,12 +379,12 @@ void Renderer::render_bounding_spheres()
     glUseProgram(shaders[FLAT]);
     Mesh* mesh = this->sphere->get_meshes()[0];
 
-    for (auto model : Model::get_loaded_flat_models()) {
-        glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), glm::vec3(model->bounding_sphere_radius) / 1.5f);
-        glm::mat4 bounding_move = glm::translate(glm::mat4(1.f), model->scale * model->get_center_point());
+    for (auto model : *Model::get_loaded_flat_models()) {
+        glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), glm::vec3(model.bounding_sphere_radius) / 1.5f);
+        glm::mat4 bounding_move = glm::translate(glm::mat4(1.f), model.scale * model.get_center_point());
 
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->move_matrix * model->rot_matrix * bounding_move * model->scale_matrix * bounding_scale));
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model.move_matrix * model.rot_matrix * bounding_move * model.scale_matrix * bounding_scale));
 
         /* DRAW */
         glBindVertexArray(mesh->get_VAO());
@@ -392,12 +392,12 @@ void Renderer::render_bounding_spheres()
         glBindVertexArray(0);
     }
 
-    for (auto model : Model::get_loaded_models()) {
-        glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), glm::vec3(model->bounding_sphere_radius) / 1.5f);
-        glm::mat4 bounding_move = model->scale * glm::translate(glm::mat4(1.f), model->scale * model->get_center_point());
+    for (auto model : *Model::get_loaded_models()) {
+        glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), glm::vec3(model.bounding_sphere_radius) / 1.5f);
+        glm::mat4 bounding_move = model.scale * glm::translate(glm::mat4(1.f), model.scale * model.get_center_point());
 
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->move_matrix * model->rot_matrix * bounding_move * model->scale_matrix * bounding_scale));
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model.move_matrix * model.rot_matrix * bounding_move * model.scale_matrix * bounding_scale));
 
         // DRAW
         glBindVertexArray(mesh->get_VAO());

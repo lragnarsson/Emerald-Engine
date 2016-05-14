@@ -12,15 +12,15 @@ void cull_models()
 {
     // TODO: Run in parallel
     uint i = 0;
-    for (auto model : Model::get_loaded_models()) {
-        bool draw_me = camera.sphere_in_frustum(model->get_center_point_world(), model->bounding_sphere_radius * model->scale);
-        model->draw_me = draw_me;
+    for (auto model : *Model::get_loaded_models()) {
+        bool draw_me = camera.sphere_in_frustum(model.get_center_point_world(), model.bounding_sphere_radius * model.scale);
+        model.draw_me = draw_me;
        if (draw_me)
            i++;
     }
-    for (auto model : Model::get_loaded_flat_models()) {
-        bool draw_me = camera.sphere_in_frustum(model->get_center_point_world(), model->bounding_sphere_radius * model->scale);
-        model->draw_me = draw_me;
+    for (auto model : *Model::get_loaded_flat_models()) {
+        bool draw_me = camera.sphere_in_frustum(model.get_center_point_world(), model.bounding_sphere_radius * model.scale);
+        model.draw_me = draw_me;
         if (draw_me)
             i++;
     }
@@ -31,14 +31,14 @@ void animate_models()
 {
     float elapsed_time = 0.1f; // Should be calculated properly so it depends on FPS
     // TODO: Run in parallel
-    for (auto model : Model::get_loaded_models()) {
-        if (model->has_animation_path()) {
-            model->move_along_path(elapsed_time);
+    for (auto model : *Model::get_loaded_models()) {
+        if (model.has_animation_path()) {
+            model.move_along_path(elapsed_time);
         }
     }
-    for (auto model : Model::get_loaded_flat_models()) {
-        if (model->has_animation_path()) {
-            model->move_along_path(elapsed_time);
+    for (auto model : *Model::get_loaded_flat_models()) {
+        if (model.has_animation_path()) {
+            model.move_along_path(elapsed_time);
         }
     }
 }
@@ -47,8 +47,6 @@ void animate_models()
 
 void run()
 {
-
-
     renderer.running = true;
     while (renderer.running) {
         handle_keyboard_input(camera, renderer);
