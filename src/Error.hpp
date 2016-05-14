@@ -25,6 +25,9 @@ public:
     static const ErrorMessage animation_path_time_error;
     static const ErrorMessage animation_path_vector_error;
     static const ErrorMessage model_has_no_path;
+    static const ErrorMessage model_has_no_tangents;
+    static const ErrorMessage cant_load_image;
+    static const ErrorMessage cant_load_model;
 };
 
 #endif

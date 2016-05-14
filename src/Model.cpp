@@ -8,12 +8,13 @@ void Mesh::upload_mesh_data()
     glGenVertexArrays(1, &this->VAO);
     glBindVertexArray(this->VAO);
     glGenBuffers(1, &this->EBO);
-    glGenBuffers(3, this->VBO);
+    glGenBuffers(4, this->VBO);
 
     GLuint* indices = &this->indices[0];
     GLfloat* vertices = &this->vertices[0];
     GLfloat* normals = &this->normals[0];
     GLfloat* tex_coords = &this->tex_coords[0];
+    GLfloat* tangents = &this->tangents[0];
 
     /* Element array buffer */
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
@@ -22,23 +23,26 @@ void Mesh::upload_mesh_data()
     /* Vertex coordinates */
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO[0]);
     glBufferData(GL_ARRAY_BUFFER, 3 * vertex_count * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
     /* Normal vectors */
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO[1]);
     glBufferData(GL_ARRAY_BUFFER, 3 * vertex_count * sizeof(GLfloat), normals, GL_STATIC_DRAW);
-
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(1);
 
     /* Texture coordinates */
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO[2]);
     glBufferData(GL_ARRAY_BUFFER, 2 * vertex_count * sizeof(GLfloat), tex_coords, GL_STATIC_DRAW);
-
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(2);
+
+    /* Tangent vectors */
+    glBindBuffer(GL_ARRAY_BUFFER, this->VBO[3]);
+    glBufferData(GL_ARRAY_BUFFER, 3 * vertex_count * sizeof(GLfloat), tangents, GL_STATIC_DRAW);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(3);
 
     /* Unbind VAO */
     glBindVertexArray(0);
@@ -170,15 +174,20 @@ void Model::rotate(glm::vec3 axis, float angle) {
 
 void Model::load(std::string path) {
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
+    const aiScene* scene = importer.ReadFile(path,
+                                             aiProcess_Triangulate |
+                                             aiProcess_FlipUVs |
+                                             aiProcess_GenNormals |
+                                             aiProcess_CalcTangentSpace);
 
     if(!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        std::cerr << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
+        Error::throw_error(Error::cant_load_model, importer.GetErrorString());
         return;
     }
     directory = path.substr(0, path.find_last_of('/'));
     unfold_assimp_node(scene->mRootNode, scene);
 }
+
 
 /* Private Model functions */
 void Model::unfold_assimp_node(aiNode* node, const aiScene* scene) {
@@ -215,6 +224,16 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
             m->tex_coords.push_back(0.0f);
             m->tex_coords.push_back(0.0f);
         }
+
+        if(ai_mesh->HasTangentsAndBitangents()) {
+            m->tangents.push_back(ai_mesh->mTangents[i].x);
+            m->tangents.push_back(ai_mesh->mTangents[i].y);
+            m->tangents.push_back(ai_mesh->mTangents[i].z);
+        } else {
+            m->tangents.push_back(0.f);
+            m->tangents.push_back(0.f);
+            m->tangents.push_back(0.f);
+        }
     }
 
     for(GLuint i = 0; i < ai_mesh->mNumFaces; i++) {
@@ -230,44 +249,68 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
     material->Get(AI_MATKEY_SHININESS, shininess);
     m->shininess = shininess / 4.f; // Assimp multiplies shininess by 4 because reasons
 
-    for(GLuint i = 0; i < material->GetTextureCount(aiTextureType_DIFFUSE); i++) {
+    if(material->GetTextureCount(aiTextureType_DIFFUSE)) {
         aiString filepath;
-        material->GetTexture(aiTextureType_DIFFUSE, i, &filepath);
+        material->GetTexture(aiTextureType_DIFFUSE, 0, &filepath);
         Texture* texture;
-        texture = load_texture(filepath.C_Str(), this->directory);
+        texture = load_texture(std::string(filepath.C_Str()), this->directory);
         texture->type = DIFFUSE;
         texture->path = filepath;
-        m->textures.push_back(texture);
+        m->diffuse_map = texture;
+    } else {
+        Texture* texture;
+        texture = load_texture(DEFAULT_DIFFUSE, DEFAULT_PATH);
+        texture->type = DIFFUSE;
+        texture->path = DEFAULT_PATH;
+        m->diffuse_map = texture;
     }
 
-    for(GLuint i = 0; i < material->GetTextureCount(aiTextureType_SPECULAR); i++) {
+    if(material->GetTextureCount(aiTextureType_SPECULAR)) {
         aiString filepath;
-        material->GetTexture(aiTextureType_SPECULAR, i, &filepath);
+        material->GetTexture(aiTextureType_SPECULAR, 0, &filepath);
         Texture* texture;
-        texture = load_texture(filepath.C_Str(), this->directory);
+        texture = load_texture(std::string(filepath.C_Str()), this->directory);
         texture->type = SPECULAR;
         texture->path = filepath;
-        m->textures.push_back(texture);
+        m->specular_map = texture;
+    } else { // Use diffuse map as a specular map when specular is missing
+        m->specular_map = m->diffuse_map;
     }
+
+    if(material->GetTextureCount(aiTextureType_HEIGHT)) {
+        aiString filepath;
+        material->GetTexture(aiTextureType_HEIGHT, 0, &filepath);
+        Texture* texture;
+        texture = load_texture(std::string(filepath.C_Str()), this->directory);
+        texture->type = NORMAL;
+        texture->path = filepath;
+        m->normal_map = texture;
+    } else { // Default normal map keeps the geometry defined normals
+        Texture* texture;
+        texture = load_texture(DEFAULT_NORMAL, DEFAULT_PATH);
+        texture->type = NORMAL;
+        texture->path = DEFAULT_PATH;
+        m->normal_map = texture;
+    }
+
     m->upload_mesh_data();
 
     return m;
 }
-#include <stdint.h>
 
-Texture* Model::load_texture(const char* filename, std::string basepath)
+
+Texture* Model::load_texture(const std::string filename, const std::string basepath)
 {
-    glUseProgram(Light::shader_program);
-    std::string filepath = basepath + "/" + std::string(filename);
+    std::string filepath = basepath + "/" + filename;
     for (uint i = 0; i < Model::loaded_textures.size(); i++) {
-        if (!strcmp(Model::loaded_textures[i]->path.C_Str(), filename)) {
+        if (!filename.compare(std::string(Model::loaded_textures[i]->path.C_Str()))) {
             return Model::loaded_textures[i];
         }
     }
 
     SDL_Surface* surface = IMG_Load(filepath.c_str());
     if (surface == NULL) {
-        std::cerr << "Can not load image!" << SDL_GetError() << std::endl;
+        Error::throw_error(Error::cant_load_image, SDL_GetError());
     }
 
     /* Upload texture */
@@ -290,7 +333,7 @@ Texture* Model::load_texture(const char* filename, std::string basepath)
     glGenerateMipmap(GL_TEXTURE_2D);
 
     Model::loaded_textures.push_back(texture);
-    glUseProgram(0);
+
     return texture;
 }
 

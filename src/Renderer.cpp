@@ -192,28 +192,22 @@ void Renderer::render_forward()
         }
         GLuint m2w_location = glGetUniformLocation(shaders[FORWARD], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
-        GLuint rot_location = glGetUniformLocation(shaders[FORWARD], "modelRot");
-        glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
 
         for (auto mesh : model->get_meshes()) {
-            GLuint diffuse_num = 1;
-            GLuint specular_num = 1;
+            glActiveTexture(GL_TEXTURE0);
+            GLuint diffuse_loc = glGetUniformLocation(shaders[FORWARD], "texture_Diffuse");
+            glUniform1i(diffuse_loc, 0);
+            glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
 
-            for(GLuint i = 0; i < mesh->textures.size(); i++) {
-                glActiveTexture(GL_TEXTURE0 + i);
-                if(mesh->textures[i]->type == DIFFUSE) {
-                    const char* str = ("texture_Diffuse" + std::to_string(diffuse_num++)).c_str();
-                    GLuint diffuse_loc = glGetUniformLocation(shaders[FORWARD], str);
-                    glUniform1i(diffuse_loc, i);
-                    glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
-                }
-                else if(mesh->textures[i]->type == SPECULAR) {
-                    const char* str2 = ("texture_Specular" + std::to_string(specular_num++)).c_str();
-                    GLuint specular_loc = glGetUniformLocation(shaders[FORWARD], str2);
-                    glUniform1i(specular_loc, i);
-                    glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
-                }
-            }
+            glActiveTexture(GL_TEXTURE0 + 1);
+            GLuint specular_loc = glGetUniformLocation(shaders[FORWARD], "texture_Specular");
+            glUniform1i(specular_loc, 1);
+            glBindTexture(GL_TEXTURE_2D, mesh->specular_map->id);
+
+            glActiveTexture(GL_TEXTURE0 + 2);
+            GLuint normal_loc = glGetUniformLocation(shaders[FORWARD], "texture_Normal");
+            glUniform1i(normal_loc, 2);
+            glBindTexture(GL_TEXTURE_2D, mesh->normal_map->id);
 
             glUniform1f(glGetUniformLocation(shaders[FORWARD], "shininess"), mesh->shininess);
 
@@ -222,7 +216,7 @@ void Renderer::render_forward()
             glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
 
             glBindVertexArray(0);
-            for (GLuint i = 0; i < mesh->textures.size(); i++) {
+            for (GLuint i = 0; i < 3; i++) {
                 glActiveTexture(GL_TEXTURE0 + i);
                 glBindTexture(GL_TEXTURE_2D, 0);
             }
@@ -428,24 +422,20 @@ void Renderer::geometry_pass()
         glUniformMatrix4fv(rot_location, 1, GL_FALSE, glm::value_ptr(model->rot_matrix));
 
         for (auto mesh : model->get_meshes()) {
-            GLuint diffuse_num = 1;
-            GLuint specular_num = 1;
+            glActiveTexture(GL_TEXTURE0);
+            GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY], "texture_Diffuse");
+            glUniform1i(diffuse_loc, 0);
+            glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
 
-            for(GLuint i = 0; i < mesh->textures.size(); i++) {
-                glActiveTexture(GL_TEXTURE0 + i);
-                if(mesh->textures[i]->type == DIFFUSE) {
-                    const char* str = ("texture_Diffuse" + std::to_string(diffuse_num++)).c_str();
-                    GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY], str);
-                    glUniform1i(diffuse_loc, i);
-                    glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
-                }
-                else if(mesh->textures[i]->type == SPECULAR) {
-                    const char* str2 = ("texture_Specular" + std::to_string(specular_num++)).c_str();
-                    GLuint specular_loc = glGetUniformLocation(shaders[GEOMETRY], str2);
-                    glUniform1i(specular_loc, i);
-                    glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
-                }
-            }
+            glActiveTexture(GL_TEXTURE0 + 1);
+            GLuint specular_loc = glGetUniformLocation(shaders[GEOMETRY], "texture_Specular");
+            glUniform1i(specular_loc, 1);
+            glBindTexture(GL_TEXTURE_2D, mesh->specular_map->id);
+
+            glActiveTexture(GL_TEXTURE0 + 2);
+            GLuint normal_loc = glGetUniformLocation(shaders[GEOMETRY], "texture_Normal");
+            glUniform1i(normal_loc, 2);
+            glBindTexture(GL_TEXTURE_2D, mesh->normal_map->id);
 
             glBindVertexArray(mesh->get_VAO());
 
@@ -454,7 +444,7 @@ void Renderer::geometry_pass()
 
             glBindVertexArray(0);
 
-            for (GLuint i = 0; i < mesh->textures.size(); i++) {
+            for (GLuint i = 0; i < 3; i++) {
                 glActiveTexture(GL_TEXTURE0 + i);
                 glBindTexture(GL_TEXTURE_2D, 0);
             }
