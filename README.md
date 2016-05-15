@@ -1,6 +1,6 @@
 Emerald Engine
 
-Project for the course TSBK07 - Computer Graphics.
+Project for the course TSBK07 - Computer Graphics at Linköping University.
 
 Project members:
  - Hans-Filip Elo
