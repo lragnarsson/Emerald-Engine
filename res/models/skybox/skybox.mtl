@@ -1,0 +1,6 @@
+# Skybox material
+newmtl skybox
+Kd 0.6 0.6 0.6
+illum 1
+map_Kd skybox1.tga
+
