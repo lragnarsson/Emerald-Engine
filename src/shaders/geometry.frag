@@ -5,7 +5,7 @@ in vec2 TexCoord;
 in vec3 FragPos;
 in mat3 TBN;
 
-layout (location = 0) out vec4 g_position_depth;
+layout (location = 0) out vec3 g_position;
 layout (location = 1) out vec3 g_normal;
 layout (location = 2) out vec4 g_albedo_specular;
 
@@ -16,7 +16,7 @@ uniform sampler2D normal_map;
 
 void main()
 {
-    g_position_depth.rgb = FragPos;
+    g_position.rgb = FragPos;
 
     vec3 Normal = texture(normal_map, TexCoord).rgb;
     Normal = normalize(Normal * 2.0 - 1.0);
