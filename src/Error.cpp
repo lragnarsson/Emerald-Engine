@@ -13,6 +13,10 @@ const ErrorMessage Error::ssao_num_samples = {8, "Tried to set illegal number of
 const ErrorMessage Error::animation_path_time_error = {9, "Illegal elapsed time input to animation path!"};
 const ErrorMessage Error::animation_path_vector_error = {10, "Circular vector error!"};
 const ErrorMessage Error::model_has_no_path = {11, "Model has no animation path to follow!"};
+const ErrorMessage Error::model_has_no_tangents = {12, "Model has no tangents!"};
+const ErrorMessage Error::cant_load_image = {13, "Can't load image!"};
+const ErrorMessage Error::cant_load_model = {13, "Can't load model!"};
+
 
 void Error::throw_error(const ErrorMessage& message, string extra_information)
 {

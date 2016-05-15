@@ -30,6 +30,11 @@
 #include "Error.hpp"
 #include "Animation_Path.hpp"
 
+const std::string DEFAULT_PATH = "res/models/default";
+const std::string DEFAULT_DIFFUSE = "default_diffuse.jpg";
+const std::string DEFAULT_NORMAL = "default_normal.jpg";
+
+
 enum texture_type {
     DIFFUSE,
     SPECULAR,
@@ -48,8 +53,8 @@ public:
     GLuint index_count, vertex_count;
     GLfloat shininess = 80;
     std::vector<GLuint> indices;
-    std::vector<GLfloat> vertices, normals, tex_coords;
-    std::vector<Texture*> textures;
+    std::vector<GLfloat> vertices, normals, tex_coords, tangents;
+    Texture *diffuse_map, *specular_map, *normal_map;
 
     Mesh() { };
     ~Mesh() { };
@@ -60,7 +65,7 @@ public:
 
 private:
     GLuint VAO, EBO;
-    GLuint VBO[3]; // Vertices, normals, texCoords
+    GLuint VBO[4]; // Vertices, normals, texCoords, tangents
 };
 
 
@@ -69,7 +74,6 @@ public:
     glm::mat4 m2w_matrix, move_matrix, rot_matrix, scale_matrix;
     float bounding_sphere_radius = -1.f, scale = 1.f;
     bool draw_me = true;
-
 
     Model() { };
     Model(const std::string path);
@@ -112,7 +116,7 @@ private:
 
     void unfold_assimp_node(aiNode* node, const aiScene* scene);
     Mesh* load_mesh(aiMesh* mesh, const aiScene* scene);
-    Texture* load_texture(const char* filename, std::string basepath);
+    Texture* load_texture(const std::string filename, const std::string basepath);
     void generate_bounding_sphere();
 };
 

@@ -21,7 +21,7 @@
 # Models are loaded using the following syntax:
 # /path/to/model | rotX rotY rotZ | Xpos Ypos Zpos | scale | animation_path_id | start_animation | nr_of_lights
 res/models/nanosuit/nanosuit.obj 0 5 0 20 0 -5 1 -1 0 0
-res/models/crytek-sponza/sponza.obj 0 0 0 0 0 0 0.1 -1 0 0
+res/models/sponza/sponza.obj 0 0 0 0 0 0 0.1 -1 0 0
 res/models/muro/muro.obj 0 5 0 | 20 0 5 | 0.08 |-1 0 0
 # Now we have loaded three nanosuits
 

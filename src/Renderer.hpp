@@ -38,7 +38,7 @@ class Renderer
 public:
     bool running = false;
     bool wireframe_mode = false; // unused
-    bool draw_bounding_spheres = false; //unused
+    bool draw_bounding_spheres = false;
     uint objects_drawn;
 
     Renderer() {}
