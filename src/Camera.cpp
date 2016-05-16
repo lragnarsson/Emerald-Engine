@@ -53,7 +53,7 @@ void Camera::move_along_path(float elapsed_time)
     if (has_move_anim_path) {
         Animation_Path* path = Animation_Path::get_animation_path_with_id(this->move_anim_path_id);
         new_pos = path->get_pos(this->spline_move_parameter,
-                                                     elapsed_time);
+                                elapsed_time);
     } else {
         Error::throw_error(Error::model_has_no_path);
     }
@@ -68,16 +68,21 @@ void Camera::move_look_point_along_path(float elapsed_time)
         Error::throw_error(Error::camera_free_mode, extra_info);
     }
     glm::vec3 new_pos;
+    float eps = 0.5;
     // get_pos updates the spline parameter for next iteration
     if (has_look_anim_path) {
         Animation_Path* path = Animation_Path::get_animation_path_with_id(this->look_anim_path_id);
+        if (std::abs(this->spline_move_parameter - this->spline_look_parameter) < eps) {
+            this->spline_look_parameter += eps;
+            printf("increased spline parameter. diff is now: %f\n", this->spline_move_parameter - this->spline_look_parameter);
+        }
         new_pos = path->get_pos(this->spline_look_parameter, elapsed_time);
     } else {
         Error::throw_error(Error::model_has_no_path);
     }
     this->look_pos = new_pos;
     this->front = glm::normalize(this->look_pos - this->position);
-    this->right = glm::cross(this->front, this->up);
+    this->right = glm::normalize(glm::cross(this->front, this->up));
 }
 
 
@@ -107,6 +112,7 @@ int Camera::cycle_move_anim_path(int& parameter)
         this->move_anim_path_id = 0;
     } else {
         this->move_anim_path_id++;
+        this->spline_move_parameter = 1.0f;
     }
     return this->move_anim_path_id;
 }
@@ -121,6 +127,7 @@ int Camera::cycle_look_anim_path(int& parameter)
         this->look_anim_path_id = 0;
     } else {
         this->look_anim_path_id++;
+        this->spline_look_parameter = 10.0f;
     }
     return this->look_anim_path_id;
 }

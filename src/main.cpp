@@ -61,7 +61,7 @@ void init_camera_anim_path()
     }
     if (number_of_anim_paths > 1) {
         camera.attach_move_animation_path(end_id, 0.f);
-        camera.attach_look_animation_path(end_id - 1, 0.f);
+        camera.attach_look_animation_path(end_id - 1, 5.f);
     }
 }
 
