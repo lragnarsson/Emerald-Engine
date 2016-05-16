@@ -14,11 +14,11 @@ string Parser::get_scene_file_from_command_line(int argc, char *argv[])
     }
 
     if (argc == 2) {
-        return SCENE_DIRECTORY + string(argv[1]);
+        return string(argv[1]);
     }
 
     #ifdef _DEFAULT_SCENE_FILE_
-    return SCENE_DIRECTORY + string(_DEFAULT_SCENE_FILE_);
+    return string(_DEFAULT_SCENE_FILE_);
     #endif
 
     Error::throw_error(Error::argument_error, error_information);
