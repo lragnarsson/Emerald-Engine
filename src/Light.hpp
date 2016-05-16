@@ -28,7 +28,6 @@ public:
     void set_color(glm::vec3 color);
     glm::vec3 get_pos();
     void move_to(glm::vec3 world_coord); // does not upload data
-    void upload_pos();
 
 private:
     unsigned int id;
