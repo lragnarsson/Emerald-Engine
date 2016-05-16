@@ -11,10 +11,18 @@
 # x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4 period
 # ... Where all fields are floats
 80 50 40 | -80.0 55 40 |-70.0 80 -10 | -2 10 -7 | -10 7 -40 | -5  50 -15 | -20.0 80.0 -8.0 | 100.0  70.0 -10.0 | 100.0
+
+
 # This animation path is assigned ID=0 since it's the first created
 # Each animation path is then assigned id=1,2,3...
 
-# If there are any animation paths, the camera will follow the last animation path
+19.702196 11.973621 4.934153 | 20.394894 13.865685 5.305327 | 20.270655 15.265759 -5.076668 | 19.487419 12.194465 -4.640711 | 20.0
+27.361521 7.814894 12.285908 | 28.006294 9.203197 -5.504194 | 17.498220 11.475502 -15.848289 | 9.603431 15.743189 -5.737838 | 14.158379 17.720572 12.116312 | 29.297401 19.800182 9.290366 | 31.835678 21.679556 -9.785915 | 34.601723 9.275630 -9.817282 | 39.463772 7.663368 8.903281 | 28.295345 6.421135 12.340041 | 40.0
+
+# If there is only 1 animation path, the camera will move along that and look at a point on the
+# same path.
+# If there are more than 1 animation path the camera will move along the last animation path
+# and look at a point on the second to last path. 
 
 [lights]
 # xPos yPos zPos | Red Green Blue
@@ -62,4 +70,3 @@ res/models/cube/cube.obj 0 0 0 100 20 -50 1 -1 0 1
 0 0 0 1 1 1
 res/models/cube/cube.obj 0 0 0 100 20 50 1 -1 0 1
 0 0 0 1 1 1
-

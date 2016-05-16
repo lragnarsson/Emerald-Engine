@@ -783,6 +783,8 @@ void Renderer::init_tweak_bar(Camera* camera)
     TwAddVarRW(tweak_bar, "cam-pos-x", TW_TYPE_FLOAT, &camera->position.x, "label=cam-pos-x help=current-camera-x-coord");
     TwAddVarRW(tweak_bar, "cam-pos-y", TW_TYPE_FLOAT, &camera->position.y, "label=cam-pos-y help=current-camera-y-coord");
     TwAddVarRW(tweak_bar, "cam-pos-z", TW_TYPE_FLOAT, &camera->position.z, "label=cam-pos-z help=current-camera-z-coord"); */
+
+
 }
 
 // ---------------

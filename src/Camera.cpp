@@ -28,9 +28,17 @@ void Camera::set_pos(glm::vec3 new_pos)
 
 void Camera::attach_move_animation_path(int animation_id, float start_parameter)
 {
-    this->move_anim_path = Animation_Path::get_animation_path_with_id(animation_id);
-    this->spline_parameter = start_parameter;
+    this->move_anim_path_id = animation_id;
+    this->spline_move_parameter = start_parameter;
     this->has_move_anim_path = true;
+}
+
+
+void Camera::attach_look_animation_path(int animation_id, float start_parameter)
+{
+    this->look_anim_path_id = animation_id;
+    this->spline_look_parameter = start_parameter;
+    this->has_look_anim_path = true;
 }
 
 
@@ -43,12 +51,33 @@ void Camera::move_along_path(float elapsed_time)
     glm::vec3 new_pos;
     // get_pos updates the spline parameter for next iteration
     if (has_move_anim_path) {
-        new_pos = this->move_anim_path->get_pos(this->spline_parameter,
+        Animation_Path* path = Animation_Path::get_animation_path_with_id(this->move_anim_path_id);
+        new_pos = path->get_pos(this->spline_move_parameter,
                                                      elapsed_time);
     } else {
         Error::throw_error(Error::model_has_no_path);
     }
     this->position = new_pos;
+}
+
+
+void Camera::move_look_point_along_path(float elapsed_time)
+{
+    if (this->free_look) {
+        std::string extra_info = std::string("Tried to move camera look point along path when it was in free look.\n");
+        Error::throw_error(Error::camera_free_mode, extra_info);
+    }
+    glm::vec3 new_pos;
+    // get_pos updates the spline parameter for next iteration
+    if (has_look_anim_path) {
+        Animation_Path* path = Animation_Path::get_animation_path_with_id(this->look_anim_path_id);
+        new_pos = path->get_pos(this->spline_look_parameter, elapsed_time);
+    } else {
+        Error::throw_error(Error::model_has_no_path);
+    }
+    this->look_pos = new_pos;
+    this->front = glm::normalize(this->look_pos - this->position);
+    this->right = glm::cross(this->front, this->up);
 }
 
 
@@ -68,6 +97,11 @@ void Camera::toggle_free_look()
     this->free_look = !this->free_look;
 }
 
+
+void Camera::cycle_move_anim_path()
+{
+    
+}
 void Camera::update_culling_frustum()
 {
     glm::vec3 far_center = FAR * front;

@@ -42,20 +42,25 @@ public:
     bool has_move_path() const {return has_move_anim_path;}
     bool has_look_path() const {return has_look_anim_path;}
     void attach_move_animation_path(int animation_id, float start_parameter);
+    void attach_look_animation_path(int animation_id, float start_parameter);
     void move_along_path(float elapsed_time);
+    void move_look_point_along_path(float elapsed_time);
+    void look_at_path(float elapsed_time);
     void toggle_free_move();
     void toggle_free_look();
+    void cycle_move_anim_path();
+    void cycle_look_anim_path();
 
     void update_culling_frustum();
     bool sphere_in_frustum(glm::vec3 center, float radius);
 
 private:
-    glm::vec3 position, look_pos;
-    float spline_parameter;
+    glm::vec3 position, look_pos; // Look pos will be invalid if free look is enabled
+    float spline_move_parameter, spline_look_parameter;
     bool has_move_anim_path;
     bool has_look_anim_path;
-    Animation_Path* move_anim_path;
-    Animation_Path* look_anim_path;
+    int move_anim_path_id;
+    int look_anim_path_id;
     bool free_cam;
     bool free_look;
     

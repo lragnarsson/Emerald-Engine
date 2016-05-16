@@ -51,29 +51,39 @@ void animate_models()
 // If there are any animation paths, the camera will follow the last animation path
 void init_camera_anim_path()
 {
-    int cam_path_id = Animation_Path::get_number_of_animation_paths() - 1;
-    if (cam_path_id > -1) {
-        camera.attach_move_animation_path(cam_path_id, 0.f);
+    int number_of_anim_paths = Animation_Path::get_number_of_animation_paths();
+    int end_id = number_of_anim_paths - 1;
+
+    // There is only one animation path, use this for move and look path
+    if (end_id == 0) {
+        camera.attach_move_animation_path(end_id, 0.f);
+        camera.attach_look_animation_path(end_id, 10.f);
+    }
+    if (number_of_anim_paths > 1) {
+        camera.attach_move_animation_path(end_id, 0.f);
+        camera.attach_look_animation_path(end_id - 1, 0.f);
     }
 }
 
 
 void run()
 {
-
-
     renderer.running = true;
     while (renderer.running) {
         handle_keyboard_input(camera, renderer);
         handle_mouse_input(camera);
         camera.update_culling_frustum();
 
+
         if (!camera.can_move_free()) {
             camera.move_along_path(0.1f);
         }
-        
-        cull_models();
+        if (!camera.can_look_free()) {
+            camera.move_look_point_along_path(0.1f);
+        }
+
         animate_models();
+        cull_models();
 
         renderer.upload_camera_uniforms(camera);
         renderer.render();

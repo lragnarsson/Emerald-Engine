@@ -99,6 +99,12 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                 case SDLK_f:
                     if (camera.has_move_path()) {
                         camera.toggle_free_move();
+                        if (camera.has_look_path() &&
+                            camera.can_look_free() != camera.can_move_free()) {
+                            camera.toggle_free_look();
+                        }
+                    } else if (camera.has_look_path()) {
+                        camera.toggle_free_look();
                     }
                     break;
                 }
@@ -113,7 +119,8 @@ void handle_mouse_input(Camera &camera)
 
     button_state = SDL_GetRelativeMouseState(&dx, &dy);
 
-    if (!camera.can_look_free()) {
+    int distance = std::abs(dx) + std::abs(dy);
+    if (!camera.can_look_free() && distance > 2) {
         camera.toggle_free_look();
     }
     camera.front = glm::rotate(camera.front, -dy*camera.rot_speed, camera.right);    // pitch
