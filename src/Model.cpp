@@ -248,7 +248,8 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
 
     GLfloat shininess;
     material->Get(AI_MATKEY_SHININESS, shininess);
-    m->shininess = shininess / 4.f; // Assimp multiplies shininess by 4 because reasons
+    shininess = shininess ? shininess : 86.f;
+    m->shininess = shininess / 3.f; // Assimp multiplies shininess by 4 because reasons
 
     if(material->GetTextureCount(aiTextureType_DIFFUSE)) {
         aiString filepath;
