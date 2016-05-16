@@ -14,6 +14,8 @@
 # This animation path is assigned ID=0 since it's the first created
 # Each animation path is then assigned id=1,2,3...
 
+# If there are any animation paths, the camera will follow the last animation path
+
 [lights]
 # xPos yPos zPos | Red Green Blue
 -50 10 0 | 1.0 0.7 0.5

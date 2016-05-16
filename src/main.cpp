@@ -27,6 +27,8 @@ void cull_models()
     renderer.objects_drawn = i;
 }
 
+// --------------------------
+
 void animate_models()
 {
     float elapsed_time = 0.1f; // Should be calculated properly so it depends on FPS
@@ -45,6 +47,17 @@ void animate_models()
 
 // --------------------------
 
+// Assumes that the scene is loaded
+// If there are any animation paths, the camera will follow the last animation path
+void init_camera_anim_path()
+{
+    int cam_path_id = Animation_Path::get_number_of_animation_paths() - 1;
+    if (cam_path_id > -1) {
+        camera.attach_move_animation_path(cam_path_id, 0.f);
+    }
+}
+
+
 void run()
 {
 
@@ -55,6 +68,10 @@ void run()
         handle_mouse_input(camera);
         camera.update_culling_frustum();
 
+        if (!camera.can_move_free()) {
+            camera.move_along_path(0.1f);
+        }
+        
         cull_models();
         animate_models();
 
@@ -80,6 +97,8 @@ int main(int argc, char *argv[])
 
     Loader::load_scene(Parser::get_scene_file_from_command_line(argc, argv));
 
+    init_camera_anim_path();
+    
     Light::upload_all();
 
 

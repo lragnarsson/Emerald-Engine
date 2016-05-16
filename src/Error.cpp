@@ -16,6 +16,8 @@ const ErrorMessage Error::model_has_no_path = {11, "Model has no animation path 
 const ErrorMessage Error::model_has_no_tangents = {12, "Model has no tangents!"};
 const ErrorMessage Error::cant_load_image = {13, "Can't load image!"};
 const ErrorMessage Error::cant_load_model = {13, "Can't load model!"};
+const ErrorMessage Error::camera_has_no_path = {14, "Camera must be in free mode since it has no animation path!"};
+const ErrorMessage Error::camera_free_mode = {15, "Camera free mode error!"};
 
 
 void Error::throw_error(const ErrorMessage& message, string extra_information)

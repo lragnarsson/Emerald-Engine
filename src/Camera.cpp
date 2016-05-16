@@ -9,8 +9,64 @@ Camera::Camera(glm::vec3 position, glm::vec3 front, glm::vec3 up, glm::vec3 righ
     this->right = right;
     this->speed = speed;
     this->rot_speed = rot_speed;
+    this->has_move_anim_path = false;
+    this->has_look_anim_path = false;
+    this->free_cam = true;
+    this->free_look = true;
 }
 
+
+void Camera::set_pos(glm::vec3 new_pos)
+{
+    if (!this->free_cam) {
+        std::string extra_info = std::string("Tried to set camera position when it was not in free mode.\n");
+        Error::throw_error(Error::camera_free_mode, extra_info);
+    }
+    this->position = new_pos;
+}
+        
+
+void Camera::attach_move_animation_path(int animation_id, float start_parameter)
+{
+    this->move_anim_path = Animation_Path::get_animation_path_with_id(animation_id);
+    this->spline_parameter = start_parameter;
+    this->has_move_anim_path = true;
+}
+
+
+void Camera::move_along_path(float elapsed_time)
+{
+    if (this->free_cam) {
+        std::string extra_info = std::string("Tried to move camera along path when it was in free mode.\n");
+        Error::throw_error(Error::camera_free_mode, extra_info);
+    }
+    glm::vec3 new_pos;
+    // get_pos updates the spline parameter for next iteration
+    if (has_move_anim_path) {
+        new_pos = this->move_anim_path->get_pos(this->spline_parameter,
+                                                     elapsed_time);
+    } else {
+        Error::throw_error(Error::model_has_no_path);
+    }
+    this->position = new_pos;
+}
+
+
+void Camera::toggle_free_move()
+{
+    if (!this->has_move_anim_path) {
+        Error::throw_error(Error::camera_has_no_path);
+    }
+    this->free_cam = !this->free_cam;
+}
+
+void Camera::toggle_free_look()
+{
+    if (!this->has_look_anim_path) {
+        Error::throw_error(Error::camera_has_no_path);
+    }
+    this->free_look = !this->free_look;
+}
 
 void Camera::update_culling_frustum()
 {

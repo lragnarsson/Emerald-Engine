@@ -15,6 +15,7 @@ public:
 
     Animation_Path(std::vector<glm::vec3> points, float period);
     ~Animation_Path() { };
+    static int get_number_of_animation_paths() {return animation_paths.size();}
     static Animation_Path* get_animation_path_with_id(unsigned id);
 private:
     float period_time;
