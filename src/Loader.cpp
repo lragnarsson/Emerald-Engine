@@ -145,7 +145,7 @@ void Loader::load_scene(string filepath)
   int current_line = 0;
 
   if ( !read_file.is_open() ) {
-    Error::throw_error(Error::cant_open_world_file);
+    Error::throw_error(Error::cant_open_world_file, filepath);
   }
 
   while ( getline(read_file,line) ) {
