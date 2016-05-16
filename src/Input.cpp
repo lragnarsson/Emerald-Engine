@@ -48,6 +48,7 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                 renderer.running = false;
             
             glm::vec3 pos;
+            int id, para;
             if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
@@ -106,6 +107,14 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     } else if (camera.has_look_path()) {
                         camera.toggle_free_look();
                     }
+                    break;
+                case SDLK_PERIOD:
+                    id = camera.cycle_move_anim_path(para);
+                    printf("Camera move path id, para: %d, %d\n", id,para);
+                    break;
+                case SDLK_COMMA:
+                    id = camera.cycle_look_anim_path(para);
+                    printf("Camera look path id, para: %d, %d\n", id,para);
                     break;
                 }
             }

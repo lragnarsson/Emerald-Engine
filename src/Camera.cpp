@@ -98,10 +98,34 @@ void Camera::toggle_free_look()
 }
 
 
-void Camera::cycle_move_anim_path()
+int Camera::cycle_move_anim_path(int& parameter)
 {
-    
+    parameter = spline_move_parameter;
+    int number_of_anim_paths = Animation_Path::get_number_of_animation_paths();
+    int end_id = number_of_anim_paths - 1;
+    if (this->move_anim_path_id == end_id) {
+        this->move_anim_path_id = 0;
+    } else {
+        this->move_anim_path_id++;
+    }
+    return this->move_anim_path_id;
 }
+
+
+int Camera::cycle_look_anim_path(int& parameter)
+{
+    parameter = spline_look_parameter;
+    int number_of_anim_paths = Animation_Path::get_number_of_animation_paths();
+    int end_id = number_of_anim_paths - 1;
+    if (this->look_anim_path_id == end_id) {
+        this->look_anim_path_id = 0;
+    } else {
+        this->look_anim_path_id++;
+    }
+    return this->look_anim_path_id;
+}
+
+
 void Camera::update_culling_frustum()
 {
     glm::vec3 far_center = FAR * front;
