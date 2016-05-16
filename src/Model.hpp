@@ -73,7 +73,7 @@ class Model {
 public:
     glm::mat4 m2w_matrix, move_matrix, rot_matrix, scale_matrix;
     float bounding_sphere_radius = -1.f, scale = 1.f;
-    bool draw_me = true;
+    bool draw_me = true, clamp_textures = false;
 
     Model() { };
     Model(const std::string path);
@@ -116,7 +116,7 @@ private:
 
     void unfold_assimp_node(aiNode* node, const aiScene* scene);
     Mesh* load_mesh(aiMesh* mesh, const aiScene* scene);
-    Texture* load_texture(const std::string filename, const std::string basepath);
+    Texture* load_texture(const std::string filename, const std::string basepath, bool clamp);
     void generate_bounding_sphere();
 };
 

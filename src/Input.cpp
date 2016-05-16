@@ -109,12 +109,10 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     }
                     break;
                 case SDLK_PERIOD:
-                    id = camera.cycle_move_anim_path(para);
-                    printf("Camera move path id, para: %d, %d\n", id,para);
+                    camera.cycle_move_anim_path(para);
                     break;
                 case SDLK_COMMA:
-                    id = camera.cycle_look_anim_path(para);
-                    printf("Camera look path id, para: %d, %d\n", id,para);
+                    camera.cycle_look_anim_path(para);
                     break;
                 }
             }
