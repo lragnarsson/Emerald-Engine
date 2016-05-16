@@ -85,7 +85,7 @@ void Renderer::set_mode(render_mode mode)
         break;
     case DEFERRED_MODE:
         Light::shader_program = shaders[DEFERRED];
-        glClearColor(0, 0, 0, 1.0);
+        clear_ssao();
         break;
     case POSITION_MODE:
         Light::shader_program = shaders[DEFERRED];
