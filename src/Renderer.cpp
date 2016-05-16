@@ -23,7 +23,7 @@ void Renderer::init()
     init_rgb_component_shader();
     init_alpha_component_shader();
 
-    sphere = new Model("res/models/sphere/sphere.obj");
+    sphere = new Model("res/models/sphere/sphere.obj", true);
 
     set_mode(DEFERRED_MODE);
 }
@@ -186,34 +186,34 @@ void Renderer::render_forward()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(shaders[FORWARD]);
-    for (auto model : Model::get_loaded_models()) {
-        if (!model->draw_me) {
+    for (auto model : *Model::get_render_data()) {
+        if (!model.draw_me) {
             continue;
         }
         GLuint m2w_location = glGetUniformLocation(shaders[FORWARD], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model.m2w_matrix));
 
-        for (auto mesh : model->get_meshes()) {
+        for (auto mesh : model.mesh_data){
             glActiveTexture(GL_TEXTURE0);
             GLuint diffuse_loc = glGetUniformLocation(shaders[FORWARD], "diffuse_map");
             glUniform1i(diffuse_loc, 0);
-            glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
+            glBindTexture(GL_TEXTURE_2D, mesh.diffuse_map_id);
 
             glActiveTexture(GL_TEXTURE1);
             GLuint specular_loc = glGetUniformLocation(shaders[FORWARD], "specular_map");
             glUniform1i(specular_loc, 1);
-            glBindTexture(GL_TEXTURE_2D, mesh->specular_map->id);
+            glBindTexture(GL_TEXTURE_2D, mesh.specular_map_id);
 
             glActiveTexture(GL_TEXTURE2);
             GLuint normal_loc = glGetUniformLocation(shaders[FORWARD], "normal_map");
             glUniform1i(normal_loc, 2);
-            glBindTexture(GL_TEXTURE_2D, mesh->normal_map->id);
+            glBindTexture(GL_TEXTURE_2D, mesh.normal_map_id);
 
-            glUniform1f(glGetUniformLocation(shaders[FORWARD], "shininess"), mesh->shininess);
+            glUniform1f(glGetUniformLocation(shaders[FORWARD], "shininess"), mesh.shininess);
 
             /* DRAW */
-            glBindVertexArray(mesh->get_VAO());
-            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+            glBindVertexArray(mesh.mesh_VAO);
+            glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
         }
     }
     glBindVertexArray(0);
@@ -235,25 +235,25 @@ void Renderer::render_forward()
 void Renderer::render_flat()
 {
     glUseProgram(shaders[FLAT]);
-    for (auto model : Model::get_loaded_flat_models()) {
-        if (!model->draw_me) {
+    for (auto model : *Model::get_render_data()) {
+        if (!model.draw_me) {
             continue;
         }
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model.m2w_matrix));
 
         GLuint color = glGetUniformLocation(shaders[FLAT], "color");
-        if (model->get_lights().size() > 0) {
-            glUniform3fv(color, 1, glm::value_ptr(model->get_lights()[0]->get_color()));
+        if (model.me->get_lights().size() > 0) {
+            glUniform3fv(color, 1, glm::value_ptr(model.me->get_lights()[0]->get_color()));
         } else {
             glUniform3fv(color, 1, glm::value_ptr(glm::vec3(1.f)));
         }
 
-        for (auto mesh : model->get_meshes()) {
-            glBindVertexArray(mesh->get_VAO());
+        for (auto mesh : model.mesh_data) {
+            glBindVertexArray(mesh.mesh_VAO);
 
             /* DRAW */
-            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+            glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
 
             glBindVertexArray(0);
         }
@@ -382,7 +382,7 @@ void Renderer::render_bounding_spheres()
     glUseProgram(shaders[FLAT]);
     Mesh* mesh = this->sphere->get_meshes()[0];
 
-    for (auto model : Model::get_loaded_flat_models()) {
+    for (auto model : Model::get_loaded_models()) {
         glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), glm::vec3(model->bounding_sphere_radius) / 1.5f);
         glm::mat4 bounding_move = glm::translate(glm::mat4(1.f), model->scale * model->get_center_point());
 
@@ -395,7 +395,7 @@ void Renderer::render_bounding_spheres()
         glBindVertexArray(0);
     }
 
-    for (auto model : Model::get_loaded_models()) {
+    for (auto model : Model::get_loaded_flat_models()) {
         glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), glm::vec3(model->bounding_sphere_radius) / 1.5f);
         glm::mat4 bounding_move = model->scale * glm::translate(glm::mat4(1.f), model->scale * model->get_center_point());
 
@@ -419,33 +419,33 @@ void Renderer::geometry_pass()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[GEOMETRY]);
 
-    for (auto model : Model::get_loaded_models()) {
-        if (!model->draw_me) {
+    for (auto model : *Model::get_render_data()) {
+        if (!model.draw_me) {
             continue;
         }
         GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model.m2w_matrix));
 
-        for (auto mesh : model->get_meshes()) {
+        for (auto mesh : model.mesh_data ) {
             glActiveTexture(GL_TEXTURE0);
             GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY], "diffuse_map");
             glUniform1i(diffuse_loc, 0);
-            glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
+            glBindTexture(GL_TEXTURE_2D, mesh.diffuse_map_id);
 
             glActiveTexture(GL_TEXTURE0 + 1);
             GLuint specular_loc = glGetUniformLocation(shaders[GEOMETRY], "specular_map");
             glUniform1i(specular_loc, 1);
-            glBindTexture(GL_TEXTURE_2D, mesh->specular_map->id);
+            glBindTexture(GL_TEXTURE_2D, mesh.specular_map_id);
 
             glActiveTexture(GL_TEXTURE0 + 2);
             GLuint normal_loc = glGetUniformLocation(shaders[GEOMETRY], "normal_map");
             glUniform1i(normal_loc, 2);
-            glBindTexture(GL_TEXTURE_2D, mesh->normal_map->id);
+            glBindTexture(GL_TEXTURE_2D, mesh.normal_map_id);
 
-            glBindVertexArray(mesh->get_VAO());
+            glBindVertexArray(mesh.mesh_VAO);
 
             /* DRAW GEOMETRY */
-            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+            glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, 0);
         }
     }
     glBindVertexArray(0);

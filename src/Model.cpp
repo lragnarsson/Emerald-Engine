@@ -57,61 +57,66 @@ GLuint Mesh::get_VAO()
 /* --- MODEL ---*/
 std::vector<Model*> Model::loaded_models, Model::loaded_flat_models;
 std::vector<Texture*> Model::loaded_textures;
+std::vector<render_struct> Model::render_data, Model::render_data_flat;
 
-Model::Model(const std::string path)
+Model::Model(const std::string path, bool flat)
 {
     this->rot_matrix = glm::mat4(1.f);
-    this->scale = 1.f;
     this->scale_matrix = glm::mat4(1.f);
     this->world_coord = glm::vec3(0.f);
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
-    this->m2w_matrix = move_matrix  * rot_matrix * scale_matrix;
 
     load(path);
+    create_render_data(1.f, move_matrix  * rot_matrix * scale_matrix, flat);
     generate_bounding_sphere();
-}
 
-
-Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3 world_coord, float scale, bool flat)
-{
-    this->rot_matrix = rot_matrix;
-    this->scale = scale;
-    this->scale_matrix = glm::scale(glm::mat4(1.f), glm::vec3(scale));
-    this->world_coord = world_coord;;
-    this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
-    this->m2w_matrix = move_matrix  * rot_matrix * scale_matrix;
-
-    load(path);
-    generate_bounding_sphere();
     if (!flat) {
         Model::loaded_models.push_back(this);
     }
     else {
         Model::loaded_flat_models.push_back(this);
     }
+}
 
-    has_animation = false;
+
+Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3 world_coord, float scale, bool flat)
+{
+    this->rot_matrix = rot_matrix;
+    this->scale_matrix = glm::scale(glm::mat4(1.f), glm::vec3(scale));
+    this->world_coord = world_coord;;
+    this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
+
+    load(path);
+    create_render_data(scale, move_matrix  * rot_matrix * scale_matrix, flat);
+    generate_bounding_sphere();
+
+    if (!flat) {
+        Model::loaded_models.push_back(this);
+    }
+    else {
+        Model::loaded_flat_models.push_back(this);
+    }
 }
 
 
 /* Public Model functions */
 glm::vec3 Model::get_center_point_world()
 {
-    return glm::vec3(this->m2w_matrix * glm::vec4(this->bounding_sphere_center, 1.f));
+    return glm::vec3(this->render_data_pointer->at(id).m2w_matrix * glm::vec4(this->render_data_pointer->at(this->id).bounding_sphere_center, 1.f));
 }
 
 void Model::attach_animation_path(int animation_id, float start_parameter)
 {
     this->anim_path = Animation_Path::get_animation_path_with_id(animation_id);
     this->spline_parameter = start_parameter;
-    this->has_animation = true;
+    this->render_data_pointer->at(id).has_animation = true;
 }
 
 void Model::move_along_path(float elapsed_time)
 {
     glm::vec3 new_pos;
     // get_pos updates the spline parameter for next iteration
-    if (has_animation) {
+    if (this->render_data_pointer->at(id).has_animation) {
         new_pos = this->anim_path->get_pos(this->spline_parameter,
                                                      elapsed_time);
     } else {
@@ -122,14 +127,14 @@ void Model::move_along_path(float elapsed_time)
 
 glm::vec3 Model::get_center_point()
 {
-    return this->bounding_sphere_center;
+    return this->render_data_pointer->at(id).bounding_sphere_center;
 }
 
 
 void Model::attach_light(Light* light, glm::vec3 relative_pos) {
     light_container new_light = {light, relative_pos};
 
-    glm::vec3 light_pos = glm::vec3(m2w_matrix * glm::vec4(relative_pos, 1.f));
+    glm::vec3 light_pos = glm::vec3(render_data_pointer->at(id).m2w_matrix * glm::vec4(relative_pos, 1.f));
     light->move_to(light_pos);
     light->upload();
 
@@ -145,10 +150,10 @@ void Model::move_to(glm::vec3 world_coord) {
     this->world_coord = world_coord;
 
     move_matrix = glm::translate(glm::mat4(1.f), world_coord);
-    m2w_matrix =  move_matrix * rot_matrix * scale_matrix;
+    render_data_pointer->at(id).m2w_matrix =  move_matrix * rot_matrix * scale_matrix;
 
     for (auto light_container : this->attached_lightsources) {
-        glm::vec3 new_pos = glm::vec3(m2w_matrix * glm::vec4(light_container.relative_pos, 1.f));
+        glm::vec3 new_pos = glm::vec3(render_data_pointer->at(id).m2w_matrix * glm::vec4(light_container.relative_pos, 1.f));
         light_container.light->move_to(new_pos);
         light_container.light->upload_pos();
     }
@@ -162,10 +167,10 @@ void Model::move(glm::vec3 relative) {
 
 void Model::rotate(glm::vec3 axis, float angle) {
     rot_matrix = glm::rotate(rot_matrix, angle, axis);
-    m2w_matrix = move_matrix * rot_matrix * scale_matrix;
+    render_data_pointer->at(id).m2w_matrix = move_matrix * rot_matrix * scale_matrix;
 
     for (auto light_container : this->attached_lightsources) {
-        glm::vec3 new_pos = glm::vec3(m2w_matrix * glm::vec4(light_container.relative_pos, 1.f));
+        glm::vec3 new_pos = glm::vec3(render_data_pointer->at(id).m2w_matrix * glm::vec4(light_container.relative_pos, 1.f));
         light_container.light->move_to(new_pos);
         light_container.light->upload_pos();
     }
@@ -384,8 +389,8 @@ void Model::generate_bounding_sphere()
     glm::vec3 min_corner = glm::vec3(x_min, y_min, z_min);
 
     glm::vec3 r_vector = 0.5f * (max_corner - min_corner);
-    this->bounding_sphere_radius = glm::length(r_vector);
-    this->bounding_sphere_center = min_corner + r_vector;
+    this->render_data_pointer->at(this->id).bounding_sphere_radius = glm::length(r_vector);
+    this->render_data_pointer->at(id).bounding_sphere_center = min_corner + r_vector;
 }
 
 // -----------
@@ -405,4 +410,55 @@ const std::vector<Model*> Model::get_loaded_flat_models()
 const std::vector<Mesh*> Model::get_meshes()
 {
     return meshes;
+}
+
+// -----------
+
+const std::vector<render_struct>* Model::get_render_data(){
+    return &render_data;
+}
+
+const std::vector<render_struct>* Model::get_render_data_flat(){
+    return &render_data_flat;
+}
+
+// -----------
+
+void Model::create_render_data(float scale, glm::mat4 m2w_matrix, bool flat)
+{
+    std::vector<mesh_struct> mesh_data;
+
+    for (auto mesh : meshes) {
+        mesh_struct tmp_mesh_data = {
+            mesh->diffuse_map->id,
+            mesh->specular_map->id,
+            mesh->normal_map->id,
+            mesh->get_VAO(),
+            mesh->shininess
+        };
+
+        mesh_data.push_back(tmp_mesh_data);
+    }
+
+    render_struct my_render_data = {
+        true, // draw_me
+        0, // bounding_sphere_radius
+        scale,
+        glm::vec3(0,0,0), // bounding_sphere_center
+        false, // has_animation
+        m2w_matrix, // m2w_matrix
+        mesh_data,
+        this
+    };
+
+    if (!flat) {
+        render_data.push_back(my_render_data);
+        this->id = render_data.size()-1;
+        this->render_data_pointer = &render_data;
+    }
+    else {
+        render_data_flat.push_back(my_render_data);
+        this->id = render_data_flat.size()-1;
+        this->render_data_pointer = &render_data_flat;
+    }
 }

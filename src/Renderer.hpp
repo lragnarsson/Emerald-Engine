@@ -83,7 +83,7 @@ private:
     std::vector<glm::vec3> ssao_kernel;
     std::vector<glm::vec3> ssao_noise;
     GLfloat kernel_radius = 8; // Could be interesting to tweak this
-    GLint ssao_n_samples = 64;
+    GLint ssao_n_samples = _SSAO_N_SAMPLES_;
     bool ssao_on;
     bool smooth_ssao;
 
