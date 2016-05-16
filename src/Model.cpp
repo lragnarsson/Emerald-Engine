@@ -450,7 +450,8 @@ void Model::create_render_data(float scale, glm::mat4 m2w_matrix, bool flat)
             mesh->specular_map->id,
             mesh->normal_map->id,
             mesh->get_VAO(),
-            mesh->shininess
+            mesh->shininess,
+            mesh->index_count
         };
 
         mesh_data.push_back(tmp_mesh_data);
