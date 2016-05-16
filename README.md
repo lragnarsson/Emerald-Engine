@@ -1,6 +1,7 @@
 Emerald Engine
 
 Project for the course TSBK07 - Computer Graphics at Linköping University.
+Many parts of this project have been based on tutorials and examples found online, [learnopengl.com](http://www.learnopengl.com) in particular has been a good source of inspiration.
 
 Project members:
  - Hans-Filip Elo
