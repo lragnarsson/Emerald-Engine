@@ -66,6 +66,7 @@ Model::Model(const std::string path)
     this->world_coord = glm::vec3(0.f);
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
     this->m2w_matrix = move_matrix  * rot_matrix * scale_matrix;
+    this->clamp_textures = true;
 
     load(path);
     generate_bounding_sphere();
@@ -253,13 +254,13 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         aiString filepath;
         material->GetTexture(aiTextureType_DIFFUSE, 0, &filepath);
         Texture* texture;
-        texture = load_texture(std::string(filepath.C_Str()), this->directory);
+        texture = load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
         texture->type = DIFFUSE;
         texture->path = filepath;
         m->diffuse_map = texture;
     } else {
         Texture* texture;
-        texture = load_texture(DEFAULT_DIFFUSE, DEFAULT_PATH);
+        texture = load_texture(DEFAULT_DIFFUSE, DEFAULT_PATH, clamp_textures);
         texture->type = DIFFUSE;
         texture->path = DEFAULT_PATH;
         m->diffuse_map = texture;
@@ -269,7 +270,7 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         aiString filepath;
         material->GetTexture(aiTextureType_SPECULAR, 0, &filepath);
         Texture* texture;
-        texture = load_texture(std::string(filepath.C_Str()), this->directory);
+        texture = load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
         texture->type = SPECULAR;
         texture->path = filepath;
         m->specular_map = texture;
@@ -281,13 +282,13 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         aiString filepath;
         material->GetTexture(aiTextureType_HEIGHT, 0, &filepath);
         Texture* texture;
-        texture = load_texture(std::string(filepath.C_Str()), this->directory);
+        texture = load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
         texture->type = NORMAL;
         texture->path = filepath;
         m->normal_map = texture;
     } else { // Default normal map keeps the geometry defined normals
         Texture* texture;
-        texture = load_texture(DEFAULT_NORMAL, DEFAULT_PATH);
+        texture = load_texture(DEFAULT_NORMAL, DEFAULT_PATH, clamp_textures);
         texture->type = NORMAL;
         texture->path = DEFAULT_PATH;
         m->normal_map = texture;
@@ -299,7 +300,7 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
 }
 
 
-Texture* Model::load_texture(const std::string filename, const std::string basepath)
+Texture* Model::load_texture(const std::string filename, const std::string basepath, bool clamp)
 {
     std::string filepath = basepath + "/" + filename;
     for (uint i = 0; i < Model::loaded_textures.size(); i++) {
@@ -318,8 +319,14 @@ Texture* Model::load_texture(const std::string filename, const std::string basep
     glGenTextures(1, &texture->id);
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    if (clamp) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    } else {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    }
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 

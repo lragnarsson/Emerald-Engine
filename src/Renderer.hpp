@@ -45,10 +45,9 @@ public:
 
     void init();
     void init_tweak_bar(Camera* camera);
-    void render();
+    void render(const Camera &camera);
     void set_mode(render_mode mode);
     void init_uniforms(const Camera &camera);
-    void upload_camera_uniforms(const Camera &camera);
     void set_kernel_radius(float radius) {kernel_radius = radius;}
     float get_kernel_radius() {return kernel_radius;}
     GLint get_ssao_n_samples() {return ssao_n_samples;}
@@ -62,6 +61,7 @@ private:
       GEOMETRY,
       DEFERRED,
       FLAT,
+      FLAT_TEXTURE,
       SSAO,
       SSAO_BLUR,
       SHOW_RGB_COMPONENT,
@@ -70,12 +70,12 @@ private:
     };
 
     render_mode mode;
-    GLuint shaders[9];
+    GLuint shaders[10];
     GLuint g_buffer, ssao_fbuffer, ssao_blur_fbo;
     GLuint g_position, g_normal, g_albedo_specular, ssao_result, ssao_blurred;
     GLuint quad_vao, quad_vbo;
     glm::mat4 w2v_matrix;
-    Model* sphere;
+    Model *sphere, *skybox;
 
     //glm::vec3 ssao_kernel[64];
 
@@ -102,6 +102,7 @@ private:
     void init_alpha_component_shader();
     void init_show_ssao_shader();
 
+    void upload_camera_uniforms(const Camera &camera);
     void draw_tweak_bar();
 
     void render_deferred();
@@ -119,6 +120,7 @@ private:
     void render_g_albedo();
     void render_g_specular();
     void render_ssao();
+    void render_skybox(const Camera &camera);
 };
 
 #endif
