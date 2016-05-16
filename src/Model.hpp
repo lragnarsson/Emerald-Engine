@@ -94,6 +94,7 @@ class Model {
 public:
     glm::mat4 move_matrix, rot_matrix, scale_matrix;
     float bounding_sphere_radius = -1.f, scale = 1.f;
+    bool clamp_textures = false;
 
     Model() { };
     Model(const std::string path, bool flat);
@@ -118,6 +119,7 @@ public:
     void attach_animation_path(int animation_id, float start_parameter);
     bool has_animation_path() {return render_data.at(id).has_animation;}
     void move_along_path(float elapsed_time);
+    glm::mat4 m2w_matrix();
 
 private:
     struct light_container {
@@ -141,7 +143,7 @@ private:
 
     void unfold_assimp_node(aiNode* node, const aiScene* scene);
     Mesh* load_mesh(aiMesh* mesh, const aiScene* scene);
-    Texture* load_texture(const std::string filename, const std::string basepath);
+    Texture* load_texture(const std::string filename, const std::string basepath, bool clamp);
     void generate_bounding_sphere();
     void create_render_data(float scale, glm::mat4 m2w_matrix, bool flat);
 };

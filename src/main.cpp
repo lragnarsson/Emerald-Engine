@@ -58,8 +58,7 @@ void run()
         cull_models();
         animate_models();
 
-        renderer.upload_camera_uniforms(camera);
-        renderer.render();
+        renderer.render(camera);
 
         SDL_GL_SwapWindow(main_window);
     }

@@ -7,6 +7,7 @@ void Renderer::init()
     shaders[GEOMETRY] = load_shaders("build/shaders/geometry.vert", "build/shaders/geometry.frag");
     shaders[DEFERRED] = load_shaders("build/shaders/deferred.vert", "build/shaders/deferred.frag");
     shaders[FLAT] = load_shaders("build/shaders/flat.vert", "build/shaders/flat.frag");
+    shaders[FLAT_TEXTURE] = load_shaders("build/shaders/flat_texture.vert", "build/shaders/flat_texture.frag");
     shaders[SSAO] = load_shaders("build/shaders/ssao.vert", "build/shaders/ssao.frag");
     shaders[SSAO_BLUR] = load_shaders("build/shaders/ssao_blur.vert", "build/shaders/ssao_blur.frag");
     shaders[SHOW_RGB_COMPONENT] = load_shaders("build/shaders/show_rgb_component.vert",
@@ -24,20 +25,25 @@ void Renderer::init()
     init_alpha_component_shader();
 
     sphere = new Model("res/models/sphere/sphere.obj", true);
-
+    skybox = new Model("res/models/skybox/skybox.obj", true);
+    skybox->move_to(glm::vec3(-0.5f, -0.5f, -0.5f));
     set_mode(DEFERRED_MODE);
 }
 
 // --------------------------
 
-void Renderer::render()
+void Renderer::render(const Camera &camera)
 {
+    upload_camera_uniforms(camera);
     switch (mode) {
     case FORWARD_MODE:
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         render_forward();
+        render_skybox(camera);
         break;
     case DEFERRED_MODE:
         render_deferred();
+        render_skybox(camera);
         break;
     case POSITION_MODE:
         render_g_position();
@@ -54,6 +60,10 @@ void Renderer::render()
     case SSAO_MODE:
         render_ssao();
         break;
+    }
+
+    if (draw_bounding_spheres) {
+        render_bounding_spheres();
     }
 
     if (use_tweak_bar) {
@@ -103,7 +113,7 @@ void Renderer::init_uniforms(const Camera &camera)
     glm::mat4 projection_matrix;
     w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
     projection_matrix = glm::perspective(Y_FOV, ASPECT_RATIO, NEAR, FAR);
-    for (int i = 0; i < 5; i ++) {
+    for (int i = 0; i < 10; i ++) {
         glUseProgram(shaders[i]);
         glUniformMatrix4fv(glGetUniformLocation(shaders[i], "view"),
                            1, GL_FALSE, glm::value_ptr(w2v_matrix));
@@ -118,7 +128,7 @@ void Renderer::init_uniforms(const Camera &camera)
 void Renderer::upload_camera_uniforms(const Camera &camera)
 {
     w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
-    for (int i = 0; i < 5; i ++) {
+    for (int i = 0; i < 10; i ++) {
         glUseProgram(shaders[i]);
         glUniformMatrix4fv(glGetUniformLocation(shaders[i], "view"),
                            1, GL_FALSE, glm::value_ptr(w2v_matrix));
@@ -149,7 +159,7 @@ void Renderer::render_deferred()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, g_position);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, g_normal);
+    glBindTexture(GL_TEXTURE_2D, g_normal_shininess);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
     glActiveTexture(GL_TEXTURE3);
@@ -170,10 +180,6 @@ void Renderer::render_deferred()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     render_flat();
 
-    if (draw_bounding_spheres) {
-        render_bounding_spheres();
-    }
-
     glBindVertexArray(0);
     glUseProgram(0);
 }
@@ -182,8 +188,7 @@ void Renderer::render_deferred()
 
 void Renderer::render_forward()
 {
-    glClearColor(0, 0, 0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[FORWARD]);
 
     glUseProgram(shaders[FORWARD]);
     for (auto model : *Model::get_render_data()) {
@@ -224,10 +229,6 @@ void Renderer::render_forward()
     glUseProgram(0);
 
     render_flat();
-
-    if (draw_bounding_spheres) {
-        render_bounding_spheres();
-    }
 }
 
 // --------------------------
@@ -332,7 +333,7 @@ void Renderer::ssao_pass()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, g_position);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, g_normal);
+    glBindTexture(GL_TEXTURE_2D, g_normal_shininess);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, noise_texture);
 
@@ -381,6 +382,8 @@ void Renderer::render_bounding_spheres()
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glUseProgram(shaders[FLAT]);
     Mesh* mesh = this->sphere->get_meshes()[0];
+    GLuint color = glGetUniformLocation(shaders[FLAT], "color");
+    glUniform3fv(color, 1, glm::value_ptr(glm::vec3(1.f)));
 
     for (auto model : Model::get_loaded_models()) {
         glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), glm::vec3(model->bounding_sphere_radius) / 1.5f);
@@ -389,7 +392,7 @@ void Renderer::render_bounding_spheres()
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->move_matrix * model->rot_matrix * bounding_move * model->scale_matrix * bounding_scale));
 
-        /* DRAW */
+        // DRAW
         glBindVertexArray(mesh->get_VAO());
         glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
@@ -417,6 +420,7 @@ void Renderer::geometry_pass()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     glUseProgram(shaders[GEOMETRY]);
 
     for (auto model : *Model::get_render_data()) {
@@ -441,6 +445,8 @@ void Renderer::geometry_pass()
             GLuint normal_loc = glGetUniformLocation(shaders[GEOMETRY], "normal_map");
             glUniform1i(normal_loc, 2);
             glBindTexture(GL_TEXTURE_2D, mesh.normal_map_id);
+
+            glUniform1f(glGetUniformLocation(shaders[GEOMETRY], "shininess"), mesh.shininess);
 
             glBindVertexArray(mesh.mesh_VAO);
 
@@ -485,7 +491,7 @@ void Renderer::render_g_normal()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, g_normal);
+    glBindTexture(GL_TEXTURE_2D, g_normal_shininess);
 
 
     // Render quad
@@ -558,6 +564,34 @@ void Renderer::render_ssao()
 
 }
 
+
+void Renderer::render_skybox(const Camera &camera)
+{
+    glDepthRange(0.999f, 1.f);
+
+    glUseProgram(shaders[FLAT_TEXTURE]);
+    glm::mat4 skybox_view = glm::lookAt(glm::vec3(0.f), camera.front, camera.up);
+    glUniformMatrix4fv(glGetUniformLocation(shaders[FLAT_TEXTURE], "view"), 1, GL_FALSE, glm::value_ptr(skybox_view));
+    glUniformMatrix4fv(glGetUniformLocation(shaders[FLAT_TEXTURE], "model"), 1, GL_FALSE, glm::value_ptr(skybox->m2w_matrix()));
+
+    Mesh* mesh = skybox->get_meshes()[0];
+    glActiveTexture(GL_TEXTURE0);
+    GLuint diffuse_loc = glGetUniformLocation(shaders[FLAT_TEXTURE], "tex_unit");
+    glUniform1i(diffuse_loc, 0);
+    glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
+
+    /* DRAW */
+    glBindVertexArray(mesh->get_VAO());
+    glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+
+    glBindVertexArray(0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glDepthRange(0.f, 1.f);
+    glUseProgram(0);
+}
+
 // --------------------------
 
 
@@ -584,7 +618,7 @@ void Renderer::init_ssao()
 
     glUseProgram(shaders[SSAO]);
     glUniform1i(glGetUniformLocation(shaders[SSAO], "g_position"), 0);
-    glUniform1i(glGetUniformLocation(shaders[SSAO], "g_normal"), 1);
+    glUniform1i(glGetUniformLocation(shaders[SSAO], "g_normal_shininess"), 1);
     glUniform1i(glGetUniformLocation(shaders[SSAO], "tex_noise"), 2);
 
 
@@ -664,7 +698,7 @@ void Renderer::init_g_buffer()
     glUseProgram(shaders[DEFERRED]);
 
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_position"), 0);
-    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_normal"), 1);
+    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_normal_shininess"), 1);
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_albedo_specular"), 2);
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "ssao_blurred"), 3);
     glUseProgram(0);
@@ -684,12 +718,12 @@ void Renderer::init_g_buffer()
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_position, 0);
 
     /* Normal buffer */
-    glGenTextures(1, &g_normal);
-    glBindTexture(GL_TEXTURE_2D, g_normal);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glGenTextures(1, &g_normal_shininess);
+    glBindTexture(GL_TEXTURE_2D, g_normal_shininess);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, g_normal, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, g_normal_shininess, 0);
 
     /* Albedo and Specular buffer*/
     glGenTextures(1, &g_albedo_specular);
@@ -709,7 +743,7 @@ void Renderer::init_g_buffer()
     GLuint depth_buffer;
     glGenRenderbuffers(1, &depth_buffer);
     glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, SCREEN_WIDTH, SCREEN_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {

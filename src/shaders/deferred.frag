@@ -12,12 +12,11 @@ in vec2 TexCoord;
 out vec4 OutColor;
 
 uniform sampler2D g_position;
-uniform sampler2D g_normal;
+uniform sampler2D g_normal_shininess;
 uniform sampler2D g_albedo_specular;
 uniform sampler2D ssao_blurred;
 
 uniform vec3 camPos;
-const float shininess = 86.0;
 
 const float ATT_CON = 1.0;
 const float ATT_LIN = 0.001;
@@ -28,15 +27,15 @@ uniform Light lights[_MAX_LIGHTS_];
 void main()
 {
     vec3 position = texture(g_position, TexCoord).rgb;
-    vec3 normal = texture(g_normal, TexCoord).rgb;
+    vec3 normal = texture(g_normal_shininess, TexCoord).rgb;
+    float shininess = texture(g_normal_shininess, TexCoord).a;
     vec3 albedo = texture(g_albedo_specular, TexCoord).rgb;
     float specular = texture(g_albedo_specular, TexCoord).a;
     float occlusion = texture(ssao_blurred, TexCoord).r; // Only red
-
     vec3 view_direction = normalize(camPos - position);
 
     // Ambient
-    vec3 light = 0.1 * occlusion * albedo;
+    vec3 light = 0.05 * occlusion * albedo;
 
     for(int i=0; i < _MAX_LIGHTS_; i++) {
         float distance = length(lights[i].position - position);
@@ -49,11 +48,11 @@ void main()
 
         // Specular
         vec3 reflection = normalize(reflect(-light_dir, normal));
-        float s = pow(max(dot(view_direction, reflection), 0.0), shininess);
-        vec3 specular_light = s * lights[i].color * specular;
+        float s = specular * pow(max(dot(view_direction, reflection), 0.0), shininess);
+        vec3 specular_light = s * lights[i].color * albedo;
 
         light += attenuation * (diffuse_light + specular_light);
     }
 
-    OutColor = vec4(light, 1);
+    OutColor = vec4(light, 1.0);
 }

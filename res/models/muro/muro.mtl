@@ -4,6 +4,7 @@ Kd 0.00 0.00 0.00
 Ka 0.00 0.00 0.00
 Tf 1.00 1.00 1.00
 Ni 1.00
+Ns 86.0
 Ks 0.00 0.00 0.00
 map_Kd Muro_body_dm_clean.tga
 map_Ks Muro_body_sm_clean.tga
@@ -15,6 +16,7 @@ Kd 0.00 0.00 0.00
 Ka 0.00 0.00 0.00
 Tf 1.00 1.00 1.00
 Ni 1.00
+Ns 86.0
 Ks 0.00 0.00 0.00
 map_Kd Muro_head_dm.tga
 map_Ks Muro_head_sm.tga
@@ -26,5 +28,6 @@ Kd 0.43 0.43 0.43
 Ka 0.00 0.00 0.00
 Tf 0.26 0.26 0.26
 Ni 1.00
+Ns 86.0
 Ks 0.67 0.82 1.00
 Ns 47.79
