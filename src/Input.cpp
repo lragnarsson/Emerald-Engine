@@ -19,22 +19,36 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
     const Uint8* keystate = SDL_GetKeyboardState(NULL);
 
     if(keystate[SDL_GetScancodeFromKey(SDLK_w)]) {
-        camera.position += camera.speed * camera.front;
+        if (!camera.can_move_free()) {
+            camera.toggle_free_move();            
+        }
+        camera.set_pos(camera.get_pos() + camera.speed * camera.front);
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_s)]) {
-        camera.position -= camera.speed * camera.front;
+        if (!camera.can_move_free()) {
+            camera.toggle_free_move();            
+        }
+        camera.set_pos(camera.get_pos() - camera.speed * camera.front);
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_a)]) {
-        camera.position -= glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed;
+        if (!camera.can_move_free()) {
+            camera.toggle_free_move();            
+        }
+        camera.set_pos(camera.get_pos() - glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed);
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_d)]) {
-        camera.position += glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed;
+        if (!camera.can_move_free()) {
+            camera.toggle_free_move();            
+        }
+        camera.set_pos(camera.get_pos() + glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed);
     }
 
     while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT)
                 renderer.running = false;
-
+            
+            glm::vec3 pos;
+            int id, para;
             if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
@@ -80,8 +94,25 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     renderer.toggle_tweak_bar();
                     break;
                 case SDLK_p:
-                    glm::vec3 pos = camera.position;
+                    pos = camera.get_pos();
                     printf("Camera position x,y,z: %f %f %f\n", pos.x, pos.y, pos.z);
+                    break;
+                case SDLK_f:
+                    if (camera.has_move_path()) {
+                        camera.toggle_free_move();
+                        if (camera.has_look_path() &&
+                            camera.can_look_free() != camera.can_move_free()) {
+                            camera.toggle_free_look();
+                        }
+                    } else if (camera.has_look_path()) {
+                        camera.toggle_free_look();
+                    }
+                    break;
+                case SDLK_PERIOD:
+                    camera.cycle_move_anim_path(para);
+                    break;
+                case SDLK_COMMA:
+                    camera.cycle_look_anim_path(para);
                     break;
                 }
             }
@@ -95,6 +126,10 @@ void handle_mouse_input(Camera &camera)
 
     button_state = SDL_GetRelativeMouseState(&dx, &dy);
 
+    int distance = std::abs(dx) + std::abs(dy);
+    if (!camera.can_look_free() && distance > 2) {
+        camera.toggle_free_look();
+    }
     camera.front = glm::rotate(camera.front, -dy*camera.rot_speed, camera.right);    // pitch
     camera.front = glm::normalize(glm::rotateY(camera.front, -dx*camera.rot_speed)); // yaw
     camera.right = glm::cross(camera.front, camera.up);

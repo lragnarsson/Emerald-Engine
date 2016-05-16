@@ -28,6 +28,8 @@ public:
     static const ErrorMessage model_has_no_tangents;
     static const ErrorMessage cant_load_image;
     static const ErrorMessage cant_load_model;
+    static const ErrorMessage camera_has_no_path;
+    static const ErrorMessage camera_free_mode;
 };
 
 #endif

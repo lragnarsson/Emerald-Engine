@@ -111,7 +111,7 @@ void Renderer::set_mode(render_mode mode)
 void Renderer::init_uniforms(const Camera &camera)
 {
     glm::mat4 projection_matrix;
-    w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
+    w2v_matrix = glm::lookAt(camera.get_pos(), camera.get_pos() + camera.front, camera.up);
     projection_matrix = glm::perspective(Y_FOV, ASPECT_RATIO, NEAR, FAR);
     for (int i = 0; i < 10; i ++) {
         glUseProgram(shaders[i]);
@@ -127,13 +127,13 @@ void Renderer::init_uniforms(const Camera &camera)
 
 void Renderer::upload_camera_uniforms(const Camera &camera)
 {
-    w2v_matrix = glm::lookAt(camera.position, camera.position + camera.front, camera.up);
+    w2v_matrix = glm::lookAt(camera.get_pos(), camera.get_pos() + camera.front, camera.up);
     for (int i = 0; i < 10; i ++) {
         glUseProgram(shaders[i]);
         glUniformMatrix4fv(glGetUniformLocation(shaders[i], "view"),
                            1, GL_FALSE, glm::value_ptr(w2v_matrix));
         glUniform3fv(glGetUniformLocation(shaders[i], "camPos"),
-                     1, glm::value_ptr(camera.position));
+                     1, glm::value_ptr(camera.get_pos()));
     }
     glUseProgram(0);
 }
@@ -812,10 +812,12 @@ void Renderer::init_tweak_bar(Camera* camera)
     TwAddVarRW(tweak_bar, "SSAO kernel radius", TW_TYPE_FLOAT, &kernel_radius, " label='SSAO k-radius' help='Defines the radius of SSAO samples.' ");
     TwAddVarRW(tweak_bar, "SSAO smoothing", TW_TYPE_BOOL8, &smooth_ssao, " label='SSAO smoothing' help='Blur filter for SSAO' ");
 
-    // Camera position
+    /* Camera position
     TwAddVarRW(tweak_bar, "cam-pos-x", TW_TYPE_FLOAT, &camera->position.x, "label=cam-pos-x help=current-camera-x-coord");
     TwAddVarRW(tweak_bar, "cam-pos-y", TW_TYPE_FLOAT, &camera->position.y, "label=cam-pos-y help=current-camera-y-coord");
-    TwAddVarRW(tweak_bar, "cam-pos-z", TW_TYPE_FLOAT, &camera->position.z, "label=cam-pos-z help=current-camera-z-coord");
+    TwAddVarRW(tweak_bar, "cam-pos-z", TW_TYPE_FLOAT, &camera->position.z, "label=cam-pos-z help=current-camera-z-coord"); */
+
+
 }
 
 // ---------------
