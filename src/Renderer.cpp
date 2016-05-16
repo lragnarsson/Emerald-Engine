@@ -159,7 +159,7 @@ void Renderer::render_deferred()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, g_position);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, g_normal);
+    glBindTexture(GL_TEXTURE_2D, g_normal_shininess);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
     glActiveTexture(GL_TEXTURE3);
@@ -332,7 +332,7 @@ void Renderer::ssao_pass()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, g_position);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, g_normal);
+    glBindTexture(GL_TEXTURE_2D, g_normal_shininess);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, noise_texture);
 
@@ -445,6 +445,8 @@ void Renderer::geometry_pass()
             glUniform1i(normal_loc, 2);
             glBindTexture(GL_TEXTURE_2D, mesh->normal_map->id);
 
+            glUniform1f(glGetUniformLocation(shaders[GEOMETRY], "shininess"), mesh->shininess);
+
             glBindVertexArray(mesh->get_VAO());
 
             /* DRAW GEOMETRY */
@@ -488,7 +490,7 @@ void Renderer::render_g_normal()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, g_normal);
+    glBindTexture(GL_TEXTURE_2D, g_normal_shininess);
 
 
     // Render quad
@@ -615,7 +617,7 @@ void Renderer::init_ssao()
 
     glUseProgram(shaders[SSAO]);
     glUniform1i(glGetUniformLocation(shaders[SSAO], "g_position"), 0);
-    glUniform1i(glGetUniformLocation(shaders[SSAO], "g_normal"), 1);
+    glUniform1i(glGetUniformLocation(shaders[SSAO], "g_normal_shininess"), 1);
     glUniform1i(glGetUniformLocation(shaders[SSAO], "tex_noise"), 2);
 
 
@@ -695,7 +697,7 @@ void Renderer::init_g_buffer()
     glUseProgram(shaders[DEFERRED]);
 
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_position"), 0);
-    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_normal"), 1);
+    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_normal_shininess"), 1);
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_albedo_specular"), 2);
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "ssao_blurred"), 3);
     glUseProgram(0);
@@ -715,12 +717,12 @@ void Renderer::init_g_buffer()
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_position, 0);
 
     /* Normal buffer */
-    glGenTextures(1, &g_normal);
-    glBindTexture(GL_TEXTURE_2D, g_normal);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glGenTextures(1, &g_normal_shininess);
+    glBindTexture(GL_TEXTURE_2D, g_normal_shininess);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, g_normal, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, g_normal_shininess, 0);
 
     /* Albedo and Specular buffer*/
     glGenTextures(1, &g_albedo_specular);

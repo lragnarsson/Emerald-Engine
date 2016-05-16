@@ -2,7 +2,7 @@ out float FragColor;
 in vec2 TexCoord;
 
 uniform sampler2D g_position;
-uniform sampler2D g_normal;
+uniform sampler2D g_normal_shininess;
 uniform sampler2D tex_noise;
 
 uniform mat4 view;
@@ -22,7 +22,7 @@ const vec2 noise_scale = vec2(SCREEN_WIDTH / 4.0, SCREEN_HEIGHT / 4.0);
 void main()
 {
     vec3 frag_pos = vec3(view * vec4(texture(g_position, TexCoord).xyz, 1.0f));
-    vec3 normal = vec3(mat3(view) * texture(g_normal, TexCoord).rgb);
+    vec3 normal = vec3(mat3(view) * texture(g_normal_shininess, TexCoord).rgb);
     vec3 random_vec = texture(tex_noise, TexCoord * noise_scale).xyz;
 
     // Create tangent-to-viewspace matrix to transform tangent-space samples to view-space
