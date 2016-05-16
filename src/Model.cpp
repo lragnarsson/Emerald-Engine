@@ -151,7 +151,7 @@ void Model::move_to(glm::vec3 world_coord) {
     for (auto light_container : this->attached_lightsources) {
         glm::vec3 new_pos = glm::vec3(m2w_matrix * glm::vec4(light_container.relative_pos, 1.f));
         light_container.light->move_to(new_pos);
-        light_container.light->upload_pos();
+        light_container.light->upload();
     }
 }
 
@@ -168,7 +168,7 @@ void Model::rotate(glm::vec3 axis, float angle) {
     for (auto light_container : this->attached_lightsources) {
         glm::vec3 new_pos = glm::vec3(m2w_matrix * glm::vec4(light_container.relative_pos, 1.f));
         light_container.light->move_to(new_pos);
-        light_container.light->upload_pos();
+        light_container.light->upload();
     }
 }
 
