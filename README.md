@@ -31,6 +31,7 @@ FEATURES
  - Specular maps
  - Skybox
  - Keyboard and mouse control
+ - Bounding sphere generation and visualization
 
 
 INSTALLATION
