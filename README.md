@@ -1,4 +1,5 @@
 Emerald Engine
+--------
 
 Project for the course TSBK07 - Computer Graphics at Linköping University.
 
@@ -8,6 +9,29 @@ Project members:
  - Hans-Filip Elo
  - Lage Ragnarsson
  - Isak Wiberg
+
+
+FEATURES
+--------
+ - Deferred shading
+ - Screen Space Ambient Occlusion
+ - Scene loader
+ - Catmull-Rom splines for object and camera animation
+ - Frustum culling
+ - Normal maps
+ - Shader precompiler
+ - Switch between different rendering paths during runtime:
+   1. Forward
+   2. Deferred
+   3. Positions
+   4. Normals
+   5. Albedo
+   6. Specular intensity
+   7. SSAO buffer
+ - Specular maps
+ - Skybox
+ - Keyboard and mouse control
+
 
 INSTALLATION
 --------
