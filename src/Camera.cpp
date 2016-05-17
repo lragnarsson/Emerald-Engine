@@ -24,7 +24,7 @@ void Camera::set_pos(glm::vec3 new_pos)
     }
     this->position = new_pos;
 }
-        
+
 
 void Camera::attach_move_animation_path(int animation_id, float start_parameter)
 {
