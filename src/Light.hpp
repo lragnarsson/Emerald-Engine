@@ -28,12 +28,17 @@ public:
     void set_color(glm::vec3 color);
     glm::vec3 get_pos();
     void move_to(glm::vec3 world_coord); // does not upload data
-
+    bool is_active() {return this->active_light;}
+    static int get_number_of_lightsources() {return lights.size();}
+    static void turn_off_all_lights();
+    static void turn_on_one_lightsource();
+    
 private:
     unsigned int id;
     glm::vec3 position, color;
     GLboolean active_light;
 
+    static unsigned int next_to_turn_on;
     static std::vector<Light*> lights;
     static std::vector<unsigned int> free_ids;
 };

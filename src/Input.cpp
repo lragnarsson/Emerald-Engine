@@ -20,25 +20,25 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
 
     if(keystate[SDL_GetScancodeFromKey(SDLK_w)]) {
         if (!camera.can_move_free()) {
-            camera.toggle_free_move();            
+            camera.toggle_free_move();
         }
         camera.set_pos(camera.get_pos() + camera.speed * camera.front);
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_s)]) {
         if (!camera.can_move_free()) {
-            camera.toggle_free_move();            
+            camera.toggle_free_move();
         }
         camera.set_pos(camera.get_pos() - camera.speed * camera.front);
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_a)]) {
         if (!camera.can_move_free()) {
-            camera.toggle_free_move();            
+            camera.toggle_free_move();
         }
         camera.set_pos(camera.get_pos() - glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed);
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_d)]) {
         if (!camera.can_move_free()) {
-            camera.toggle_free_move();            
+            camera.toggle_free_move();
         }
         camera.set_pos(camera.get_pos() + glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed);
     }
@@ -46,7 +46,7 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
     while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT)
                 renderer.running = false;
-            
+
             glm::vec3 pos;
             int id, para;
             if (event.type == SDL_KEYDOWN) {
@@ -89,7 +89,7 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     break;
                 case SDLK_n:
                     renderer.toggle_ssao_smoothing();
-                    break;                
+                    break;
                 case SDLK_t:
                     renderer.toggle_tweak_bar();
                     break;
@@ -114,6 +114,12 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                 case SDLK_COMMA:
                     camera.cycle_look_anim_path(para);
                     break;
+                case SDLK_z:
+                    Light::turn_off_all_lights();
+                    break;
+                case SDLK_x:
+                    Light::turn_on_one_lightsource();
+                    break;
                 }
             }
     }
@@ -132,5 +138,5 @@ void handle_mouse_input(Camera &camera)
     }
     camera.front = glm::rotate(camera.front, -dy*camera.rot_speed, camera.right);    // pitch
     camera.front = glm::normalize(glm::rotateY(camera.front, -dx*camera.rot_speed)); // yaw
-    camera.right = glm::cross(camera.front, camera.up);
+    camera.right = glm::normalize(glm::cross(camera.front, camera.up));
 }

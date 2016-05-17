@@ -82,20 +82,20 @@ private:
     GLuint noise_texture; // Really small and tiled across the screen
     std::vector<glm::vec3> ssao_kernel;
     std::vector<glm::vec3> ssao_noise;
-    GLfloat kernel_radius = 8; // Could be interesting to tweak this
-    GLint ssao_n_samples = 64;
+    GLfloat kernel_radius = 5; // Could be interesting to tweak this
+    GLint ssao_n_samples;
     bool ssao_on;
     bool smooth_ssao;
 
     // Tweak bar
     TwBar* tweak_bar;
-    bool use_tweak_bar = true;
+    bool use_tweak_bar = false;
     double fps;
     unsigned last_time;
     void count_fps();
     // Copied camera spline variables
     float cam_spline_move_para, cam_spline_look_para;
-    int cam_spline_move_id, cam_spline_look_id;
+    int cam_spline_move_id, cam_spline_look_id, n_lightsources;
     glm::vec3 cam_pos;
 
     void init_quad();

@@ -820,13 +820,12 @@ void Renderer::init_tweak_bar(Camera* camera)
     TwAddVarRW(tweak_bar, "look-spline", TW_TYPE_INT32, &this->cam_spline_look_id, "label=look-spline help='cam look animation path id'");
     TwAddVarRW(tweak_bar, "look-spline-para", TW_TYPE_FLOAT, &this->cam_spline_look_para, "label=look-spline-para help='time parameter along look spline'");
     TwAddVarRW(tweak_bar, "follow-spline", TW_TYPE_INT32, &this->cam_spline_move_id , "label=folow-spline help='cam move animation path id'");
-    
+
     TwAddVarRW(tweak_bar, "follow-spline-para", TW_TYPE_FLOAT, &this->cam_spline_move_para, "label=follow-spline-para help='time parameter along move spline'");
-    
-    
-    
 
-
+    this->n_lightsources = Light::get_number_of_lightsources();
+    TwAddVarRW(tweak_bar, "Number of lights", TW_TYPE_INT32, &this->n_lightsources , "label='Number of lights' help='Total number of lights in scene'");
+    
 }
 
 // ---------------

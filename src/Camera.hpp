@@ -17,6 +17,7 @@
 #include "Error.hpp"
 #include "Animation_Path.hpp"
 
+
 const GLfloat Y_FOV = 45.f;
 const GLfloat ASPECT_RATIO = (float) SCREEN_WIDTH / (float) SCREEN_HEIGHT;
 
@@ -38,7 +39,7 @@ public:
     void set_pos(glm::vec3 new_pos);
     bool can_move_free() const {return free_cam;}
     bool can_look_free() const {return free_look;}
-    
+
     bool has_move_path() const {return has_move_anim_path;}
     bool has_look_path() const {return has_look_anim_path;}
     void attach_move_animation_path(int animation_id, float start_parameter);
@@ -55,7 +56,7 @@ public:
     float get_spline_look_parameter() const {return spline_look_parameter;}
     int get_move_id() const {return move_anim_path_id;}
     int get_look_id() const {return look_anim_path_id;}
-    
+
     void update_culling_frustum();
     bool sphere_in_frustum(glm::vec3 center, float radius);
 
@@ -68,7 +69,7 @@ private:
     int look_anim_path_id;
     bool free_cam;
     bool free_look;
-    
+
     glm::vec3 frustum_normals[5];
     GLfloat frustum_offsets[5];
 };

@@ -3,6 +3,7 @@
 std::vector<Light*> Light::lights;
 std::vector<unsigned int> Light::free_ids;
 GLuint Light::shader_program;
+unsigned int Light::next_to_turn_on = 0;
 
 // ------------
 // Construct and destruct
@@ -91,4 +92,26 @@ void Light::set_color(glm::vec3 color)
 {
     this->color = color;
     this->upload();
+}
+
+void Light::turn_off_all_lights()
+{
+    for (int id = 0; id < lights.size(); id++) {
+        // id not in free_ids
+        if (std::find(free_ids.begin(), free_ids.end(), id) == free_ids.end()) {
+            lights[id]->active_light = false;
+        }
+    }
+    upload_all();
+}
+
+void Light::turn_on_one_lightsource()
+{
+    if (std::find(free_ids.begin(), free_ids.end(), next_to_turn_on) == free_ids.end()) {
+        lights[next_to_turn_on]->active_light = true;
+        lights[next_to_turn_on]->upload();
+    }
+    if (++next_to_turn_on == lights.size()) {
+        next_to_turn_on = 0;
+    }
 }

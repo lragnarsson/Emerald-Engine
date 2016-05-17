@@ -27,6 +27,7 @@ void cull_models()
     renderer.objects_drawn = i;
 }
 
+
 // --------------------------
 
 void animate_models()
@@ -45,26 +46,20 @@ void animate_models()
     }
 }
 
+
 // --------------------------
 
-// Assumes that the scene is loaded
-// If there are any animation paths, the camera will follow the last animation path
-void init_camera_anim_path()
+void cull_turned_off_flat_objects()
 {
-    int number_of_anim_paths = Animation_Path::get_number_of_animation_paths();
-    int end_id = number_of_anim_paths - 1;
-
-    // There is only one animation path, use this for move and look path
-    if (end_id == 0) {
-        camera.attach_move_animation_path(end_id, 0.f);
-        camera.attach_look_animation_path(end_id, 10.f);
-    }
-    if (number_of_anim_paths > 1) {
-        camera.attach_move_animation_path(end_id, 0.f);
-        camera.attach_look_animation_path(end_id - 1, 5.f);
+    for (auto model: Model::get_loaded_flat_models()) {
+        if (model->get_lights().size() > 0 &&
+            model->get_lights()[0]->is_active() == false) {
+            model->draw_me = false;
+        }
     }
 }
 
+// --------------------------
 
 void run()
 {
@@ -82,10 +77,11 @@ void run()
             camera.move_look_point_along_path(0.1f);
         }
         renderer.copy_tweak_bar_cam_values(camera);
-        
+
         animate_models();
         cull_models();
-
+        cull_turned_off_flat_objects();
+        
         renderer.render(camera);
 
         SDL_GL_SwapWindow(main_window);
@@ -103,14 +99,13 @@ int main(int argc, char *argv[])
 
     renderer.init();
     renderer.init_uniforms(camera);
+
+    Loader::load_scene(Parser::get_scene_file_from_command_line(argc, argv), &camera);
     renderer.init_tweak_bar(&camera);
 
-    Loader::load_scene(Parser::get_scene_file_from_command_line(argc, argv));
-
-    init_camera_anim_path();
     
     Light::upload_all();
-
+    //    Light::next_to_turn_on = 0;
 
     run();
 
