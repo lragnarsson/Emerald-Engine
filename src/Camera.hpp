@@ -48,9 +48,14 @@ public:
     void look_at_path(float elapsed_time);
     void toggle_free_move();
     void toggle_free_look();
-    int cycle_move_anim_path(int& parameter);
-    int cycle_look_anim_path(int& parameter);
+    void cycle_move_anim_path(int& parameter);
+    void cycle_look_anim_path(int& parameter);
 
+    float get_spline_move_parameter() const {return spline_move_parameter;}
+    float get_spline_look_parameter() const {return spline_look_parameter;}
+    int get_move_id() const {return move_anim_path_id;}
+    int get_look_id() const {return look_anim_path_id;}
+    
     void update_culling_frustum();
     bool sphere_in_frustum(glm::vec3 center, float radius);
 

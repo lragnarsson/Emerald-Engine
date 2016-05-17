@@ -81,7 +81,8 @@ void run()
         if (!camera.can_look_free()) {
             camera.move_look_point_along_path(0.1f);
         }
-
+        renderer.copy_tweak_bar_cam_values(camera);
+        
         animate_models();
         cull_models();
 

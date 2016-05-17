@@ -22,6 +22,11 @@ vector<string> Loader::split_string(string input, char separator)
   vector<string> tokens;
   size_t start = 0, end = 0;
 
+  // Remove all occurences of the "invisible char"
+  input.erase(remove(input.begin(), input.end(), _INVISIBLE_CHAR_), input.end());
+  // If double spaces, make them into one
+  input = regex_replace(input, regex("  "), " ");
+    
   while ((end = input.find(separator, start)) != string::npos) {
     string temp = input.substr(start, end - start);
     if (temp != "") tokens.push_back(temp);
@@ -164,10 +169,6 @@ void Loader::load_scene(string filepath)
       continue;
     }
 
-    // Remove all occurences of the "invisible char"
-    line.erase(remove(line.begin(), line.end(), _INVISIBLE_CHAR_), line.end());
-    // If double spaces, make them into one
-    line = regex_replace(line, regex("  "), " ");
     // Split string on single space
     split_line = split_string(line, _SEPARATOR_);
     first_char = split_line.at(0).at(0);
