@@ -18,10 +18,6 @@ uniform sampler2D ssao_blurred;
 
 uniform vec3 camPos;
 
-const float ATT_CON = 1.0;
-const float ATT_LIN = 0.001;
-const float ATT_QUAD = 0.0008;
-
 uniform Light lights[_MAX_LIGHTS_];
 
 void main()
@@ -39,7 +35,7 @@ void main()
 
     for(int i=0; i < _MAX_LIGHTS_; i++) {
         float distance = length(lights[i].position - position);
-        float attenuation = 1.0 / (ATT_CON + ATT_LIN * distance + ATT_QUAD * distance * distance);
+        float attenuation = 1.0 / (_ATT_CON_ + _ATT_LIN_ * distance + _ATT_QUAD_ * distance * distance);
         vec3 light_dir = normalize(lights[i].position - position);
 
         // Diffuse

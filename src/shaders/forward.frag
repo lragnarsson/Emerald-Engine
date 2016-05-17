@@ -21,14 +21,10 @@ uniform float shininess;
 uniform vec3 camPos;
 uniform Light lights[_MAX_LIGHTS_];
 
-const float ATT_CON = 1.0;
-const float ATT_LIN = 0.001;
-const float ATT_QUAD = 0.0008;
-
 
 vec3 PhongShading(Light l, vec3 Normal) {
     float distance = length(l.position - FragPos);
-    float attenuation = 1.0 / (ATT_CON + ATT_LIN * distance + ATT_QUAD * distance * distance);
+    float attenuation = 1.0 / (_ATT_CON_ + _ATT_LIN_ * distance + _ATT_QUAD_ * distance * distance);
     vec3 lightDir = normalize(l.position - FragPos);
 
     float d = max(dot(normalize(Normal), lightDir), 0.0);
