@@ -13,6 +13,7 @@
 #include <glm/gtc/type_ptr.hpp> // glm::value_ptr
 #include <string>
 #include <vector>
+#include <algorithm>
 
 class Light
 {
@@ -32,7 +33,7 @@ public:
     static int get_number_of_lightsources() {return lights.size();}
     static void turn_off_all_lights();
     static void turn_on_one_lightsource();
-    
+
 private:
     unsigned int id;
     glm::vec3 position, color;
