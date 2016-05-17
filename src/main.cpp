@@ -27,6 +27,7 @@ void cull_models()
     renderer.objects_drawn = i;
 }
 
+
 // --------------------------
 
 void animate_models()
@@ -41,6 +42,19 @@ void animate_models()
     for (auto model : Model::get_loaded_flat_models()) {
         if (model->has_animation_path()) {
             model->move_along_path(elapsed_time);
+        }
+    }
+}
+
+
+// --------------------------
+
+void cull_turned_off_flat_objects()
+{
+    for (auto model: Model::get_loaded_flat_models()) {
+        if (model->get_lights().size() > 0 &&
+            model->get_lights()[0]->is_active() == false) {
+            model->draw_me = false;
         }
     }
 }
@@ -66,7 +80,8 @@ void run()
 
         animate_models();
         cull_models();
-
+        cull_turned_off_flat_objects();
+        
         renderer.render(camera);
 
         SDL_GL_SwapWindow(main_window);
@@ -84,12 +99,13 @@ int main(int argc, char *argv[])
 
     renderer.init();
     renderer.init_uniforms(camera);
-    renderer.init_tweak_bar(&camera);
 
     Loader::load_scene(Parser::get_scene_file_from_command_line(argc, argv), &camera);
+    renderer.init_tweak_bar(&camera);
 
+    
     Light::upload_all();
-
+    //    Light::next_to_turn_on = 0;
 
     run();
 

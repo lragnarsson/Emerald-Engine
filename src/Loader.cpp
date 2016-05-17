@@ -87,7 +87,16 @@ void Loader::load_animation(vector<string> animation_line){
     // Period needs to be a number as well
     period = stof(animation_line.back());
 
-    new Animation_Path(points, period);
+    if (points.size() > 3) {
+        new Animation_Path(points, period);
+        return;
+    } else {
+        #ifdef _DEBUG_LOADER_
+        cout << "Too few points in animation path. No object created." << endl;
+        #endif
+        Error::throw_error(Error::invalid_file_syntax,
+                           string("Too few points in animation path! "));
+    }
 }
 
 // ------------------

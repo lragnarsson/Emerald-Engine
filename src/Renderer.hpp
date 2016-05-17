@@ -95,7 +95,8 @@ private:
     void count_fps();
     // Copied camera spline variables
     float cam_spline_move_para, cam_spline_look_para;
-    int cam_spline_move_id, cam_spline_look_id;
+    int cam_spline_move_id, cam_spline_look_id, n_lightsources;
+    glm::vec3 cam_pos;
 
     void init_quad();
     void init_g_buffer();

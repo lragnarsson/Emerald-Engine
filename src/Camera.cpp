@@ -68,13 +68,15 @@ void Camera::move_look_point_along_path(float elapsed_time)
         Error::throw_error(Error::camera_free_mode, extra_info);
     }
     glm::vec3 new_pos;
-    float eps = 0.5;
+    float diff = 2.0f;
     // get_pos updates the spline parameter for next iteration
     if (has_look_anim_path) {
         Animation_Path* path = Animation_Path::get_animation_path_with_id(this->look_anim_path_id);
-        if (std::abs(this->spline_move_parameter - this->spline_look_parameter) < eps) {
-            this->spline_look_parameter += eps;
-            printf("increased spline parameter. diff is now: %f\n", this->spline_move_parameter - this->spline_look_parameter);
+        // If look point and position are on the same spline and too close, move look point
+        // forward along spline
+        if (this->look_anim_path_id == this->move_anim_path_id &&
+            std::abs(this->spline_move_parameter - this->spline_look_parameter) < diff) {
+            this->spline_look_parameter += diff;
         }
         new_pos = path->get_pos(this->spline_look_parameter, elapsed_time);
     } else {
