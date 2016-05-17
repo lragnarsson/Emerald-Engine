@@ -9,10 +9,10 @@ bool sdl_init(const GLuint screen_width, const GLuint screen_height,
         return false;
     }
 
-    //main_window = SDL_CreateWindow("TSBK07 Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-      //                             screen_width, screen_height, SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL);
+    main_window = SDL_CreateWindow("TSBK07 Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                   screen_width, screen_height, SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL);
 
-    main_window = SDL_CreateWindow("TSBK07 Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screen_width, screen_height, SDL_WINDOW_OPENGL);
+    //main_window = SDL_CreateWindow("TSBK07 Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screen_width, screen_height, SDL_WINDOW_OPENGL);
     if (!main_window) {
         std::cerr << "Unable to create window\n";
         return false;
@@ -38,7 +38,7 @@ bool sdl_init(const GLuint screen_width, const GLuint screen_height,
     glEnable(GL_DEPTH_TEST);
     SDL_GL_SwapWindow(main_window);
 
-    if ( SDL_GL_SetSwapInterval(0) != 0 ) {
+    if ( SDL_GL_SetSwapInterval(1) != 0 ) {
       printf("WARNING: Unable to disable vsync, %s\n", SDL_GetError());
     }
 

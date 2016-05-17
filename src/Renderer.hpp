@@ -54,6 +54,7 @@ public:
     void toggle_ssao();
     void toggle_ssao_smoothing();
     void toggle_tweak_bar();
+    void copy_tweak_bar_cam_values(const Camera& camera);
 
 private:
     enum shader {
@@ -77,7 +78,6 @@ private:
     glm::mat4 w2v_matrix;
     Model *sphere, *skybox;
 
-    //glm::vec3 ssao_kernel[64];
 
     GLuint noise_texture; // Really small and tiled across the screen
     std::vector<glm::vec3> ssao_kernel;
@@ -93,6 +93,9 @@ private:
     double fps;
     unsigned last_time;
     void count_fps();
+    // Copied camera spline variables
+    float cam_spline_move_para, cam_spline_look_para;
+    int cam_spline_move_id, cam_spline_look_id;
 
     void init_quad();
     void init_g_buffer();

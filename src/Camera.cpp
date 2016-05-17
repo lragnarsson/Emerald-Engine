@@ -103,7 +103,7 @@ void Camera::toggle_free_look()
 }
 
 
-int Camera::cycle_move_anim_path(int& parameter)
+void Camera::cycle_move_anim_path(int& parameter)
 {
     parameter = spline_move_parameter;
     int number_of_anim_paths = Animation_Path::get_number_of_animation_paths();
@@ -114,11 +114,10 @@ int Camera::cycle_move_anim_path(int& parameter)
         this->move_anim_path_id++;
         this->spline_move_parameter = 1.0f;
     }
-    return this->move_anim_path_id;
 }
 
 
-int Camera::cycle_look_anim_path(int& parameter)
+void Camera::cycle_look_anim_path(int& parameter)
 {
     parameter = spline_look_parameter;
     int number_of_anim_paths = Animation_Path::get_number_of_animation_paths();
@@ -129,7 +128,6 @@ int Camera::cycle_look_anim_path(int& parameter)
         this->look_anim_path_id++;
         this->spline_look_parameter = 10.0f;
     }
-    return this->look_anim_path_id;
 }
 
 

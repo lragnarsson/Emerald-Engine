@@ -816,6 +816,15 @@ void Renderer::init_tweak_bar(Camera* camera)
     TwAddVarRW(tweak_bar, "cam-pos-x", TW_TYPE_FLOAT, &camera->position.x, "label=cam-pos-x help=current-camera-x-coord");
     TwAddVarRW(tweak_bar, "cam-pos-y", TW_TYPE_FLOAT, &camera->position.y, "label=cam-pos-y help=current-camera-y-coord");
     TwAddVarRW(tweak_bar, "cam-pos-z", TW_TYPE_FLOAT, &camera->position.z, "label=cam-pos-z help=current-camera-z-coord"); */
+    
+    TwAddVarRW(tweak_bar, "look-spline", TW_TYPE_INT32, &this->cam_spline_look_id, "label=look-spline help='cam look animation path id'");
+    TwAddVarRW(tweak_bar, "look-spline-para", TW_TYPE_FLOAT, &this->cam_spline_look_para, "label=look-spline-para help='time parameter along look spline'");
+    TwAddVarRW(tweak_bar, "follow-spline", TW_TYPE_INT32, &this->cam_spline_move_id , "label=folow-spline help='cam move animation path id'");
+    
+    TwAddVarRW(tweak_bar, "follow-spline-para", TW_TYPE_FLOAT, &this->cam_spline_move_para, "label=follow-spline-para help='time parameter along move spline'");
+    
+    
+    
 
 
 }
@@ -839,4 +848,12 @@ void Renderer::count_fps()
 void Renderer::toggle_tweak_bar()
 {
     use_tweak_bar = !use_tweak_bar;
+}
+
+void Renderer::copy_tweak_bar_cam_values(const Camera& camera)
+{
+    this->cam_spline_move_id = camera.get_move_id();
+    this->cam_spline_look_id = camera.get_look_id();
+    this->cam_spline_move_para = camera.get_spline_move_parameter();
+    this->cam_spline_look_para = camera.get_spline_look_parameter();
 }
