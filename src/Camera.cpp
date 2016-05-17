@@ -134,10 +134,11 @@ void Camera::cycle_look_anim_path(int& parameter)
 void Camera::update_culling_frustum()
 {
     glm::vec3 far_center = FAR * front;
-    glm::vec3 top_left = far_center + FAR_H * up - FAR_W * right;
-    glm::vec3 top_right = far_center + FAR_H * up + FAR_W * right;
-    glm::vec3 bottom_left = far_center - FAR_H * up - FAR_W * right;
-    glm::vec3 bottom_right = far_center - FAR_H * up + FAR_W * right;
+    glm::vec3 real_up = glm::normalize(glm::cross(right, front));
+    glm::vec3 top_left = far_center + FAR_H * real_up - FAR_W * right;
+    glm::vec3 top_right = far_center + FAR_H * real_up + FAR_W * right;
+    glm::vec3 bottom_left = far_center - FAR_H * real_up - FAR_W * right;
+    glm::vec3 bottom_right = far_center - FAR_H * real_up + FAR_W * right;
 
     // Normals are defined as pointing inward
     frustum_normals[0] = glm::normalize(glm::cross(bottom_left, top_left));     // Left normal
