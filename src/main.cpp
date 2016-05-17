@@ -47,25 +47,6 @@ void animate_models()
 
 // --------------------------
 
-// Assumes that the scene is loaded
-// If there are any animation paths, the camera will follow the last animation path
-void init_camera_anim_path()
-{
-    int number_of_anim_paths = Animation_Path::get_number_of_animation_paths();
-    int end_id = number_of_anim_paths - 1;
-
-    // There is only one animation path, use this for move and look path
-    if (end_id == 0) {
-        camera.attach_move_animation_path(end_id, 0.f);
-        camera.attach_look_animation_path(end_id, 10.f);
-    }
-    if (number_of_anim_paths > 1) {
-        camera.attach_move_animation_path(end_id, 0.f);
-        camera.attach_look_animation_path(end_id - 1, 5.f);
-    }
-}
-
-
 void run()
 {
     renderer.running = true;
@@ -82,7 +63,7 @@ void run()
             camera.move_look_point_along_path(0.1f);
         }
         renderer.copy_tweak_bar_cam_values(camera);
-        
+
         animate_models();
         cull_models();
 
@@ -105,10 +86,8 @@ int main(int argc, char *argv[])
     renderer.init_uniforms(camera);
     renderer.init_tweak_bar(&camera);
 
-    Loader::load_scene(Parser::get_scene_file_from_command_line(argc, argv));
+    Loader::load_scene(Parser::get_scene_file_from_command_line(argc, argv), &camera);
 
-    init_camera_anim_path();
-    
     Light::upload_all();
 
 
