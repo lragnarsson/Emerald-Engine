@@ -34,20 +34,23 @@ void main()
     vec3 light = 0.05 * occlusion * albedo;
 
     for(int i=0; i < _MAX_LIGHTS_; i++) {
-        float distance = length(lights[i].position - position);
-        float attenuation = 1.0 / (_ATT_CON_ + _ATT_LIN_ * distance + _ATT_QUAD_ * distance * distance);
-        vec3 light_dir = normalize(lights[i].position - position);
+        if (lights[i].active_light)
+            {
+                float distance = length(lights[i].position - position);
+                float attenuation = 1.0 / (_ATT_CON_ + _ATT_LIN_ * distance + _ATT_QUAD_ * distance * distance);
+                vec3 light_dir = normalize(lights[i].position - position);
+                
+                // Diffuse
+                float d = max(dot(normalize(normal), light_dir), 0.0);
+                vec3 diffuse_light = occlusion * d * lights[i].color * albedo;
 
-        // Diffuse
-        float d = max(dot(normalize(normal), light_dir), 0.0);
-        vec3 diffuse_light = occlusion * d * lights[i].color * albedo;
+                // Specular
+                vec3 reflection = normalize(reflect(-light_dir, normal));
+                float s = specular * pow(max(dot(view_direction, reflection), 0.0), shininess);
+                vec3 specular_light = s * lights[i].color * albedo;
 
-        // Specular
-        vec3 reflection = normalize(reflect(-light_dir, normal));
-        float s = specular * pow(max(dot(view_direction, reflection), 0.0), shininess);
-        vec3 specular_light = s * lights[i].color * albedo;
-
-        light += attenuation * (diffuse_light + specular_light);
+                light += attenuation * (diffuse_light + specular_light);
+            }
     }
 
     OutColor = vec4(light, 1.0);
