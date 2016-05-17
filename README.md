@@ -32,6 +32,7 @@ FEATURES
  - Skybox
  - Keyboard and mouse control
  - Bounding sphere generation and visualization
+ - Light sources attached to models
 
 
 INSTALLATION
