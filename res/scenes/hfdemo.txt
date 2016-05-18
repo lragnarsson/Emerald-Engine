@@ -1,0 +1,94 @@
+# Available sections are "animations", "lights", "flat" and "models".
+# A section is started with square brackets:
+[animations]
+# Animation paths neeeds to be created first!
+
+# ---
+# There's an invisible char that could be used as a divisor - that char is pipe (|)
+# ---
+
+# Animations are loaded with at least four (4!) positions, according to:
+# x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4 period
+# ... Where all fields are floats
+80 50 40 | -80.0 55 40 |-70.0 80 -10 | -2 10 -7 | -10 7 -40 | -5  50 -15 | -20.0 80.0 -8.0 | 100.0  70.0 -10.0 | 100.0
+
+
+# This animation path is assigned ID=0 since it's the first created
+# Each animation path is then assigned id=1,2,3...
+
+19.702196 11.973621 4.934153 | 20.394894 13.865685 5.305327 | 20.270655 15.265759 -5.076668 | 19.487419 12.194465 -4.640711 | 20.0
+
+27.361521 9.814894 12.285908 | 28.006294 11.203197 -5.504194 | 17.498220 13.475502 -15.848289 | 9.603431 21.743189 -5.737838 | 16.158379 21.720572 14.116312 | 31.297401 121.800182 9.290366 | 31.835678 27.679556 -9.785915 | 34.601723 15.275630 -9.817282 | 39.463772 13.663368 8.903281 | 28.295345 8.421135 12.340041 | 40.0
+
+-20.242249 46.410145 41.637039 | -60.620304 50.796604 37.442131 | -112.570229 53.844608 33.297279 | -120.117844 56.601677 0.259363 | -109.285492 48.676785 -45.670956 | -62.909019 54.695255 -46.283398 | -6.602727 57.088188 -49.318211 | 29.380133 59.720444 -49.573666 | 67.609253 62.528183 -47.290707 | 110.564690 60.010147 -26.833380 | 113.782196 59.154976 22.874285 | 61.295403 49.040405 -3.681920 | 11.318636 41.531162 -4.379707 | -27.053961 42.805210 -5.072556 | -88.861816 56.511654 43.369751 | 100
+
+[camera_animation]
+2 5 | 2 50
+
+[lights]
+# xPos yPos zPos | Red Green Blue
+-50 10 0 | 1.0 0.7 0.5
+
+
+[models]
+# Models are loaded using the following syntax:
+# /path/to/model | rotX rotY rotZ | Xpos Ypos Zpos | scale | animation_path_id start_animation | nr_of_lights
+res/models/sponza/sponza.obj 0 0 0 | 0 0 0 | 0.1 | -1 0 0
+res/models/nanosuit/nanosuit.obj 0 5 0 | 5 0 -5 | 1 | -1 0 0
+res/models/nanosuit/nanosuit.obj 0 5 0 | 10 0 -5 | 1 | -1 0 0
+res/models/nanosuit/nanosuit.obj 0 5 0 | 15 0 -5 | 1 | -1 0 0
+res/models/nanosuit/nanosuit.obj 0 5 0 | 20 0 -5 | 1 | -1 0 0
+res/models/nanosuit/nanosuit.obj 0 5 0 | 25 0 -5 | 1 | -1 0 0
+res/models/nanosuit/nanosuit.obj 0 5 0 | 30 0 -5 | 1 | -1 0 0
+res/models/nanosuit/nanosuit.obj 0 5 0 | 35 0 -5 | 1 | -1 0 0
+res/models/nanosuit/nanosuit.obj 0 5 0 | 40 0 -5 | 1 | -1 0 0
+res/models/nanosuit/nanosuit.obj 0 5 0 | 45 0 -5 | 1 | -1 0 0
+res/models/muro/muro.obj 0 5 0 | 5 0 5 | 0.08 | -1 0 0
+res/models/muro/muro.obj 0 5 0 | 10 0 5 | 0.08 | -1 0 0
+res/models/muro/muro.obj 0 5 0 | 15 0 5 | 0.08 | -1 0 0
+res/models/muro/muro.obj 0 5 0 | 20 0 5 | 0.08 | -1 0 0
+res/models/muro/muro.obj 0 5 0 | 25 0 5 | 0.08 | -1 0 0
+res/models/muro/muro.obj 0 5 0 | 30 0 5 | 0.08 | -1 0 0
+res/models/muro/muro.obj 0 5 0 | 35 0 5 | 0.08 | -1 0 0
+res/models/muro/muro.obj 0 5 0 | 40 0 5 | 0.08 | -1 0 0
+res/models/muro/muro.obj 0 5 0 | 45 0 5 | 0.08 | -1 0 0
+
+
+
+# This will start a new section for loading flat-shaded models.
+[flat]
+# Light sources attatched to models are placed directly after given model and loaded according to:
+# relativeXpos relativeYpos relativeZpos R G B
+
+
+# Cubes with fixes positions
+res/models/cube/cube.obj 0 0 0 | 50 5 -1 | 0.5 | -1 0 | 1
+0 0 0 | 1 1 1
+res/models/cube/cube.obj 0 0 0 | -100 20 50 | 0.5 | -1 0 | 1
+0 0 0 | 1 1 1
+res/models/cube/cube.obj 0 0 0 | -100 20 -50 | 0.5 | -1 0 | 1
+0 0 0 | 1 1 1
+res/models/cube/cube.obj 0 0 0 | 100 20 -50 | 0.5 | -1 0 | 1
+0 0 0 | 1 1 1
+res/models/cube/cube.obj 0 0 0 | 100 20 50 | 0.5 | -1 0 | 1
+0 0 0 | 1 1 1
+
+# Cubes along first spline
+res/models/cube/cube.obj 0 0 0 | 1 1 1 | 0.5 | 0 0 | 1
+0 0 0 | 1.0 1.0 0.2
+res/models/cube/cube.obj 0 0 0 | 3 10 1 | 0.5 | 0 10 | 1
+0 0 0 | 0.2 0.8 0.1
+res/models/cube/cube.obj 0 0 0 | -2 8 -10 | 0.5 | 0 20 | 1
+0 0 0 | 0.8 0.1 0.1
+res/models/cube/cube.obj 0 0 0 | -2 7 -7 | 0.5 | 0 30 | 1
+0 0 0 | 0.8 0.1 0.5
+res/models/cube/cube.obj 0 0 0 | -5 7 -10 | 0.5 | 0 40 | 1
+0 0 0 | 1 1 0.2
+res/models/cube/cube.obj 0 0 0 | -1 10 -8 | 0.5 | 0 50 | 1
+0 0 0 | 0.1 1 0.1
+res/models/cube/cube.obj 0 0 0 | -5 7 -10 | 0.5 | 0 60 | 1
+0 0 0 | 0.2 0.2 1
+res/models/cube/cube.obj 0 0 0 | -1 10 -8 | 0.5 | 0 70 | 1
+0 0 0 | 1 0.1 0.1
+
+# Cubes along second spline
