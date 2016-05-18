@@ -1,0 +1,54 @@
+# Available sections are "animations", "lights", "flat", "camera_animation" and "models".
+# A section is started with square brackets:
+[animations]
+# Animation paths neeeds to be created first!
+
+# ---
+# There's an invisible char that could be used as a divisor - that char is pipe (|)
+# ---
+
+# Animations are loaded with at least four (4!) positions, according to:
+#	x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4 period
+# ... Where all fields are floats
+# Following is an example:
+80 50 40 | -80.0 55 40 |-70.0 80 -10 | -2 10 -7 | -10 7 -40 | -5  50 -15 | -20.0 80.0 -8.0 | 100.0  70.0 -10.0 | 100.0
+
+# This animation path is assigned ID=0 since it's the first created
+# Each animation path is then assigned id=1,2,3...
+
+# The following section specifies which animation path the camera should follow by default
+[camera_animation]
+# The format is:
+#	id_to_follow start_point | id_to_look_at start_point
+# Example that follows an animation path and looks at the same path but further ahead
+0 5 | 0 40
+
+# This specifies light sources that is not supposed to be attached to a model
+[lights]
+# The format is:
+# 	xPos yPos zPos | Red Green Blue
+-50 10 0 | 1.0 0.7 0.5
+
+
+[models]
+# Models are loaded using the following syntax:
+# 	/path/to/model | rotX rotY rotZ | Xpos Ypos Zpos | scale | animation_path_id start_animation | nr_of_lights
+
+# Light sources attatched to models are placed directly after given model and loaded according to:
+# 	relativeXpos relativeYpos relativeZpos R G B
+
+# If animation path is equal to -1 - no animation path is chosen
+
+# Example, without animation path and light sources: 
+res/models/sponza/sponza.obj 0 0 0 | 0 0 0 | 0.1 | -1 0 0
+
+
+# This will start a new section for loading flat-shaded models.
+[flat]
+# Light sources attatched to models are placed directly after given model and loaded according to:
+# 	relativeXpos relativeYpos relativeZpos R G B
+
+# Exemple, with animation path and light source attached:
+res/models/cube/cube.obj 0 0 0 | 1 1 1 | 0.5 | 0 0 | 1
+0 0 0 | 1.0 1.0 0.2
+
