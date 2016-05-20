@@ -5,10 +5,6 @@ void init_input()
     // Mouse init
     SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1", SDL_HINT_OVERRIDE);
     SDL_SetRelativeMouseMode(SDL_TRUE);
-
-    // SSAO controls
-    printf("Toggle SSAO with m \nDecrease/Increase SSAO kernel radius: j/k\n");
-    printf("Toggle SSAO smoothing with n\n");
 }
 
 void handle_keyboard_input(Camera &camera, Renderer &renderer)

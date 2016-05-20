@@ -88,6 +88,23 @@ void run()
     }
 }
 
+
+// --------------------------
+
+void print_welcome()
+{
+    std::string welcome;
+    welcome = std::string("This is Emerald Engine.\n");
+    welcome += std::string("A few useful commmands are:\n\n");
+    welcome += std::string("Numbers 1-7 = Display different buffers\n");
+    welcome += std::string("F           = Follow path with camera\n");
+    welcome += std::string("T           = Toggle tweakbar display\n");
+    welcome += std::string("X,Z         = Interact with lights\n");
+    welcome += std::string("\nA complete description of all keyboard commands can be found in doc/keyboard_command_reference.md\n");
+
+    std::cout << welcome.c_str() << std::endl;
+}
+
 // --------------------------
 
 int main(int argc, char *argv[])
@@ -97,6 +114,8 @@ int main(int argc, char *argv[])
     }
     init_input();
 
+    print_welcome();
+    
     renderer.init();
     renderer.init_uniforms(camera);
 
