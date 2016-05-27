@@ -10,6 +10,8 @@ Project members:
  - Lage Ragnarsson
  - Isak Wiberg
 
+A video showing some of the features in Emerald Engine is available here:
+https://www.youtube.com/watch?v=Tt9o01yyQiw
 
 FEATURES
 --------
