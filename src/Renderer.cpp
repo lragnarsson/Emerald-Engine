@@ -10,6 +10,8 @@ void Renderer::init()
     shaders[FLAT_TEXTURE] = load_shaders("build/shaders/flat_texture.vert", "build/shaders/flat_texture.frag");
     shaders[SSAO] = load_shaders("build/shaders/ssao.vert", "build/shaders/ssao.frag");
     shaders[SSAO_BLUR] = load_shaders("build/shaders/ssao_blur.vert", "build/shaders/ssao_blur.frag");
+    shaders[BLUR_X] = load_shaders("build/shaders/blur.vert", "build/shaders/blur_x.frag");
+    shaders[BLUR_Y] = load_shaders("build/shaders/blur.vert", "build/shaders/blur_y.frag");
     shaders[SHOW_RGB_COMPONENT] = load_shaders("build/shaders/show_rgb_component.vert",
                                                "build/shaders/show_rgb_component.frag");
     shaders[SHOW_ALPHA_COMPONENT] = load_shaders("build/shaders/show_alpha_component.vert",
@@ -23,7 +25,9 @@ void Renderer::init()
     init_ssao();
     init_rgb_component_shader();
     init_alpha_component_shader();
-
+    init_blur_shaders();
+    init_ping_pong_fbo();
+    
     sphere = new Model("res/models/sphere/sphere.obj");
     skybox = new Model("res/models/skybox/skybox.obj");
     skybox->move_to(glm::vec3(-0.5f, -0.5f, -0.5f));
@@ -353,7 +357,7 @@ void Renderer::ssao_pass()
 
     if (smooth_ssao) {
         // Blur the ssao result
-        glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_fbo);
+        /*        glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_fbo);
         glClear(GL_COLOR_BUFFER_BIT);
         glUseProgram(shaders[SSAO_BLUR]);
         glActiveTexture(GL_TEXTURE0);
@@ -363,6 +367,8 @@ void Renderer::ssao_pass()
         // Render quad
         glBindVertexArray(quad_vao);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        */
+        blur_texture(ssao_result, ssao_blur_fbo);
     }
 
     for (GLuint i = 0; i < 3; i++) {
@@ -371,6 +377,21 @@ void Renderer::ssao_pass()
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(0);
+}
+
+// --------------------------
+
+void Renderer::blur_texture(GLuint source_tex, GLuint target_fbo)
+{
+    // Single pass blur. Only X
+    glBindFramebuffer(GL_FRAMEBUFFER, target_fbo);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glUseProgram(shaders[BLUR_X]);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, source_tex);
+
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 // --------------------------
@@ -667,6 +688,27 @@ void Renderer::init_ssao()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+// --------------------------
+/* Intended for use as a substep when doing multipass filtering */
+void Renderer::init_ping_pong_fbo()
+{
+    glGenFramebuffers(1, &ping_pong_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, ping_pong_fbo);
+
+    glGenTextures(1, &ping_pong_tex);
+    glBindTexture(GL_TEXTURE_2D, ping_pong_tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ping_pong_tex, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "Ping pong framebuffer not complete!" << std::endl;
+
+    glUseProgram(0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
 // --------------------------
 
@@ -779,6 +821,16 @@ void Renderer::init_show_ssao_shader()
 {
     glUseProgram(shaders[SHOW_SSAO]);
     glUniform1i(glGetUniformLocation(shaders[SHOW_SSAO], "input_tex"), 0);
+    glUseProgram(0);
+}
+
+void Renderer::init_blur_shaders()
+{
+    glUseProgram(shaders[BLUR_X]);
+    glUniform1i(glGetUniformLocation(shaders[BLUR_X], "input_tex"), 0);
+
+    glUseProgram(shaders[BLUR_Y]);
+    glUniform1i(glGetUniformLocation(shaders[BLUR_Y], "input_tex"), 0);
     glUseProgram(0);
 }
 

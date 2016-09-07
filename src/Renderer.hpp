@@ -64,16 +64,18 @@ private:
       FLAT,
       FLAT_TEXTURE,
       SSAO,
-      SSAO_BLUR,
+      SSAO_BLUR, // Remove later. Maybe rename to BROKEN_BLUR_XY
+      BLUR_X,
+      BLUR_Y,
       SHOW_RGB_COMPONENT,
       SHOW_ALPHA_COMPONENT,
       SHOW_SSAO
     };
 
     render_mode mode;
-    GLuint shaders[10];
-    GLuint g_buffer, ssao_fbuffer, ssao_blur_fbo;
-    GLuint g_position, g_normal_shininess, g_albedo_specular, ssao_result, ssao_blurred;
+    GLuint shaders[12];
+    GLuint g_buffer, ssao_fbuffer, ssao_blur_fbo, ping_pong_fbo;
+    GLuint g_position, g_normal_shininess, g_albedo_specular, ssao_result, ssao_blurred, ping_pong_tex;
     GLuint quad_vao, quad_vbo;
     glm::mat4 w2v_matrix;
     Model *sphere, *skybox;
@@ -98,14 +100,16 @@ private:
     int cam_spline_move_id, cam_spline_look_id, n_lightsources;
     glm::vec3 cam_pos;
 
-    void init_quad();
     void init_g_buffer();
     void init_ssao();
+    void init_ping_pong_fbo();
+    void init_quad();
     void init_rgb_component_shader();
     void init_albedo_component_shader();
     void init_alpha_component_shader();
     void init_show_ssao_shader();
-
+    void init_blur_shaders();
+    
     void upload_camera_uniforms(const Camera &camera);
     void draw_tweak_bar();
 
@@ -118,6 +122,8 @@ private:
     void ssao_pass();
     void create_ssao_samples();
 
+    void blur_texture(GLuint source_tex, GLuint target_fbo);
+    
     void geometry_pass();
     void render_g_position();
     void render_g_normal();
