@@ -8,7 +8,7 @@ uniform vec3 color;
 
 void main(void)
 {
-    OutColor = vec4(color, 1.0);
+    OutColor = 5.0 * vec4(color, 1.0);
 
     /* Filter out parts above 1 in brightness */
     // Human eye is more sensitive to red and green than blue. learnopengl.com

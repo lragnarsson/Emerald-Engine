@@ -15,7 +15,7 @@ uniform mat4 projection;
 
 
 // scaling for the noise texture coords to ensure that the noise texture tiles across the screen.
-const vec2 noise_scale = vec2(SCREEN_WIDTH / 4.0, SCREEN_HEIGHT / 4.0);
+const vec2 noise_scale = vec2(SCREEN_WIDTH / 5.0, SCREEN_HEIGHT / 5.0);
 
 
 

@@ -8,28 +8,29 @@ void Renderer::init()
     shaders[DEFERRED] = load_shaders("build/shaders/deferred.vert", "build/shaders/deferred.frag");
     shaders[FLAT] = load_shaders("build/shaders/flat.vert", "build/shaders/flat.frag");
     shaders[FLAT_TEXTURE] = load_shaders("build/shaders/flat_texture.vert", "build/shaders/flat_texture.frag");
-    shaders[SSAO] = load_shaders("build/shaders/ssao.vert", "build/shaders/ssao.frag");
-    shaders[SSAO_BLUR] = load_shaders("build/shaders/ssao_blur.vert", "build/shaders/ssao_blur.frag");
-    shaders[BLUR_RED_X] = load_shaders("build/shaders/blur.vert", "build/shaders/blur_red_x.frag");
-    shaders[BLUR_RED_Y] = load_shaders("build/shaders/blur.vert", "build/shaders/blur_red_y.frag");
-    shaders[BLUR_RGB_X] = load_shaders("build/shaders/blur.vert", "build/shaders/blur_rgb_x.frag");
-    shaders[BLUR_RGB_Y] = load_shaders("build/shaders/blur.vert", "build/shaders/blur_rgb_y.frag");
-
-    shaders[SHOW_RGB_COMPONENT] = load_shaders("build/shaders/show_rgb_component.vert",
+    shaders[SSAO] = load_shaders("build/shaders/identity.vert", "build/shaders/ssao.frag");
+    shaders[SSAO_BLUR] = load_shaders("build/shaders/identity.vert", "build/shaders/ssao_blur.frag");
+    shaders[BLUR_RED_5] = load_shaders("build/shaders/identity.vert", "build/shaders/blur_red_5.frag");
+    shaders[BLUR_RGB_5] = load_shaders("build/shaders/identity.vert", "build/shaders/blur_rgb_5.frag");
+    shaders[SHOW_RGB_COMPONENT] = load_shaders("build/shaders/identity.vert",
                                                "build/shaders/show_rgb_component.frag");
-    shaders[SHOW_ALPHA_COMPONENT] = load_shaders("build/shaders/show_alpha_component.vert",
+    shaders[SHOW_ALPHA_COMPONENT] = load_shaders("build/shaders/identity.vert",
                                                  "build/shaders/show_alpha_component.frag");
-    shaders[SHOW_SSAO] = load_shaders("build/shaders/show_red_component.vert",
+    shaders[SHOW_SSAO] = load_shaders("build/shaders/identity.vert",
                                       "build/shaders/show_red_component.frag");
+    shaders[BLEND] = load_shaders("build/shaders/identity.vert",
+                                  "build/shaders/blend.frag");
 
 
     init_g_buffer();
+    init_hdr_fbo();
     init_post_proc_fbo();
     init_quad();
     init_ssao();
     init_rgb_component_shader();
     init_alpha_component_shader();
     init_blur_shaders();
+    init_blend_shader();
     init_ping_pong_fbos();
 
     sphere = new Model("res/models/sphere/sphere.obj");
@@ -68,10 +69,6 @@ void Renderer::render(const Camera &camera)
     case SSAO_MODE:
         render_ssao();
         break;
-    }
-
-    if (draw_bounding_spheres) {
-        render_bounding_spheres();
     }
 
     if (use_tweak_bar) {
@@ -162,7 +159,7 @@ void Renderer::render_deferred()
     }
 
     
-    glBindFramebuffer(GL_FRAMEBUFFER, post_proc_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, hdr_fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[DEFERRED]);
 
@@ -181,20 +178,26 @@ void Renderer::render_deferred()
 
     /* RENDER FLAT OBJECTS WITH DEPTH BUFFER */
     glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, post_proc_fbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, hdr_fbo);
     glBlitFramebuffer(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     render_flat();
 
-    // Do bloom shit
+    blur_rgb_texture(bright_tex, post_proc_fbo, GAUSSIAN_RGB_5, 10);
 
-    // TEMP: only show bloom result
+    
+    // Blend blurred glow with normal color.
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(shaders[SHOW_RGB_COMPONENT]);
+    glUseProgram(shaders[BLEND]);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, bloom_tex);
+    glBindTexture(GL_TEXTURE_2D, color_tex);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, post_proc_tex);
 
-
+    glUniform1f(glGetUniformLocation(shaders[BLEND], "alpha"), 1.0f);
+    glUniform1f(glGetUniformLocation(shaders[BLEND], "beta"), 1.0f);
+    glUniform1f(glGetUniformLocation(shaders[BLEND], "exposure"), 1.0f);
+    
     // Render quad
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -278,6 +281,10 @@ void Renderer::render_flat()
 
             glBindVertexArray(0);
         }
+    }
+    
+    if (draw_bounding_spheres) {
+        render_bounding_spheres();
     }
 }
 
@@ -371,7 +378,7 @@ void Renderer::ssao_pass()
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     if (smooth_ssao) {
-        blur_red_texture(ssao_tex, ssao_fbo, 1);
+        blur_red_texture(ssao_tex, ssao_fbo, UNIFORM_RED_5, 1);
     }
 
     for (GLuint i = 0; i < 3; i++) {
@@ -384,11 +391,45 @@ void Renderer::ssao_pass()
 
 // --------------------------
 
-void Renderer::filter_pass(GLuint source_tex, GLuint target_fbo, GLuint shader)
+GLuint Renderer::upload_filter(filter_type ft)
+{
+    GLfloat gaussian[5] = {1, 4, 6, 4, 1};
+    GLfloat uniform[5] = {1, 1, 1, 1, 1};
+
+    switch (ft) {
+    case GAUSSIAN_RED_5:
+        glUseProgram(shaders[BLUR_RED_5]);
+        glUniform1fv(glGetUniformLocation(shaders[BLUR_RED_5], "kernel"), 5, gaussian);
+        glUniform1f(glGetUniformLocation(shaders[BLUR_RED_5], "magnitude"), 16);
+        return shaders[BLUR_RED_5];
+        break;
+    case GAUSSIAN_RGB_5:
+        glUseProgram(shaders[BLUR_RGB_5]);
+        glUniform1fv(glGetUniformLocation(shaders[BLUR_RGB_5], "kernel"), 5, gaussian);
+        glUniform1f(glGetUniformLocation(shaders[BLUR_RGB_5], "magnitude"), 16);
+        return shaders[BLUR_RGB_5];
+        break;
+    case UNIFORM_RED_5:
+        glUseProgram(shaders[BLUR_RED_5]);
+        glUniform1fv(glGetUniformLocation(shaders[BLUR_RED_5], "kernel"), 5, uniform);
+        glUniform1f(glGetUniformLocation(shaders[BLUR_RED_5], "magnitude"), 5);
+        return shaders[BLUR_RED_5];
+        break;
+    case UNIFORM_RGB_5:
+        glUseProgram(shaders[BLUR_RGB_5]);
+        glUniform1fv(glGetUniformLocation(shaders[BLUR_RGB_5], "kernel"), 5, uniform);
+        glUniform1f(glGetUniformLocation(shaders[BLUR_RGB_5], "magnitude"), 5);
+        return shaders[BLUR_RGB_5];
+        break;
+    }
+}
+
+// --------------------------
+
+void Renderer::filter_pass(GLuint source_tex, GLuint target_fbo)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, target_fbo);
     glClear(GL_COLOR_BUFFER_BIT);
-    glUseProgram(shader);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, source_tex);
     glBindVertexArray(quad_vao);
@@ -397,24 +438,36 @@ void Renderer::filter_pass(GLuint source_tex, GLuint target_fbo, GLuint shader)
 
 // --------------------------
 
-void Renderer::blur_red_texture(GLuint tex, GLuint fbo, int iterations)
+void Renderer::blur_red_texture(GLuint tex, GLuint fbo, filter_type ft, int iterations)
 {
+    GLuint shader = upload_filter(ft);
+    glUseProgram(shader);
+
     for (int i=0; i<iterations; i++) {
-        filter_pass(tex, ping_pong_fbo_red, shaders[BLUR_RED_X]);
-        filter_pass(ping_pong_tex_red, fbo, shaders[BLUR_RED_Y]);
+        glUniform1i(glGetUniformLocation(shader, "horizontal"), (GLboolean) 1);
+        filter_pass(tex, ping_pong_fbo_red);
+        glUniform1i(glGetUniformLocation(shader, "horizontal"), (GLboolean) 0);
+        filter_pass(ping_pong_tex_red, fbo);
     }
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(0);
 }
 
 // --------------------------
 
-void Renderer::blur_rgb_texture(GLuint tex, GLuint fbo, int iterations)
+void Renderer::blur_rgb_texture(GLuint tex, GLuint fbo, filter_type ft, int iterations)
 {
+    GLuint shader = upload_filter(ft);
+    glUseProgram(shader);
+
     for (int i=0; i<iterations; i++) {
-        filter_pass(tex, ping_pong_fbo_rgb, shaders[BLUR_RGB_X]);
-        filter_pass(ping_pong_tex_rgb, fbo, shaders[BLUR_RGB_Y]);
+        glUniform1i(glGetUniformLocation(shader, "horizontal"), 1);
+        filter_pass(tex, ping_pong_fbo_rgb);
+        glUniform1i(glGetUniformLocation(shader, "horizontal"), 0);
+        filter_pass(ping_pong_tex_rgb, fbo);
     }
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(0);
 }
@@ -648,7 +701,7 @@ void Renderer::init_ssao()
     std::default_random_engine generator;
 
     /* Random rotations of the kernel */
-    for (GLuint i = 0; i < 16; i++) {
+    for (GLuint i = 0; i < 25; i++) {
         glm::vec3 noise(
                         randomFloats(generator) * 2.0 - 1.0,
                         randomFloats(generator) * 2.0 - 1.0,
@@ -665,7 +718,7 @@ void Renderer::init_ssao()
     /*  Noise texture, really small and repeated */
     glGenTextures(1, &noise_texture);
     glBindTexture(GL_TEXTURE_2D, noise_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssao_noise[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 5, 5, 0, GL_RGB, GL_FLOAT, &ssao_noise[0]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -678,7 +731,7 @@ void Renderer::init_ssao()
 
     glGenTextures(1, &ssao_tex);
     glBindTexture(GL_TEXTURE_2D, ssao_tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -704,7 +757,7 @@ void Renderer::init_ping_pong_fbos()
 
     glGenTextures(1, &ping_pong_tex_red);
     glBindTexture(GL_TEXTURE_2D, ping_pong_tex_red);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -821,32 +874,32 @@ void Renderer::init_g_buffer()
 
 // -----------------
 
-void Renderer::init_post_proc_fbo()
+void Renderer::init_hdr_fbo()
 {
     glDisable(GL_BLEND);
-    glGenFramebuffers(1, &post_proc_fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, post_proc_fbo);
+    glGenFramebuffers(1, &hdr_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, hdr_fbo);
     
     /* Lighting buffer. Contains shaded light from deferred shader. */
-    glGenTextures(1, &lighting_tex);
-    glBindTexture(GL_TEXTURE_2D, lighting_tex);
+    glGenTextures(1, &color_tex);
+    glBindTexture(GL_TEXTURE_2D, color_tex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, lighting_tex, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_tex, 0);
     
     
     /* Bloom buffer */
-    glGenTextures(1, &bloom_tex);
-    glBindTexture(GL_TEXTURE_2D, bloom_tex);
+    glGenTextures(1, &bright_tex);
+    glBindTexture(GL_TEXTURE_2D, bright_tex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bloom_tex, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bright_tex, 0);
 
     
     GLuint attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
@@ -859,6 +912,34 @@ void Renderer::init_post_proc_fbo()
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, SCREEN_WIDTH, SCREEN_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
 
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::ostringstream error_msg;
+        error_msg << "GL enum: " << glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        Error::throw_error(Error::renderer_init_fail, error_msg.str());
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+// -----------------
+
+void Renderer::init_post_proc_fbo()
+{
+    glDisable(GL_BLEND);
+    glGenFramebuffers(1, &post_proc_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, post_proc_fbo);
+    
+    /* Texture for post processing. Filter result etc. */
+    glGenTextures(1, &post_proc_tex);
+    glBindTexture(GL_TEXTURE_2D, post_proc_tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, post_proc_tex, 0);
+
+    
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::ostringstream error_msg;
         error_msg << "GL enum: " << glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -897,23 +978,25 @@ void Renderer::init_show_ssao_shader()
 
 void Renderer::init_blur_shaders()
 {
-    glUseProgram(shaders[BLUR_RED_X]);
-    glUniform1i(glGetUniformLocation(shaders[BLUR_RED_X], "input_tex"), 0);
+    glUseProgram(shaders[BLUR_RED_5]);
+    glUniform1i(glGetUniformLocation(shaders[BLUR_RED_5], "input_tex"), 0);
 
-    glUseProgram(shaders[BLUR_RED_Y]);
-    glUniform1i(glGetUniformLocation(shaders[BLUR_RED_Y], "input_tex"), 0);
+    glUseProgram(shaders[BLUR_RGB_5]);
+    glUniform1i(glGetUniformLocation(shaders[BLUR_RGB_5], "input_tex"), 0);
     glUseProgram(0);
-
-    glUseProgram(shaders[BLUR_RGB_X]);
-    glUniform1i(glGetUniformLocation(shaders[BLUR_RGB_X], "input_tex"), 0);
-    glUseProgram(0);
-
-    glUseProgram(shaders[BLUR_RGB_Y]);
-    glUniform1i(glGetUniformLocation(shaders[BLUR_RGB_Y], "input_tex"), 0);
-    glUseProgram(0);
-
 }
 
+// -----------------
+
+
+void Renderer::init_blend_shader()
+{
+    glUseProgram(shaders[BLEND]);
+    glUniform1i(glGetUniformLocation(shaders[BLEND], "input_tex1"), 0);
+    glUniform1i(glGetUniformLocation(shaders[BLEND], "input_tex2"), 1);
+
+    glUseProgram(0);
+}
 // -----------------
 
 void Renderer::draw_tweak_bar()
