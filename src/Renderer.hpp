@@ -32,6 +32,12 @@ enum render_mode {
     SSAO_MODE
 };
 
+enum filter_type {
+    GAUSSIAN_RED_5,
+    GAUSSIAN_RGB_5,
+    UNIFORM_RED_5,
+    UNIFORM_RGB_5
+};
 
 class Renderer
 {
@@ -65,17 +71,15 @@ private:
       FLAT_TEXTURE,
       SSAO,
       SSAO_BLUR, // Remove later. Maybe rename to BROKEN_BLUR_XY
-      BLUR_RED_X,
-      BLUR_RED_Y,
-      BLUR_RGB_X,
-      BLUR_RGB_Y,
+      BLUR_RED_5,
+      BLUR_RGB_5,
       SHOW_RGB_COMPONENT,
       SHOW_ALPHA_COMPONENT,
       SHOW_SSAO
     };
 
     render_mode mode;
-    GLuint shaders[14];
+    GLuint shaders[12];
     GLuint g_buffer, ssao_fbo, ping_pong_fbo_red, ping_pong_fbo_rgb;
     GLuint g_position, g_normal_shininess, g_albedo_specular, ssao_tex, ping_pong_tex_red, ping_pong_tex_rgb;
     GLuint quad_vao, quad_vbo;
@@ -124,9 +128,10 @@ private:
     void ssao_pass();
     void create_ssao_samples();
 
-    void filter_pass(GLuint source_tex, GLuint target_fbo, GLuint shader);
-    void blur_red_texture(GLuint source_tex, GLuint target_fbo, int iterations);
-    void blur_rgb_texture(GLuint source_tex, GLuint target_fbo, int iterations);
+    GLuint upload_filter(filter_type ft);
+    void filter_pass(GLuint source_tex, GLuint target_fbo);
+    void blur_red_texture(GLuint source_tex, GLuint target_fbo, filter_type ft, int iterations);
+    void blur_rgb_texture(GLuint source_tex, GLuint target_fbo, filter_type ft, int iterations);
 
     void geometry_pass();
     void render_g_position();
