@@ -76,13 +76,15 @@ private:
 
     render_mode mode;
     GLuint shaders[14];
-    GLuint g_buffer, ssao_fbo, ping_pong_fbo_red, ping_pong_fbo_rgb;
-    GLuint g_position, g_normal_shininess, g_albedo_specular, ssao_tex, ping_pong_tex_red, ping_pong_tex_rgb;
+    // Frame buffers
+    GLuint g_buffer, ssao_fbo, post_proc_fbo, ping_pong_fbo_red, ping_pong_fbo_rgb;
+    // Textures
+    GLuint g_position, g_normal_shininess, g_albedo_specular, ssao_tex, lighting_tex, bloom_tex, ping_pong_tex_red, ping_pong_tex_rgb;
     GLuint quad_vao, quad_vbo;
     glm::mat4 w2v_matrix;
     Model *sphere, *skybox;
 
-
+    // SSAO globals
     GLuint noise_texture; // Really small and tiled across the screen
     std::vector<glm::vec3> ssao_kernel;
     std::vector<glm::vec3> ssao_noise;
@@ -103,6 +105,7 @@ private:
     glm::vec3 cam_pos;
 
     void init_g_buffer();
+    void init_post_proc_fbo();
     void init_ssao();
     void init_ping_pong_fbos();
     void init_quad();

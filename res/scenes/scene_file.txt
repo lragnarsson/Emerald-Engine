@@ -53,15 +53,15 @@ res/models/sponza/sponza.obj 0 0 0 | 0 0 0 | 0.1 | -1 0 0
 
 # lightswith fixes positions
 res/models/sphere/sphere.obj 0 0 0 | 50 5 -1 | 0.5 | -1 0 | 1
-0 0 0 | 1 1 1
+0 0 0 | 3 3 3
 res/models/sphere/sphere.obj 0 0 0 | -100 20 50 | 0.5 | -1 0 | 1
-0 0 0 | 1 1 1
+0 0 0 | 3 3 3
 res/models/sphere/sphere.obj 0 0 0 | -100 20 -50 | 0.5 | -1 0 | 1
-0 0 0 | 1 1 1
+0 0 0 | 3 3 3
 res/models/sphere/sphere.obj 0 0 0 | 100 20 -50 | 0.5 | -1 0 | 1
-0 0 0 | 1 1 1
+0 0 0 | 3 3 3
 res/models/sphere/sphere.obj 0 0 0 | 100 20 50 | 0.5 | -1 0 | 1
-0 0 0 | 1 1 1
+0 0 0 | 3 3 3
 
 # lightsalong first spline
 res/models/sphere/sphere.obj 0 0 0 | 1 1 1 | 0.5 | 0 0 | 1

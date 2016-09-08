@@ -10,10 +10,13 @@ void Renderer::init()
     shaders[FLAT_TEXTURE] = load_shaders("build/shaders/flat_texture.vert", "build/shaders/flat_texture.frag");
     shaders[SSAO] = load_shaders("build/shaders/ssao.vert", "build/shaders/ssao.frag");
     shaders[SSAO_BLUR] = load_shaders("build/shaders/ssao_blur.vert", "build/shaders/ssao_blur.frag");
-    shaders[BLUR_RED_X] = load_shaders("build/shaders/blur.vert", "build/shaders/blur_red_x.frag");
+
+    /* TEMP
+shaders[BLUR_RED_X] = load_shaders("build/shaders/blur.vert", "build/shaders/blur_red_x.frag");
     shaders[BLUR_RED_Y] = load_shaders("build/shaders/blur.vert", "build/shaders/blur_red_y.frag");
     shaders[BLUR_RGB_X] = load_shaders("build/shaders/blur.vert", "build/shaders/blur_rgb_x.frag");
     shaders[BLUR_RGB_Y] = load_shaders("build/shaders/blur.vert", "build/shaders/blur_rgb_y.frag");
+    */
     shaders[SHOW_RGB_COMPONENT] = load_shaders("build/shaders/show_rgb_component.vert",
                                                "build/shaders/show_rgb_component.frag");
     shaders[SHOW_ALPHA_COMPONENT] = load_shaders("build/shaders/show_alpha_component.vert",
@@ -23,6 +26,7 @@ void Renderer::init()
 
 
     init_g_buffer();
+    init_post_proc_fbo();
     init_quad();
     init_ssao();
     init_rgb_component_shader();
@@ -159,6 +163,8 @@ void Renderer::render_deferred()
         ssao_pass();
     }
 
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, post_proc_fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[DEFERRED]);
 
@@ -177,11 +183,26 @@ void Renderer::render_deferred()
 
     /* RENDER FLAT OBJECTS WITH DEPTH BUFFER */
     glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, post_proc_fbo);
     glBlitFramebuffer(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     render_flat();
 
+    // Do bloom shit
+
+    // TEMP: only show bloom result
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[SHOW_RGB_COMPONENT]);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, bloom_tex);
+
+
+    // Render quad
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    // END TEMP
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindVertexArray(0);
     glUseProgram(0);
 }
@@ -800,6 +821,54 @@ void Renderer::init_g_buffer()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+// -----------------
+
+void Renderer::init_post_proc_fbo()
+{
+    glDisable(GL_BLEND);
+    glGenFramebuffers(1, &post_proc_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, post_proc_fbo);
+    
+    /* Lighting buffer. Contains shaded light from deferred shader. */
+    glGenTextures(1, &lighting_tex);
+    glBindTexture(GL_TEXTURE_2D, lighting_tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, lighting_tex, 0);
+    
+    
+    /* Bloom buffer */
+    glGenTextures(1, &bloom_tex);
+    glBindTexture(GL_TEXTURE_2D, bloom_tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bloom_tex, 0);
+
+    
+    GLuint attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    glDrawBuffers(2, attachments);
+
+    /* Attach a depth buffer */
+    GLuint depth_buffer;
+    glGenRenderbuffers(1, &depth_buffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::ostringstream error_msg;
+        error_msg << "GL enum: " << glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        Error::throw_error(Error::renderer_init_fail, error_msg.str());
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 // -----------------
 
 void Renderer::init_rgb_component_shader()
