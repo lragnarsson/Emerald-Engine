@@ -352,7 +352,7 @@ void Renderer::ssao_pass()
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     if (smooth_ssao) {
-        blur_red_texture(ssao_tex, ssao_fbo, 5);
+        blur_red_texture(ssao_tex, ssao_fbo, 1);
     }
 
     for (GLuint i = 0; i < 3; i++) {
