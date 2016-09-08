@@ -11,6 +11,7 @@ struct Light {
 in vec2 TexCoord;
 out vec4 OutColor;
 
+
 uniform sampler2D g_position;
 uniform sampler2D g_normal_shininess;
 uniform sampler2D g_albedo_specular;
@@ -39,7 +40,7 @@ void main()
                 float distance = length(lights[i].position - position);
                 float attenuation = 1.0 / (_ATT_CON_ + _ATT_LIN_ * distance + _ATT_QUAD_ * distance * distance);
                 vec3 light_dir = normalize(lights[i].position - position);
-                
+
                 // Diffuse
                 float d = max(dot(normalize(normal), light_dir), 0.0);
                 vec3 diffuse_light = occlusion * d * lights[i].color * albedo;
