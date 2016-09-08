@@ -10,13 +10,11 @@ void Renderer::init()
     shaders[FLAT_TEXTURE] = load_shaders("build/shaders/flat_texture.vert", "build/shaders/flat_texture.frag");
     shaders[SSAO] = load_shaders("build/shaders/ssao.vert", "build/shaders/ssao.frag");
     shaders[SSAO_BLUR] = load_shaders("build/shaders/ssao_blur.vert", "build/shaders/ssao_blur.frag");
-
-    /* TEMP
-shaders[BLUR_RED_X] = load_shaders("build/shaders/blur.vert", "build/shaders/blur_red_x.frag");
+    shaders[BLUR_RED_X] = load_shaders("build/shaders/blur.vert", "build/shaders/blur_red_x.frag");
     shaders[BLUR_RED_Y] = load_shaders("build/shaders/blur.vert", "build/shaders/blur_red_y.frag");
     shaders[BLUR_RGB_X] = load_shaders("build/shaders/blur.vert", "build/shaders/blur_rgb_x.frag");
     shaders[BLUR_RGB_Y] = load_shaders("build/shaders/blur.vert", "build/shaders/blur_rgb_y.frag");
-    */
+
     shaders[SHOW_RGB_COMPONENT] = load_shaders("build/shaders/show_rgb_component.vert",
                                                "build/shaders/show_rgb_component.frag");
     shaders[SHOW_ALPHA_COMPONENT] = load_shaders("build/shaders/show_alpha_component.vert",
