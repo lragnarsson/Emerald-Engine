@@ -19,8 +19,8 @@ void Renderer::init()
                                                  "build/shaders/show_alpha_component.frag");
     shaders[SHOW_SSAO] = load_shaders("build/shaders/identity.vert",
                                       "build/shaders/show_red_component.frag");
-    shaders[BLEND] = load_shaders("build/shaders/identity.vert",
-                                  "build/shaders/blend.frag");
+    shaders[HDR_BLOOM] = load_shaders("build/shaders/identity.vert",
+                                      "build/shaders/hdr_bloom.frag");
 
 
     init_g_buffer();
@@ -31,7 +31,7 @@ void Renderer::init()
     init_rgb_component_shader();
     init_alpha_component_shader();
     init_blur_shaders();
-    init_blend_shader();
+    init_hdr_bloom_shader();
     init_ping_pong_fbos();
 
     sphere = new Model("res/models/sphere/sphere.obj");
@@ -52,7 +52,7 @@ void Renderer::render(const Camera &camera)
         render_skybox(camera);
         break;
     case DEFERRED_MODE:
-        render_deferred();
+        render_deferred(camera);
         break;
     case POSITION_MODE:
         render_g_position();
@@ -148,9 +148,9 @@ void Renderer::upload_camera_uniforms(const Camera &camera)
 
 // --------------------------
 
-void Renderer::render_deferred()
+void Renderer::render_deferred(const Camera &camera)
 {
-    /* GEOMETRY PASS */
+    // Geometry pass
     geometry_pass();
 
     // SSAO PASS
@@ -172,42 +172,20 @@ void Renderer::render_deferred()
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, ssao_tex);
 
-    // Render quad
+    // Render deferred shading stage to quad:
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    /* RENDER FLAT OBJECTS WITH DEPTH BUFFER */
+    // Blit depth buffer from g-buffer:
     glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, hdr_fbo);
     glBlitFramebuffer(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+    // Draw flat objects and skybox with forward shading:
     render_flat();
+    render_skybox(camera);
 
-    blur_rgb_texture(bright_tex, post_proc_tex, post_proc_fbo, GAUSSIAN_RGB_11, 3);
-
-    // Show blurred bright spots:
-    /*glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(shaders[SHOW_RGB_COMPONENT]);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, post_proc_tex);*/
-
-    // Blend blurred glow with normal color.
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(shaders[BLEND]);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, color_tex);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, post_proc_tex);
-
-    glUniform1f(glGetUniformLocation(shaders[BLEND], "alpha"), 1.0f);
-    glUniform1f(glGetUniformLocation(shaders[BLEND], "beta"), 1.0f);
-    glUniform1f(glGetUniformLocation(shaders[BLEND], "exposure"), 0.3f);
-
-    // Render quad
-    glBindVertexArray(quad_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    // END TEMP
+    post_processing();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindVertexArray(0);
@@ -294,6 +272,41 @@ void Renderer::render_flat()
     }
 }
 
+// --------------------------
+
+void Renderer::post_processing()
+{
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, color_tex);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    // Blur overexposed areas to cause bloom:
+    blur_rgb_texture(bright_tex, post_proc_tex, post_proc_fbo, GAUSSIAN_RGB_11, 3);
+
+    // Show bloom buffer:
+    /*glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[SHOW_RGB_COMPONENT]);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, post_proc_tex);*/
+
+    // Add bloom to original image and draw to screen quad:
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[HDR_BLOOM]);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, color_tex);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, post_proc_tex);
+
+    glUniform1f(glGetUniformLocation(shaders[HDR_BLOOM], "exposure"), 0.4f);
+
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
+// --------------------------
 
 inline GLfloat lerp(GLfloat a, GLfloat b, GLfloat f)
 {
@@ -1010,11 +1023,11 @@ void Renderer::init_blur_shaders()
 // -----------------
 
 
-void Renderer::init_blend_shader()
+void Renderer::init_hdr_bloom_shader()
 {
-    glUseProgram(shaders[BLEND]);
-    glUniform1i(glGetUniformLocation(shaders[BLEND], "input_tex1"), 0);
-    glUniform1i(glGetUniformLocation(shaders[BLEND], "input_tex2"), 1);
+    glUseProgram(shaders[HDR_BLOOM]);
+    glUniform1i(glGetUniformLocation(shaders[HDR_BLOOM], "input_tex1"), 0);
+    glUniform1i(glGetUniformLocation(shaders[HDR_BLOOM], "input_tex2"), 1);
 
     glUseProgram(0);
 }

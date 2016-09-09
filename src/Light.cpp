@@ -11,7 +11,7 @@ unsigned int Light::next_to_turn_on = 0;
 Light::Light(const glm::vec3 world_coord, const glm::vec3 color)
 {
     this->position = world_coord;
-    this->color = 5.f * color;
+    this->color = 3.f * color;
     this->active_light = true;
 
     // Check if there are free places in the vector for lights

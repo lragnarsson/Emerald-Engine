@@ -78,7 +78,7 @@ private:
       SHOW_RGB_COMPONENT,
       SHOW_ALPHA_COMPONENT,
       SHOW_SSAO,
-      BLEND
+      HDR_BLOOM
     };
 
     render_mode mode;
@@ -122,15 +122,16 @@ private:
     void init_alpha_component_shader();
     void init_show_ssao_shader();
     void init_blur_shaders();
-    void init_blend_shader();
+    void init_hdr_bloom_shader();
 
     void upload_camera_uniforms(const Camera &camera);
     void draw_tweak_bar();
 
-    void render_deferred();
+    void render_deferred(const Camera &camera);
     void render_forward();
     void render_flat();
     void render_bounding_spheres();
+    void post_processing();
 
     void clear_ssao();
     void ssao_pass();

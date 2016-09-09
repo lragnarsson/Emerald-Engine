@@ -13,7 +13,6 @@ in vec2 TexCoord;
 layout (location = 0) out vec4 OutColor;
 layout (location = 1) out vec4 BrightColor;
 
-
 uniform sampler2D g_position;
 uniform sampler2D g_normal_shininess;
 uniform sampler2D g_albedo_specular;
@@ -23,8 +22,10 @@ uniform vec3 camPos;
 
 uniform Light lights[_MAX_LIGHTS_];
 
+
 void main()
 {
+    const vec3 eye_colors = vec3(0.2126, 0.7152, 0.0722);
     vec3 position = texture(g_position, TexCoord).rgb;
     vec3 normal = texture(g_normal_shininess, TexCoord).rgb;
     float shininess = texture(g_normal_shininess, TexCoord).a;
@@ -34,7 +35,7 @@ void main()
     vec3 view_direction = normalize(camPos - position);
 
     // Ambient
-    vec3 light = 0.05 * occlusion * albedo;
+    vec3 light = 0.03 * occlusion * albedo;
 
     for(int i=0; i < _MAX_LIGHTS_; i++) {
         if (lights[i].active_light)
@@ -47,9 +48,10 @@ void main()
                 float d = max(dot(normalize(normal), light_dir), 0.0);
                 vec3 diffuse_light = occlusion * d * lights[i].color * albedo;
 
-                // Specular
-                vec3 reflection = normalize(reflect(-light_dir, normal));
-                float s = specular * pow(max(dot(view_direction, reflection), 0.0), shininess);
+                // Blinn-Phon Specular
+                vec3 halfway_dir = normalize(light_dir + view_direction);
+                float s = pow(max(dot(normal, halfway_dir), 0.0), shininess);
+
                 vec3 specular_light = s * lights[i].color * albedo;
 
                 light += attenuation * (diffuse_light + specular_light);
@@ -60,7 +62,7 @@ void main()
 
     /* Filter out parts above 1 in brightness */
     // Human eye is more sensitive to red and green than blue. learnopengl.com
-    float brightness = dot(OutColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    float brightness = dot(OutColor.rgb, eye_colors);
     if (brightness > 1.0)
         BrightColor = vec4(OutColor.rgb, 1.0);
     else
