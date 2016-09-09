@@ -21,10 +21,10 @@ void main()
             kernel[4] * texture(input_tex, TexCoord + vec2(2*texel_size.x, 0));
     } else {
         result +=
-            kernel[0] * texture(input_tex, TexCoord - vec2(0, 2*texel_size.x)) +
-            kernel[1] * texture(input_tex, TexCoord - vec2(0, texel_size.x)) +
-            kernel[3] * texture(input_tex, TexCoord + vec2(0, texel_size.x)) +
-            kernel[4] * texture(input_tex, TexCoord + vec2(0, 2*texel_size.x));
+            kernel[0] * texture(input_tex, TexCoord - vec2(0, 2*texel_size.y)) +
+            kernel[1] * texture(input_tex, TexCoord - vec2(0, texel_size.y)) +
+            kernel[3] * texture(input_tex, TexCoord + vec2(0, texel_size.y)) +
+            kernel[4] * texture(input_tex, TexCoord + vec2(0, 2*texel_size.y));
     }
 
     frag_color = result.r / magnitude;
