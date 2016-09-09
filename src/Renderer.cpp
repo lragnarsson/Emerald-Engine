@@ -397,7 +397,7 @@ void Renderer::ssao_pass()
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     if (smooth_ssao) {
-        blur_red_texture(ssao_tex, ssao_tex, ssao_fbo, UNIFORM_RED_5, 2);
+        blur_red_texture(ssao_tex, ssao_tex, ssao_fbo, UNIFORM_RED_5, 1);
     }
 
     for (GLuint i = 0; i < 3; i++) {
@@ -414,9 +414,7 @@ GLuint Renderer::upload_filter(filter_type ft)
 {
     GLfloat gaussian[5] = {1, 4, 6, 4, 1};
     GLfloat uniform[5] = {1, 1, 1, 1, 1};
-    //GLfloat gaussian_big[11] = {0.090841, 0.090882, 0.090914, 0.090936, 0.09095, 0.090955, 0.09095, 0.090936, 0.090914, 0.090882, 0.090841};
     GLfloat gaussian_big[11] = {0.090154, 0.090606, 0.090959, 0.091212, 0.091364, 0.091414, 0.091364, 0.091212, 0.090959, 0.090606, 0.090154};
-    //GLfloat gaussian_big[11] = {0.084264, 0.088139, 0.091276, 0.093585, 0.094998, 0.095474, 0.094998, 0.093585, 0.091276, 0.088139, 0.084264};
 
     switch (ft) {
     case GAUSSIAN_RED_5:

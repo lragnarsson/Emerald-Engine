@@ -7,9 +7,6 @@ uniform sampler2D tex_noise;
 
 uniform mat4 view;
 uniform float kernel_radius;
-
-const int MAX_N_SAMPELS = 256;
-
 uniform vec3 samples[256]; // Kernel samples from surrounding screen space geometry
 uniform mat4 projection;
 
