@@ -106,6 +106,7 @@ private:
     double fps;
     unsigned last_time;
     void count_fps();
+
     // Copied camera spline variables
     float cam_spline_move_para, cam_spline_look_para;
     int cam_spline_move_id, cam_spline_look_id, n_lightsources;

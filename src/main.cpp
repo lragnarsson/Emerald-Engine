@@ -61,6 +61,13 @@ void cull_turned_off_flat_objects()
 
 // --------------------------
 
+void cull_light_sources()
+{
+
+}
+
+// --------------------------
+
 void run()
 {
     renderer.running = true;
@@ -81,7 +88,8 @@ void run()
         animate_models();
         cull_models();
         cull_turned_off_flat_objects();
-        
+        Light::cull_light_sources(camera);
+
         renderer.render(camera);
 
         SDL_GL_SwapWindow(main_window);
@@ -101,7 +109,6 @@ void print_welcome()
     welcome += std::string("T           = Toggle tweakbar display\n");
     welcome += std::string("X,Z         = Interact with lights\n");
     welcome += std::string("\nA complete description of all keyboard commands can be found in doc/keyboard_command_reference.md\n");
-
     std::cout << welcome.c_str() << std::endl;
 }
 
@@ -115,14 +122,14 @@ int main(int argc, char *argv[])
     init_input();
 
     print_welcome();
-    
+
     renderer.init();
     renderer.init_uniforms(camera);
 
     Loader::load_scene(Parser::get_scene_file_from_command_line(argc, argv), &camera);
     renderer.init_tweak_bar(&camera);
 
-    
+
     Light::upload_all();
     //    Light::next_to_turn_on = 0;
 

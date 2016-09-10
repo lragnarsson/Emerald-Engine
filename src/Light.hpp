@@ -14,12 +14,17 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <cmath>
+#include "Camera.hpp"
+
 
 class Light
 {
 public:
     static void upload_all();
     static GLuint shader_program;
+
+    float bounding_sphere_radius = -1.f;
 
     Light(const glm::vec3 world_coord, const glm::vec3 color);
     ~Light();
@@ -30,6 +35,8 @@ public:
     glm::vec3 get_pos();
     void move_to(glm::vec3 world_coord); // does not upload data
     bool is_active() {return this->active_light;}
+    static uint* get_number_of_culled_lightsources() {return &culled_number;}
+    static void cull_light_sources(Camera &camera);
     static int get_number_of_lightsources() {return lights.size();}
     static void turn_off_all_lights();
     static void turn_on_one_lightsource();
@@ -37,11 +44,13 @@ public:
 private:
     unsigned int id;
     glm::vec3 position, color;
-    GLboolean active_light;
+    GLboolean active_light, inside_frustum;
 
-    static unsigned int next_to_turn_on;
+    static unsigned int next_to_turn_on, culled_number;
     static std::vector<Light*> lights;
     static std::vector<unsigned int> free_ids;
+
+    void generate_bounding_sphere();
 };
 
 

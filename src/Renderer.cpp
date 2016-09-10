@@ -1072,7 +1072,7 @@ void Renderer::init_tweak_bar(Camera* camera)
 
     this->n_lightsources = Light::get_number_of_lightsources();
     TwAddVarRW(tweak_bar, "Number of lights", TW_TYPE_INT32, &this->n_lightsources , "label='Number of lights' help='Total number of lights in scene'");
-
+    TwAddVarRW(tweak_bar, "Number of culled lights", TW_TYPE_INT32, Light::get_number_of_culled_lightsources(), "label='Culled lights' help='Lights with bounding sphere outside of viewing frustum.'");
 }
 
 // ---------------
