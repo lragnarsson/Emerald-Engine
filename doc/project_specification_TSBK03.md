@@ -24,17 +24,21 @@ There will be no game-like content and there will also not be any form of editor
 
 ### Will do features
 
-###### Proceedurally generated grass
-Grass generated in geometry shader stage of rendering. The grass should be generated with some form of distance-based level of detail.
-###### Shadow mapping
-Render scene with shadow mapping. Each moving light source needs to be re-rendered ''live''.
+###### Terrain Generation From a Heightmap
+By loading an image or generating one at startup.
+###### Proceedurally Generated Grass
+Grass generated in the geometry shader stage of rendering. The grass should be generated with some form of distance-based level of detail.
+###### Grass Animation
+Using a gradient map (normal map) such as the ones used for water waves.
 ###### Performance optimizations of Emerald
 In order to run this demo on our laptops, we need to do some optimizations to EmeraldEngine, as well as be able to disable GPU-intensive features dynamically. 
 
-A scene will be created using these techniques. The scene will contain a base geometry, along with som models.
+A scene will be created using these techniques. The scene will contain terrain geometry, along with som models.
 
 ### Might do features
 
-* Different movement patterns for procedually generated grass
-* Different level of detail algorithms
+* Shadow mapping
+Render scene with shadow mapping. Each light source needs to be re-rendered ''live''.
 
+* Different level of detail algorithms
+For both terrain and grass.
