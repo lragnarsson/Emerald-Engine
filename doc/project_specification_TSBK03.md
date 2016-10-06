@@ -30,15 +30,23 @@ By loading an image or generating one at startup.
 Grass generated in the geometry shader stage of rendering. The grass should be generated with some form of distance-based level of detail.
 ###### Grass Animation
 Using a gradient map (normal map) such as the ones used for water waves.
+###### Directional Light Source with Shadows
+A sun which casts shadows using shadow maps
 ###### Performance optimizations of Emerald
-In order to run this demo on our laptops, we need to do some optimizations to EmeraldEngine, as well as be able to disable GPU-intensive features dynamically. 
+In order to run this demo on our laptops, we need to do some optimizations to EmeraldEngine, as well as be able to disable GPU-intensive features at run time. There are a few obvious things which can be investigated including:
+
+* View space shading
+* Light culling on the GPU
+* More efficient light source updating
+* LOD for models
 
 A scene will be created using these techniques. The scene will contain terrain geometry, along with som models.
 
 ### Might do features
 
-* Shadow mapping
-Render scene with shadow mapping. Each light source needs to be re-rendered ''live''.
+* Shadow Maps for Point Lights
+Using cubemaps with depth information for each light source
 
 * Different level of detail algorithms
 For both terrain and grass.
+
