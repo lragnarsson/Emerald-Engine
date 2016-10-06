@@ -44,9 +44,9 @@ A scene will be created using these techniques. The scene will contain terrain g
 
 ### Might do features
 
-* Shadow Maps for Point Lights
+###### Shadow Maps for Point Lights
 Using cubemaps with depth information for each light source
 
-* Different level of detail algorithms
+###### Different level of detail algorithms
 For both terrain and grass.
 
