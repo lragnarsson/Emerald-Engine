@@ -46,7 +46,8 @@ A scene will be created using these techniques. The scene will contain terrain g
 
 ###### Shadow Maps for Point Lights
 Using cubemaps with depth information for each light source
-
+###### Grass Animation Based on Nearby Objects / Collision Detection
+Investigate and implement a way to repell the grass from nearby objects
 ###### Different level of detail algorithms
 For both terrain and grass.
 
