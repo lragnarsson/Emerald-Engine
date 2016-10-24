@@ -194,7 +194,6 @@ void Renderer::render_deferred()
     Profiler::stop_timer("Deferred pass");
 
     /* RENDER FLAT OBJECTS WITH DEPTH BUFFER */
-    Profiler::start_timer("Flat objects pass");
     glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glBlitFramebuffer(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
@@ -203,7 +202,6 @@ void Renderer::render_deferred()
 
     glBindVertexArray(0);
     glUseProgram(0);
-    Profiler::stop_timer("Flat objects pass");
 
     Profiler::stop_timer("Deferred rendering");
 }
@@ -258,6 +256,7 @@ void Renderer::render_forward()
 
 void Renderer::render_flat()
 {
+    Profiler::start_timer("Flat objects pass");
     glUseProgram(shaders[FLAT]);
     for (auto model : Model::get_loaded_flat_models()) {
         if (!model->draw_me) {
@@ -282,6 +281,7 @@ void Renderer::render_flat()
             glBindVertexArray(0);
         }
     }
+    Profiler::stop_timer("Flat objects pass");
 }
 
 
