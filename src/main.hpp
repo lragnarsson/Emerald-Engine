@@ -9,10 +9,7 @@
 #include "Parser.hpp"
 #include "CR_Spline.hpp"
 #include "Animation_Path.hpp"
-
-#ifdef PROFILING
 #include "Profiler.hpp"
-#endif
 
 SDL_Window* main_window;
 SDL_GLContext main_context;

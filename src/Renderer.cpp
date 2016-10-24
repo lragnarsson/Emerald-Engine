@@ -161,9 +161,7 @@ unsigned Renderer::get_time_diff()
 
 void Renderer::render_deferred()
 {
-#ifdef PROFILING
     Profiler::start_timer("Deferred rendering");
-#endif
     /* GEOMETRY PASS */
     geometry_pass();
 
@@ -202,9 +200,7 @@ void Renderer::render_deferred()
     glBindVertexArray(0);
     glUseProgram(0);
 
-#ifdef PROFILING
     Profiler::stop_timer("Deferred rendering");
-#endif
 }
 
 // --------------------------

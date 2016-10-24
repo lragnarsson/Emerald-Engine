@@ -14,11 +14,13 @@ public:
     ~Profiler();
     static void start_timer(std::string name);
     static void stop_timer(std::string name);
+    static void print_results();
 private:
     struct perf_counter {
         bool started = false;
         Clock::time_point start_time;
         std::chrono::duration<double> total_time;
+        std::chrono::duration<double> max_time;
         unsigned nr_runs = 0;
     };
     static std::map <std::string, perf_counter> counters;
