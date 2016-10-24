@@ -19,25 +19,25 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
         if (!camera.can_move_free()) {
             camera.toggle_free_move();
         }
-        camera.set_pos(camera.get_pos() + camera.speed * camera.front);
+        camera.set_pos(camera.get_pos() + camera.speed * renderer.get_time_diff() * camera.front);
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_s)]) {
         if (!camera.can_move_free()) {
             camera.toggle_free_move();
         }
-        camera.set_pos(camera.get_pos() - camera.speed * camera.front);
+        camera.set_pos(camera.get_pos() - camera.speed * renderer.get_time_diff() * camera.front);
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_a)]) {
         if (!camera.can_move_free()) {
             camera.toggle_free_move();
         }
-        camera.set_pos(camera.get_pos() - glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed);
+        camera.set_pos(camera.get_pos() - glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed * renderer.get_time_diff());
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_d)]) {
         if (!camera.can_move_free()) {
             camera.toggle_free_move();
         }
-        camera.set_pos(camera.get_pos() + glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed);
+        camera.set_pos(camera.get_pos() + glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed * renderer.get_time_diff());
     }
 
     while (SDL_PollEvent(&event)) {
@@ -123,7 +123,7 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
     }
 }
 
-void handle_mouse_input(Camera &camera)
+void handle_mouse_input(Camera &camera, Renderer renderer)
 {
     int dx,dy;
     unsigned int button_state;
@@ -134,7 +134,7 @@ void handle_mouse_input(Camera &camera)
     if (!camera.can_look_free() && distance > 2) {
         camera.toggle_free_look();
     }
-    camera.front = glm::rotate(camera.front, -dy*camera.rot_speed, camera.right);    // pitch
-    camera.front = glm::normalize(glm::rotateY(camera.front, -dx*camera.rot_speed)); // yaw
+    camera.front = glm::rotate(camera.front, -dy*camera.rot_speed*renderer.get_time_diff(), camera.right);    // pitch
+    camera.front = glm::normalize(glm::rotateY(camera.front, -dx*camera.rot_speed*renderer.get_time_diff())); // yaw
     camera.right = glm::normalize(glm::cross(camera.front, camera.up));
 }
