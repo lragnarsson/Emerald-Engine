@@ -32,16 +32,16 @@ void cull_models()
 
 void animate_models()
 {
-    float elapsed_time = 0.1f; // Should be calculated properly so it depends on FPS
     // TODO: Run in parallel
+    float speed = 0.002;
     for (auto model : Model::get_loaded_models()) {
         if (model->has_animation_path()) {
-            model->move_along_path(elapsed_time);
+            model->move_along_path(renderer.get_time_diff()*speed);
         }
     }
     for (auto model : Model::get_loaded_flat_models()) {
         if (model->has_animation_path()) {
-            model->move_along_path(elapsed_time);
+            model->move_along_path(renderer.get_time_diff()*speed);
         }
     }
 }
