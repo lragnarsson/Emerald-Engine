@@ -1,4 +1,5 @@
 #ifndef PROFILER_HPP
+#define PROFILER_HPP
 #include <string>
 #include <map>
 #include <iostream>
