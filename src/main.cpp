@@ -32,6 +32,7 @@ void cull_models()
 
 void animate_models()
 {
+    Profiler::start_timer("Animate models");
     // TODO: Run in parallel
     float speed = 0.002;
     for (auto model : Model::get_loaded_models()) {
@@ -44,6 +45,7 @@ void animate_models()
             model->move_along_path(renderer.get_time_diff()*speed);
         }
     }
+    Profiler::stop_timer("Animate models");
 }
 
 
