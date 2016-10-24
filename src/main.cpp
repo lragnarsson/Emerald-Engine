@@ -112,6 +112,7 @@ void print_welcome()
     welcome += std::string("F           = Follow path with camera\n");
     welcome += std::string("T           = Toggle tweakbar display\n");
     welcome += std::string("X,Z         = Interact with lights\n");
+    welcome += std::string("P           = Print profiling numbers\n");
     welcome += std::string("\nA complete description of all keyboard commands can be found in doc/keyboard_command_reference.md\n");
 
     std::cout << welcome.c_str() << std::endl;
