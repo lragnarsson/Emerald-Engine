@@ -149,9 +149,9 @@ void Renderer::upload_camera_uniforms(const Camera &camera)
 
 // ---------------------------
 
-unsigned Renderer::get_time_diff()
+float Renderer::get_time_diff()
 {
-    return (float)this->time_diff;
+    return static_cast<float>(this->time_diff);
 }
 
 

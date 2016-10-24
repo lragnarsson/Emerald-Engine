@@ -66,7 +66,7 @@ void run()
     renderer.running = true;
     while (renderer.running) {
         handle_keyboard_input(camera, renderer);
-        handle_mouse_input(camera);
+        handle_mouse_input(camera, renderer);
         camera.update_culling_frustum();
 
 
