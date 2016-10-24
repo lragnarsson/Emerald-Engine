@@ -55,6 +55,7 @@ public:
     void toggle_ssao_smoothing();
     void toggle_tweak_bar();
     void copy_tweak_bar_cam_values(const Camera& camera);
+    unsigned get_time_diff();
 
 private:
     enum shader {
@@ -78,6 +79,11 @@ private:
     glm::mat4 w2v_matrix;
     Model *sphere, *skybox;
 
+    // Renderer keeps track of time so animations are time based
+    unsigned last_timestamp = 0;
+    unsigned time_diff = 0;
+    void update_time();
+
 
     GLuint noise_texture; // Really small and tiled across the screen
     std::vector<glm::vec3> ssao_kernel;
@@ -91,7 +97,6 @@ private:
     TwBar* tweak_bar;
     bool use_tweak_bar = false;
     double fps;
-    unsigned last_time;
     void count_fps();
     // Copied camera spline variables
     float cam_spline_move_para, cam_spline_look_para;

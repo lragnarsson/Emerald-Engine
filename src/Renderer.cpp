@@ -1,6 +1,5 @@
 #include "Renderer.hpp"
 
-
 void Renderer::init()
 {
     shaders[FORWARD] = load_shaders("build/shaders/forward.vert", "build/shaders/forward.frag");
@@ -65,13 +64,23 @@ void Renderer::render(const Camera &camera)
     if (draw_bounding_spheres) {
         render_bounding_spheres();
     }
-
+    
     if (use_tweak_bar) {
         count_fps();
         draw_tweak_bar();
     }
+
+    update_time();
     glBindVertexArray(0);
     glUseProgram(0);
+}
+
+// -------------------------
+
+void Renderer::update_time(){
+    unsigned current_time = SDL_GetTicks();
+    time_diff = current_time - last_timestamp;
+    last_timestamp = current_time;
 }
 
 // --------------------------
@@ -136,6 +145,13 @@ void Renderer::upload_camera_uniforms(const Camera &camera)
                      1, glm::value_ptr(camera.get_pos()));
     }
     glUseProgram(0);
+}
+
+// ---------------------------
+
+unsigned Renderer::get_time_diff()
+{
+    return (float)this->time_diff;
 }
 
 
@@ -833,13 +849,11 @@ void Renderer::init_tweak_bar(Camera* camera)
 void Renderer::count_fps()
 {
     unsigned current_time = SDL_GetTicks();
-    double timediff = (current_time-last_time);
+    double timediff = (current_time-last_timestamp);
 
     if (timediff != 0) {
       fps = 1000/timediff;
     }
-
-    last_time = current_time;
 }
 
 // ----------------
