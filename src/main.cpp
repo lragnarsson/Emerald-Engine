@@ -10,6 +10,10 @@ void free_resources()
 
 void cull_models()
 {
+#ifdef PROFILING
+    Profiler::start_timer("Cull models");
+#endif
+
     // TODO: Run in parallel
     uint i = 0;
     for (auto model : Model::get_loaded_models()) {
@@ -25,14 +29,20 @@ void cull_models()
             i++;
     }
     renderer.objects_drawn = i;
+
+#ifdef PROFILING
+    Profiler::stop_timer("Cull models");
+#endif
 }
 
 
 // --------------------------
 
 void animate_models()
-{
+{   
+#ifdef PROFILING
     Profiler::start_timer("Animate models");
+#endif
     // TODO: Run in parallel
     float speed = 0.002;
     for (auto model : Model::get_loaded_models()) {
@@ -45,7 +55,9 @@ void animate_models()
             model->move_along_path(renderer.get_time_diff()*speed);
         }
     }
+#ifdef PROFILING
     Profiler::stop_timer("Animate models");
+#endif
 }
 
 
