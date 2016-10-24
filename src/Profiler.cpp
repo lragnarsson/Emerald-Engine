@@ -19,13 +19,13 @@ void Profiler::print_results(){
     for (map<string, perf_counter>::iterator it = counters.begin(); it != counters.end(); ++it ){
         perf_counter values = it->second;
         if (values.nr_runs != 0){
+            double average = chrono::duration_cast<chrono::nanoseconds>(values.total_time).count()/((double)values.nr_runs*(double)1000000);
+            double max = chrono::duration_cast<chrono::nanoseconds>(values.max_time).count()/(double)1000000;
 
             cout << "Performance counter " << it->first << " averages: " << \
-                chrono::duration_cast<chrono::nanoseconds>(\
-                    values.total_time).count()/((double)values.nr_runs*1000.f) << " ms. " \
-                << "Longest run was " << \
-                chrono::duration_cast<chrono::nanoseconds>(values.max_time).count()/(float)1000\
-                << " ms." << endl;
+                average << " ms. " \
+                "Longest run was " << \
+                max << " ms." << endl;
         }
     }
 #endif
