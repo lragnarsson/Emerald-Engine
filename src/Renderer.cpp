@@ -171,6 +171,8 @@ void Renderer::render_deferred()
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    Profiler::start_timer("Deferred pass");
     glUseProgram(shaders[DEFERRED]);
 
     glActiveTexture(GL_TEXTURE0);
@@ -189,8 +191,10 @@ void Renderer::render_deferred()
     // Render quad
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    Profiler::stop_timer("Deferred pass");
 
     /* RENDER FLAT OBJECTS WITH DEPTH BUFFER */
+    Profiler::start_timer("Flat objects pass");
     glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glBlitFramebuffer(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
@@ -199,6 +203,7 @@ void Renderer::render_deferred()
 
     glBindVertexArray(0);
     glUseProgram(0);
+    Profiler::stop_timer("Flat objects pass");
 
     Profiler::stop_timer("Deferred rendering");
 }
@@ -345,6 +350,8 @@ void Renderer::clear_ssao()
 
 void Renderer::ssao_pass()
 {
+    Profiler::start_timer("SSAO pass");
+
     glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(shaders[SSAO]);
@@ -390,6 +397,8 @@ void Renderer::ssao_pass()
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(0);
+
+    Profiler::stop_timer("SSAO pass");
 }
 
 // --------------------------
@@ -436,6 +445,8 @@ void Renderer::render_bounding_spheres()
 
 void Renderer::geometry_pass()
 {
+    Profiler::start_timer("Geometry pass");
+
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -479,6 +490,8 @@ void Renderer::geometry_pass()
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(0);
+    
+    Profiler::stop_timer("Geometry pass");
 }
 
 // --------------------------
