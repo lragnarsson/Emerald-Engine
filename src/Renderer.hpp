@@ -78,9 +78,11 @@ private:
     GLuint quad_vao, quad_vbo;
     glm::mat4 w2v_matrix;
     Model *sphere, *skybox;
+
     // Renderer keeps track of time so animations are time based
     unsigned last_timestamp = 0;
     unsigned time_diff = 0;
+    void update_time();
 
 
     GLuint noise_texture; // Really small and tiled across the screen

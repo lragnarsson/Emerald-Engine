@@ -70,13 +70,17 @@ void Renderer::render(const Camera &camera)
         draw_tweak_bar();
     }
 
-    // Set timestamp for speed in engine
+    update_time();
+    glBindVertexArray(0);
+    glUseProgram(0);
+}
+
+// -------------------------
+
+void Renderer::update_time(){
     unsigned current_time = SDL_GetTicks();
     time_diff = current_time - last_timestamp;
     last_timestamp = current_time;
-
-    glBindVertexArray(0);
-    glUseProgram(0);
 }
 
 // --------------------------
