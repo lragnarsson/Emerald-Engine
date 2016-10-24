@@ -71,6 +71,9 @@ void run()
 {
     renderer.running = true;
     while (renderer.running) {
+        // Measure rendering times
+        Profiler::start_timer("Total render time");
+
         handle_keyboard_input(camera, renderer);
         handle_mouse_input(camera);
         camera.update_culling_frustum();
@@ -91,6 +94,9 @@ void run()
         renderer.render(camera);
 
         SDL_GL_SwapWindow(main_window);
+        
+        // Stop measuring
+        Profiler::stop_timer("Total render time");
     }
 }
 

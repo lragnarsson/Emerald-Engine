@@ -21,10 +21,10 @@ void Profiler::print_results(){
         if (values.nr_runs != 0){
 
             cout << "Performance counter " << it->first << " averages: " << \
-                chrono::duration_cast<chrono::milliseconds>(\
-                    values.total_time).count()/(double)values.nr_runs << " ms. " \
+                chrono::duration_cast<chrono::nanoseconds>(\
+                    values.total_time).count()/((double)values.nr_runs*1000.f) << " ms. " \
                 << "Longest run was " << \
-                chrono::duration_cast<chrono::milliseconds>(values.max_time).count()\
+                chrono::duration_cast<chrono::nanoseconds>(values.max_time).count()/(float)1000\
                 << " ms." << endl;
         }
     }
@@ -73,6 +73,7 @@ void Profiler::stop_timer(string name)
             // Get delta for current time
             chrono::duration<double> current_time_delta = chrono::duration_cast<chrono::duration<double>>(\
                     Clock::now() - current_counter->start_time);
+
             if (current_time_delta > current_counter->max_time){
                 current_counter->max_time = current_time_delta;
             }
