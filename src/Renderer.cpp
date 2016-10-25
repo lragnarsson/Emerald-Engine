@@ -306,7 +306,7 @@ void Renderer::post_processing()
     glGenerateMipmap(GL_TEXTURE_2D);
 
     // Blur overexposed areas to cause bloom:
-    blur_rgb_texture(bright_tex, post_proc_tex, post_proc_fbo, GAUSSIAN_RGB_11, 3);
+    blur_rgb_texture(bright_tex, post_proc_tex, post_proc_fbo, GAUSSIAN_RGB_11, 2);
 
     // Show bloom buffer:
     /*glBindFramebuffer(GL_FRAMEBUFFER, 0);
