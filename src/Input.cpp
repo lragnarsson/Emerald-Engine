@@ -123,7 +123,7 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
     }
 }
 
-void handle_mouse_input(Camera &camera, Renderer renderer)
+void handle_mouse_input(Camera &camera, Renderer &renderer)
 {
     int dx,dy;
     unsigned int button_state;
