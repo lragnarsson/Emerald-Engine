@@ -10,8 +10,6 @@ void free_resources()
 
 void cull_models()
 {
-    Profiler::start_timer("Cull models");
-
     // TODO: Run in parallel
     uint i = 0;
     for (auto model : Model::get_loaded_models()) {
@@ -27,8 +25,6 @@ void cull_models()
             i++;
     }
     renderer.objects_drawn = i;
-
-    Profiler::stop_timer("Cull models");
 }
 
 
@@ -67,9 +63,40 @@ void cull_turned_off_flat_objects()
 
 // --------------------------
 
-void cull_light_sources()
+void culling()
 {
+    Profiler::start_timer("Culling");
+    cull_models();
+    cull_turned_off_flat_objects();
+    Light::cull_light_sources(camera);
+    Profiler::stop_timer("Culling");
+}
 
+// --------------------------
+
+void handle_input()
+{
+    Profiler::start_timer("Input");
+    handle_keyboard_input(camera, renderer);
+    handle_mouse_input(camera);
+    Profiler::stop_timer("Input");
+}
+
+// --------------------------
+
+void update_camera()
+{
+    Profiler::start_timer("Camera");
+    camera.update_culling_frustum();
+
+    if (!camera.can_move_free()) {
+        camera.move_along_path(0.1f);
+    }
+    if (!camera.can_look_free()) {
+        camera.move_look_point_along_path(0.1f);
+    }
+    renderer.copy_tweak_bar_cam_values(camera);
+    Profiler::stop_timer("Camera");
 }
 
 // --------------------------
@@ -80,30 +107,20 @@ void run()
     while (renderer.running) {
         Profiler::start_timer("-> Frame time");
 
-        Profiler::start_timer("Input and camera");
-        handle_keyboard_input(camera, renderer);
-        handle_mouse_input(camera);
-        camera.update_culling_frustum();
+        handle_input();
 
-        if (!camera.can_move_free()) {
-            camera.move_along_path(0.1f);
-        }
-        if (!camera.can_look_free()) {
-            camera.move_look_point_along_path(0.1f);
-        }
-        renderer.copy_tweak_bar_cam_values(camera);
-        Profiler::stop_timer("Input and camera");
+        update_camera();
 
         animate_models();
-        cull_models();
-        cull_turned_off_flat_objects();
-        Light::cull_light_sources(camera);
+
+        culling();
 
         renderer.render(camera);
-        Profiler::start_timer("swap");
+
+        Profiler::start_timer("Swap");
         SDL_GL_SwapWindow(main_window);
-        Profiler::stop_timer("swap");
-        // Stop measuring
+        Profiler::stop_timer("Swap");
+        //SDL_Delay(20);
         Profiler::stop_timer("-> Frame time");
     }
 }
