@@ -13,6 +13,7 @@ class Error
 {
 public:
     static void throw_error(const ErrorMessage& message, std::string extra_information="");
+    static void throw_warning(const ErrorMessage& message, std::string extra_information="");
 
     static const ErrorMessage display_init_fail;
     static const ErrorMessage renderer_init_fail;
@@ -30,6 +31,8 @@ public:
     static const ErrorMessage cant_load_model;
     static const ErrorMessage camera_has_no_path;
     static const ErrorMessage camera_free_mode;
+    static const ErrorMessage performance_counter_already_started;
+    static const ErrorMessage performance_counter_not_started;
 };
 
 #endif

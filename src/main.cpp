@@ -10,6 +10,8 @@ void free_resources()
 
 void cull_models()
 {
+    Profiler::start_timer("Cull models");
+
     // TODO: Run in parallel
     uint i = 0;
     for (auto model : Model::get_loaded_models()) {
@@ -25,25 +27,29 @@ void cull_models()
             i++;
     }
     renderer.objects_drawn = i;
+
+    Profiler::stop_timer("Cull models");
 }
 
 
 // --------------------------
 
 void animate_models()
-{
-    float elapsed_time = 0.1f; // Should be calculated properly so it depends on FPS
+{   
+    Profiler::start_timer("Animate models");
     // TODO: Run in parallel
+    float speed = 0.002;
     for (auto model : Model::get_loaded_models()) {
         if (model->has_animation_path()) {
-            model->move_along_path(elapsed_time);
+            model->move_along_path(renderer.get_time_diff()*speed);
         }
     }
     for (auto model : Model::get_loaded_flat_models()) {
         if (model->has_animation_path()) {
-            model->move_along_path(elapsed_time);
+            model->move_along_path(renderer.get_time_diff()*speed);
         }
     }
+    Profiler::stop_timer("Animate models");
 }
 
 
@@ -72,6 +78,9 @@ void run()
 {
     renderer.running = true;
     while (renderer.running) {
+        // Measure rendering times
+        Profiler::start_timer("Total render time");
+
         handle_keyboard_input(camera, renderer);
         handle_mouse_input(camera);
         camera.update_culling_frustum();
@@ -93,6 +102,9 @@ void run()
         renderer.render(camera);
 
         SDL_GL_SwapWindow(main_window);
+        
+        // Stop measuring
+        Profiler::stop_timer("Total render time");
     }
 }
 
@@ -108,6 +120,7 @@ void print_welcome()
     welcome += std::string("F           = Follow path with camera\n");
     welcome += std::string("T           = Toggle tweakbar display\n");
     welcome += std::string("X,Z         = Interact with lights\n");
+    welcome += std::string("P           = Print profiling numbers\n");
     welcome += std::string("\nA complete description of all keyboard commands can be found in doc/keyboard_command_reference.md\n");
     std::cout << welcome.c_str() << std::endl;
 }

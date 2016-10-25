@@ -18,6 +18,8 @@ const ErrorMessage Error::cant_load_image = {13, "Can't load image!"};
 const ErrorMessage Error::cant_load_model = {13, "Can't load model!"};
 const ErrorMessage Error::camera_has_no_path = {14, "Camera must be in free mode since it has no animation path!"};
 const ErrorMessage Error::camera_free_mode = {15, "Camera free mode error!"};
+const ErrorMessage Error::performance_counter_already_started = {16, "Performance counter already started! Counter: "};
+const ErrorMessage Error::performance_counter_not_started= {17, "Performance counter NOT started! Counter: "};
 
 
 void Error::throw_error(const ErrorMessage& message, string extra_information)
@@ -29,3 +31,16 @@ void Error::throw_error(const ErrorMessage& message, string extra_information)
   cerr << endl;
   exit(message.code);
 }
+
+// -------------
+
+
+void Error::throw_warning(const ErrorMessage& message, string extra_information)
+{
+  cerr << "Warning " << message.code << ": " << message.message;
+  if (extra_information != "") {
+    cerr << endl << extra_information;
+  }
+  cerr << endl;
+}
+

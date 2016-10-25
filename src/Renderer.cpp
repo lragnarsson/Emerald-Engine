@@ -1,6 +1,5 @@
 #include "Renderer.hpp"
 
-
 void Renderer::init()
 {
     shaders[FORWARD] = load_shaders("build/shaders/forward.vert", "build/shaders/forward.frag");
@@ -71,12 +70,26 @@ void Renderer::render(const Camera &camera)
         break;
     }
 
+    if (draw_bounding_spheres) {
+        render_bounding_spheres();
+    }
+
     if (use_tweak_bar) {
         count_fps();
         draw_tweak_bar();
     }
+
+    update_time();
     glBindVertexArray(0);
     glUseProgram(0);
+}
+
+// -------------------------
+
+void Renderer::update_time(){
+    unsigned current_time = SDL_GetTicks();
+    time_diff = current_time - last_timestamp;
+    last_timestamp = current_time;
 }
 
 // --------------------------
@@ -143,6 +156,13 @@ void Renderer::upload_camera_uniforms(const Camera &camera)
     glUseProgram(0);
 }
 
+// ---------------------------
+
+unsigned Renderer::get_time_diff()
+{
+    return (float)this->time_diff;
+}
+
 
 /* Private Renderer functions */
 
@@ -150,7 +170,8 @@ void Renderer::upload_camera_uniforms(const Camera &camera)
 
 void Renderer::render_deferred(const Camera &camera)
 {
-    // Geometry pass
+    Profiler::start_timer("Deferred rendering");
+    /* GEOMETRY PASS */
     geometry_pass();
 
     // SSAO PASS
@@ -161,6 +182,8 @@ void Renderer::render_deferred(const Camera &camera)
 
     glBindFramebuffer(GL_FRAMEBUFFER, hdr_fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    Profiler::start_timer("Deferred pass");
     glUseProgram(shaders[DEFERRED]);
 
     glActiveTexture(GL_TEXTURE0);
@@ -175,6 +198,7 @@ void Renderer::render_deferred(const Camera &camera)
     // Render deferred shading stage to quad:
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    Profiler::stop_timer("Deferred pass");
 
     // Blit depth buffer from g-buffer:
     glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer);
@@ -190,6 +214,8 @@ void Renderer::render_deferred(const Camera &camera)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindVertexArray(0);
     glUseProgram(0);
+
+    Profiler::stop_timer("Deferred rendering");
 }
 
 // --------------------------
@@ -234,7 +260,6 @@ void Renderer::render_forward()
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     glUseProgram(0);
-
     render_flat();
 }
 
@@ -242,6 +267,7 @@ void Renderer::render_forward()
 
 void Renderer::render_flat()
 {
+    Profiler::start_timer("Flat objects pass");
     glUseProgram(shaders[FLAT]);
     for (auto model : Model::get_loaded_flat_models()) {
         if (!model->draw_me) {
@@ -266,6 +292,7 @@ void Renderer::render_flat()
             glBindVertexArray(0);
         }
     }
+    Profiler::stop_timer("Flat objects pass");
 
     if (draw_bounding_spheres) {
         render_bounding_spheres();
@@ -276,7 +303,7 @@ void Renderer::render_flat()
 
 void Renderer::post_processing()
 {
-
+    Profiler::start_timer("Post processing");
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, color_tex);
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -304,6 +331,7 @@ void Renderer::post_processing()
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    Profiler::stop_timer("Post processing");
 }
 
 // --------------------------
@@ -371,6 +399,8 @@ void Renderer::clear_ssao()
 
 void Renderer::ssao_pass()
 {
+    Profiler::start_timer("SSAO pass");
+
     glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbo);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(shaders[SSAO]);
@@ -406,6 +436,8 @@ void Renderer::ssao_pass()
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(0);
+
+    Profiler::stop_timer("SSAO pass");
 }
 
 // --------------------------
@@ -544,6 +576,8 @@ void Renderer::render_bounding_spheres()
 
 void Renderer::geometry_pass()
 {
+    Profiler::start_timer("Geometry pass");
+
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -587,6 +621,8 @@ void Renderer::geometry_pass()
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(0);
+
+    Profiler::stop_timer("Geometry pass");
 }
 
 // --------------------------
@@ -1080,13 +1116,11 @@ void Renderer::init_tweak_bar(Camera* camera)
 void Renderer::count_fps()
 {
     unsigned current_time = SDL_GetTicks();
-    double timediff = (current_time-last_time);
+    double timediff = (current_time-last_timestamp);
 
     if (timediff != 0) {
       fps = 1000/timediff;
     }
-
-    last_time = current_time;
 }
 
 // ----------------

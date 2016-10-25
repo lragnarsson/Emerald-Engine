@@ -146,5 +146,4 @@ void Light::generate_bounding_sphere()
 
     // Solve quadratic equation to determine at what distance the light is dimmer than alpha times beta:
     this->bounding_sphere_radius = -b / ( 2 * c) + std::sqrt(b * b / (4 * c * c) - a / c + beta / (alpha * c));
-    std::cout << this->bounding_sphere_radius << std::endl;
 }
