@@ -9,6 +9,7 @@
 #include "Parser.hpp"
 #include "CR_Spline.hpp"
 #include "Animation_Path.hpp"
+#include "Profiler.hpp"
 
 SDL_Window* main_window;
 SDL_GLContext main_context;
@@ -24,3 +25,8 @@ glm::mat4 w2v_matrix;
 glm::mat4 projection_matrix;
 
 Renderer renderer;
+
+#ifdef PROFILING
+Profiler perf_monitor;
+#endif
+

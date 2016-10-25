@@ -1,4 +1,5 @@
 #include "Input.hpp"
+#include "Profiler.hpp"
 
 void init_input()
 {
@@ -92,6 +93,7 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                 case SDLK_p:
                     pos = camera.get_pos();
                     printf("Camera position x,y,z: %f %f %f\n", pos.x, pos.y, pos.z);
+                    Profiler::print_results();
                     break;
                 case SDLK_f:
                     if (camera.has_move_path()) {

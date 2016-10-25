@@ -18,6 +18,7 @@
 #include "Model.hpp"
 #include "Utils.hpp"
 #include "Error.hpp"
+#include "Profiler.hpp"
 
 
 #define MAX_SSAO_SAMPLES 256

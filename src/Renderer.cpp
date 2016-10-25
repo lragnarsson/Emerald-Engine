@@ -161,6 +161,7 @@ unsigned Renderer::get_time_diff()
 
 void Renderer::render_deferred()
 {
+    Profiler::start_timer("Deferred rendering");
     /* GEOMETRY PASS */
     geometry_pass();
 
@@ -170,6 +171,8 @@ void Renderer::render_deferred()
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    Profiler::start_timer("Deferred pass");
     glUseProgram(shaders[DEFERRED]);
 
     glActiveTexture(GL_TEXTURE0);
@@ -188,6 +191,7 @@ void Renderer::render_deferred()
     // Render quad
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    Profiler::stop_timer("Deferred pass");
 
     /* RENDER FLAT OBJECTS WITH DEPTH BUFFER */
     glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer);
@@ -198,6 +202,8 @@ void Renderer::render_deferred()
 
     glBindVertexArray(0);
     glUseProgram(0);
+
+    Profiler::stop_timer("Deferred rendering");
 }
 
 // --------------------------
@@ -250,6 +256,7 @@ void Renderer::render_forward()
 
 void Renderer::render_flat()
 {
+    Profiler::start_timer("Flat objects pass");
     glUseProgram(shaders[FLAT]);
     for (auto model : Model::get_loaded_flat_models()) {
         if (!model->draw_me) {
@@ -274,6 +281,7 @@ void Renderer::render_flat()
             glBindVertexArray(0);
         }
     }
+    Profiler::stop_timer("Flat objects pass");
 }
 
 
@@ -342,6 +350,8 @@ void Renderer::clear_ssao()
 
 void Renderer::ssao_pass()
 {
+    Profiler::start_timer("SSAO pass");
+
     glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(shaders[SSAO]);
@@ -387,6 +397,8 @@ void Renderer::ssao_pass()
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(0);
+
+    Profiler::stop_timer("SSAO pass");
 }
 
 // --------------------------
@@ -433,6 +445,8 @@ void Renderer::render_bounding_spheres()
 
 void Renderer::geometry_pass()
 {
+    Profiler::start_timer("Geometry pass");
+
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -476,6 +490,8 @@ void Renderer::geometry_pass()
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(0);
+    
+    Profiler::stop_timer("Geometry pass");
 }
 
 // --------------------------
