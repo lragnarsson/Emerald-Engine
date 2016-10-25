@@ -170,7 +170,6 @@ unsigned Renderer::get_time_diff()
 
 void Renderer::render_deferred(const Camera &camera)
 {
-    Profiler::start_timer("Deferred rendering");
     /* GEOMETRY PASS */
     geometry_pass();
 
@@ -198,12 +197,12 @@ void Renderer::render_deferred(const Camera &camera)
     // Render deferred shading stage to quad:
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    Profiler::stop_timer("Deferred pass");
 
     // Blit depth buffer from g-buffer:
     glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, hdr_fbo);
     glBlitFramebuffer(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    Profiler::stop_timer("Deferred pass");
 
     // Draw flat objects and skybox with forward shading:
     render_flat();
@@ -214,8 +213,6 @@ void Renderer::render_deferred(const Camera &camera)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindVertexArray(0);
     glUseProgram(0);
-
-    Profiler::stop_timer("Deferred rendering");
 }
 
 // --------------------------
