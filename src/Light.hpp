@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <cmath>
 #include "Camera.hpp"
+#include "Profiler.hpp"
 
 
 class Light

@@ -112,6 +112,7 @@ void Light::turn_off_all_lights()
 
 void Light::cull_light_sources(Camera &camera)
 {
+    Profiler::start_timer("Light culling");
     int i = 0;
     for (auto light : lights) {
         if (camera.sphere_in_frustum(light->position, light->bounding_sphere_radius)) {
@@ -123,6 +124,7 @@ void Light::cull_light_sources(Camera &camera)
     }
     upload_all();
     Light::culled_number = i;
+    Profiler::stop_timer("Light culling");
 }
 
 void Light::turn_on_one_lightsource()

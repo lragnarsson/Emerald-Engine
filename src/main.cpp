@@ -35,7 +35,7 @@ void cull_models()
 // --------------------------
 
 void animate_models()
-{   
+{
     Profiler::start_timer("Animate models");
     // TODO: Run in parallel
     float speed = 0.002;
@@ -78,13 +78,12 @@ void run()
 {
     renderer.running = true;
     while (renderer.running) {
-        // Measure rendering times
-        Profiler::start_timer("Total render time");
+        Profiler::start_timer("-> Frame time");
 
+        Profiler::start_timer("Input and camera");
         handle_keyboard_input(camera, renderer);
         handle_mouse_input(camera);
         camera.update_culling_frustum();
-
 
         if (!camera.can_move_free()) {
             camera.move_along_path(0.1f);
@@ -93,6 +92,7 @@ void run()
             camera.move_look_point_along_path(0.1f);
         }
         renderer.copy_tweak_bar_cam_values(camera);
+        Profiler::stop_timer("Input and camera");
 
         animate_models();
         cull_models();
@@ -100,11 +100,11 @@ void run()
         Light::cull_light_sources(camera);
 
         renderer.render(camera);
-
+        Profiler::start_timer("swap");
         SDL_GL_SwapWindow(main_window);
-        
+        Profiler::stop_timer("swap");
         // Stop measuring
-        Profiler::stop_timer("Total render time");
+        Profiler::stop_timer("-> Frame time");
     }
 }
 
