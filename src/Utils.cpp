@@ -127,7 +127,8 @@ GLuint load_shaders(const GLchar* vertex_file_path, const GLchar* fragment_file_
     glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(vertex, 512, NULL, info_log);
-        Error::throw_error(Error::cant_load_shader, "Vertex shader compilation failed: " + std::string(info_log));
+        Error::throw_error(Error::cant_load_shader, "Vertex shader " +
+                           (std::string) vertex_file_path + " compilation failed: " + std::string(info_log));
     }
 
     /* Compile fragment shader */
@@ -137,7 +138,8 @@ GLuint load_shaders(const GLchar* vertex_file_path, const GLchar* fragment_file_
     glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(fragment, 512, NULL, info_log);
-        Error::throw_error(Error::cant_load_shader, "Fragment shader compilation failed: " + std::string(info_log));
+        Error::throw_error(Error::cant_load_shader, "Fragment shader " +
+                           (std::string) fragment_file_path + " compilation failed: " + std::string(info_log));
     }
 
     /* Create shader program */

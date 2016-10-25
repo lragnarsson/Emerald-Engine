@@ -8,10 +8,10 @@ void Renderer::init()
     shaders[FLAT] = load_shaders("build/shaders/flat.vert", "build/shaders/flat.frag");
     shaders[FLAT_TEXTURE] = load_shaders("build/shaders/flat_texture.vert", "build/shaders/flat_texture.frag");
     shaders[SSAO] = load_shaders("build/shaders/identity.vert", "build/shaders/ssao.frag");
-    shaders[SSAO_BLUR] = load_shaders("build/shaders/identity.vert", "build/shaders/ssao_blur.frag");
-    shaders[BLUR_RED_5] = load_shaders("build/shaders/identity.vert", "build/shaders/blur_red_5.frag");
-    shaders[BLUR_RGB_5] = load_shaders("build/shaders/identity.vert", "build/shaders/blur_rgb_5.frag");
-    shaders[BLUR_RGB_11] = load_shaders("build/shaders/identity.vert", "build/shaders/blur_rgb_11.frag");
+    shaders[BLUR_RED_5_X] = load_shaders("build/shaders/identity.vert", "build/shaders/blur_red_5_x.frag");
+    shaders[BLUR_RED_5_Y] = load_shaders("build/shaders/identity.vert", "build/shaders/blur_red_5_y.frag");
+    shaders[BLUR_RGB_11_X] = load_shaders("build/shaders/identity.vert", "build/shaders/blur_rgb_11_x.frag");
+    shaders[BLUR_RGB_11_Y] = load_shaders("build/shaders/identity.vert", "build/shaders/blur_rgb_11_y.frag");
     shaders[SHOW_RGB_COMPONENT] = load_shaders("build/shaders/identity.vert",
                                                "build/shaders/show_rgb_component.frag");
     shaders[SHOW_ALPHA_COMPONENT] = load_shaders("build/shaders/identity.vert",
@@ -442,44 +442,38 @@ void Renderer::ssao_pass()
 
 // --------------------------
 
-GLuint Renderer::upload_filter(filter_type ft)
+ping_pong_shader Renderer::upload_filter(filter_type ft)
 {
-    GLfloat gaussian[5] = {1, 4, 6, 4, 1};
     GLfloat uniform[5] = {1, 1, 1, 1, 1};
-    GLfloat gaussian_big[11] = {0.090154, 0.090606, 0.090959, 0.091212, 0.091364, 0.091414, 0.091364, 0.091212, 0.090959, 0.090606, 0.090154};
+    GLfloat gaussian_big[11] = {0.090154, 0.090606, 0.090959, 0.091212, 0.091364,
+                                0.091414, 0.091364, 0.091212, 0.090959, 0.090606, 0.090154};
 
+    ping_pong_shader shader;
     switch (ft) {
-    case GAUSSIAN_RED_5:
-        glUseProgram(shaders[BLUR_RED_5]);
-        glUniform1fv(glGetUniformLocation(shaders[BLUR_RED_5], "kernel"), 5, gaussian);
-        glUniform1f(glGetUniformLocation(shaders[BLUR_RED_5], "magnitude"), 16);
-        return shaders[BLUR_RED_5];
-        break;
-    case GAUSSIAN_RGB_5:
-        glUseProgram(shaders[BLUR_RGB_5]);
-        glUniform1fv(glGetUniformLocation(shaders[BLUR_RGB_5], "kernel"), 5, gaussian);
-        glUniform1f(glGetUniformLocation(shaders[BLUR_RGB_5], "magnitude"), 16);
-        return shaders[BLUR_RGB_5];
-        break;
     case GAUSSIAN_RGB_11:
-        glUseProgram(shaders[BLUR_RGB_11]);
-        glUniform1fv(glGetUniformLocation(shaders[BLUR_RGB_11], "kernel"), 11, gaussian_big);
-        glUniform1f(glGetUniformLocation(shaders[BLUR_RGB_11], "magnitude"), 1.0f);
-        return shaders[BLUR_RGB_11];
+        shader.x = shaders[BLUR_RGB_11_X];
+        glUseProgram(shader.x);
+        glUniform1fv(glGetUniformLocation(shader.x, "kernel"), 11, gaussian_big);
+        glUniform1f(glGetUniformLocation(shader.x, "magnitude"), 1.0f);
+
+        shader.y = shaders[BLUR_RGB_11_Y];
+        glUseProgram(shader.y);
+        glUniform1fv(glGetUniformLocation(shader.y, "kernel"), 11, gaussian_big);
+        glUniform1f(glGetUniformLocation(shader.y, "magnitude"), 1.0f);
         break;
     case UNIFORM_RED_5:
-        glUseProgram(shaders[BLUR_RED_5]);
-        glUniform1fv(glGetUniformLocation(shaders[BLUR_RED_5], "kernel"), 5, uniform);
-        glUniform1f(glGetUniformLocation(shaders[BLUR_RED_5], "magnitude"), 5);
-        return shaders[BLUR_RED_5];
-        break;
-    case UNIFORM_RGB_5:
-        glUseProgram(shaders[BLUR_RGB_5]);
-        glUniform1fv(glGetUniformLocation(shaders[BLUR_RGB_5], "kernel"), 5, uniform);
-        glUniform1f(glGetUniformLocation(shaders[BLUR_RGB_5], "magnitude"), 5);
-        return shaders[BLUR_RGB_5];
+        shader.x = shaders[BLUR_RED_5_X];
+        glUseProgram(shader.x);
+        glUniform1fv(glGetUniformLocation(shader.x, "kernel"), 5, uniform);
+        glUniform1f(glGetUniformLocation(shader.x, "magnitude"), 5);
+
+        shader.y = shaders[BLUR_RED_5_Y];
+        glUseProgram(shader.y);
+        glUniform1fv(glGetUniformLocation(shader.y, "kernel"), 5, uniform);
+        glUniform1f(glGetUniformLocation(shader.y, "magnitude"), 5);
         break;
     }
+    return shader;
 }
 
 // --------------------------
@@ -498,14 +492,13 @@ void Renderer::filter_pass(GLuint source_tex, GLuint target_fbo)
 
 void Renderer::blur_red_texture(GLuint source_tex, GLuint fbo_tex, GLuint target_fbo, filter_type ft, int iterations)
 {
-    GLuint shader = upload_filter(ft);
-    glUseProgram(shader);
+    ping_pong_shader shader = upload_filter(ft);
 
     for (int i=0; i<iterations; i++) {
-        glUniform1i(glGetUniformLocation(shader, "horizontal"), true);
+        glUseProgram(shader.x);
         filter_pass(source_tex, ping_pong_fbo_red);
         source_tex = fbo_tex;
-        glUniform1i(glGetUniformLocation(shader, "horizontal"), false);
+        glUseProgram(shader.y);
         filter_pass(ping_pong_tex_red, target_fbo);
     }
 
@@ -517,14 +510,13 @@ void Renderer::blur_red_texture(GLuint source_tex, GLuint fbo_tex, GLuint target
 
 void Renderer::blur_rgb_texture(GLuint source_tex, GLuint fbo_tex, GLuint target_fbo, filter_type ft, int iterations)
 {
-    GLuint shader = upload_filter(ft);
-    glUseProgram(shader);
+    ping_pong_shader shader = upload_filter(ft);
 
     for (int i=0; i<iterations; i++) {
-        glUniform1i(glGetUniformLocation(shader, "horizontal"), true);
+        glUseProgram(shader.x);
         filter_pass(source_tex, ping_pong_fbo_rgb);
         source_tex = fbo_tex;
-        glUniform1i(glGetUniformLocation(shader, "horizontal"), false);
+        glUseProgram(shader.y);
         filter_pass(ping_pong_tex_rgb, target_fbo);
     }
 
@@ -1042,14 +1034,15 @@ void Renderer::init_show_ssao_shader()
 
 void Renderer::init_blur_shaders()
 {
-    glUseProgram(shaders[BLUR_RED_5]);
-    glUniform1i(glGetUniformLocation(shaders[BLUR_RED_5], "input_tex"), 0);
+    glUseProgram(shaders[BLUR_RED_5_X]);
+    glUniform1i(glGetUniformLocation(shaders[BLUR_RED_5_X], "input_tex"), 0);
+    glUseProgram(shaders[BLUR_RED_5_Y]);
+    glUniform1i(glGetUniformLocation(shaders[BLUR_RED_5_Y], "input_tex"), 0);
 
-    glUseProgram(shaders[BLUR_RGB_5]);
-    glUniform1i(glGetUniformLocation(shaders[BLUR_RGB_5], "input_tex"), 0);
-
-    glUseProgram(shaders[BLUR_RGB_11]);
-    glUniform1i(glGetUniformLocation(shaders[BLUR_RGB_11], "input_tex"), 0);
+    glUseProgram(shaders[BLUR_RGB_11_X]);
+    glUniform1i(glGetUniformLocation(shaders[BLUR_RGB_11_X], "input_tex"), 0);
+    glUseProgram(shaders[BLUR_RGB_11_Y]);
+    glUniform1i(glGetUniformLocation(shaders[BLUR_RGB_11_Y], "input_tex"), 0);
 
     glUseProgram(0);
 }

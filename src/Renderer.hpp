@@ -34,12 +34,14 @@ enum render_mode {
 };
 
 enum filter_type {
-    GAUSSIAN_RED_5,
-    GAUSSIAN_RGB_5,
     GAUSSIAN_RGB_11,
     UNIFORM_RED_5,
-    UNIFORM_RGB_5
 };
+
+typedef struct {
+    GLuint x, y;
+} ping_pong_shader;
+
 
 class Renderer
 {
@@ -73,10 +75,10 @@ private:
       FLAT,
       FLAT_TEXTURE,
       SSAO,
-      SSAO_BLUR, // Remove later. Maybe rename to BROKEN_BLUR_XY
-      BLUR_RED_5,
-      BLUR_RGB_5,
-      BLUR_RGB_11,
+      BLUR_RED_5_X,
+      BLUR_RED_5_Y,
+      BLUR_RGB_11_X,
+      BLUR_RGB_11_Y,
       SHOW_RGB_COMPONENT,
       SHOW_ALPHA_COMPONENT,
       SHOW_SSAO,
@@ -144,7 +146,7 @@ private:
     void ssao_pass();
     void create_ssao_samples();
 
-    GLuint upload_filter(filter_type ft);
+    ping_pong_shader upload_filter(filter_type ft);
     void filter_pass(GLuint source_tex, GLuint target_fbo);
     void blur_red_texture(GLuint source_tex, GLuint fbo_tex, GLuint target_fbo, filter_type ft, int iterations);
     void blur_rgb_texture(GLuint source_tex, GLuint fbo_tex, GLuint target_fbo, filter_type ft, int iterations);
