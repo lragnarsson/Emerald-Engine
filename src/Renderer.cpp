@@ -7,21 +7,31 @@ void Renderer::init()
     shaders[DEFERRED] = load_shaders("build/shaders/deferred.vert", "build/shaders/deferred.frag");
     shaders[FLAT] = load_shaders("build/shaders/flat.vert", "build/shaders/flat.frag");
     shaders[FLAT_TEXTURE] = load_shaders("build/shaders/flat_texture.vert", "build/shaders/flat_texture.frag");
-    shaders[SSAO] = load_shaders("build/shaders/ssao.vert", "build/shaders/ssao.frag");
-    shaders[SSAO_BLUR] = load_shaders("build/shaders/ssao_blur.vert", "build/shaders/ssao_blur.frag");
-    shaders[SHOW_RGB_COMPONENT] = load_shaders("build/shaders/show_rgb_component.vert",
+    shaders[SSAO] = load_shaders("build/shaders/identity.vert", "build/shaders/ssao.frag");
+    shaders[BLUR_RED_5_X] = load_shaders("build/shaders/identity.vert", "build/shaders/blur_red_5_x.frag");
+    shaders[BLUR_RED_5_Y] = load_shaders("build/shaders/identity.vert", "build/shaders/blur_red_5_y.frag");
+    shaders[BLUR_RGB_11_X] = load_shaders("build/shaders/identity.vert", "build/shaders/blur_rgb_11_x.frag");
+    shaders[BLUR_RGB_11_Y] = load_shaders("build/shaders/identity.vert", "build/shaders/blur_rgb_11_y.frag");
+    shaders[SHOW_RGB_COMPONENT] = load_shaders("build/shaders/identity.vert",
                                                "build/shaders/show_rgb_component.frag");
-    shaders[SHOW_ALPHA_COMPONENT] = load_shaders("build/shaders/show_alpha_component.vert",
+    shaders[SHOW_ALPHA_COMPONENT] = load_shaders("build/shaders/identity.vert",
                                                  "build/shaders/show_alpha_component.frag");
-    shaders[SHOW_SSAO] = load_shaders("build/shaders/show_red_component.vert",
+    shaders[SHOW_SSAO] = load_shaders("build/shaders/identity.vert",
                                       "build/shaders/show_red_component.frag");
+    shaders[HDR_BLOOM] = load_shaders("build/shaders/identity.vert",
+                                      "build/shaders/hdr_bloom.frag");
 
 
     init_g_buffer();
+    init_hdr_fbo();
+    init_post_proc_fbo();
     init_quad();
     init_ssao();
     init_rgb_component_shader();
     init_alpha_component_shader();
+    init_blur_shaders();
+    init_hdr_bloom_shader();
+    init_ping_pong_fbos();
 
     sphere = new Model("res/models/sphere/sphere.obj");
     skybox = new Model("res/models/skybox/skybox.obj");
@@ -41,8 +51,7 @@ void Renderer::render(const Camera &camera)
         render_skybox(camera);
         break;
     case DEFERRED_MODE:
-        render_deferred();
-        render_skybox(camera);
+        render_deferred(camera);
         break;
     case POSITION_MODE:
         render_g_position();
@@ -64,7 +73,7 @@ void Renderer::render(const Camera &camera)
     if (draw_bounding_spheres) {
         render_bounding_spheres();
     }
-    
+
     if (use_tweak_bar) {
         count_fps();
         draw_tweak_bar();
@@ -159,9 +168,8 @@ unsigned Renderer::get_time_diff()
 
 // --------------------------
 
-void Renderer::render_deferred()
+void Renderer::render_deferred(const Camera &camera)
 {
-    Profiler::start_timer("Deferred rendering");
     /* GEOMETRY PASS */
     geometry_pass();
 
@@ -170,6 +178,8 @@ void Renderer::render_deferred()
         ssao_pass();
     }
 
+
+    glBindFramebuffer(GL_FRAMEBUFFER, hdr_fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     Profiler::start_timer("Deferred pass");
@@ -182,28 +192,27 @@ void Renderer::render_deferred()
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
     glActiveTexture(GL_TEXTURE3);
-    if (smooth_ssao) {
-        glBindTexture(GL_TEXTURE_2D, ssao_blurred);
-    } else {
-        glBindTexture(GL_TEXTURE_2D, ssao_result);
-    }
+    glBindTexture(GL_TEXTURE_2D, ssao_tex);
 
-    // Render quad
+    // Render deferred shading stage to quad:
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    // Blit depth buffer from g-buffer:
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, hdr_fbo);
+    glBlitFramebuffer(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     Profiler::stop_timer("Deferred pass");
 
-    /* RENDER FLAT OBJECTS WITH DEPTH BUFFER */
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glBlitFramebuffer(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // Draw flat objects and skybox with forward shading:
     render_flat();
+    render_skybox(camera);
 
+    post_processing();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindVertexArray(0);
     glUseProgram(0);
-
-    Profiler::stop_timer("Deferred rendering");
 }
 
 // --------------------------
@@ -248,7 +257,6 @@ void Renderer::render_forward()
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     glUseProgram(0);
-
     render_flat();
 }
 
@@ -282,8 +290,48 @@ void Renderer::render_flat()
         }
     }
     Profiler::stop_timer("Flat objects pass");
+
+    if (draw_bounding_spheres) {
+        render_bounding_spheres();
+    }
 }
 
+// --------------------------
+
+void Renderer::post_processing()
+{
+    Profiler::start_timer("Post processing");
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, color_tex);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    // Blur overexposed areas to cause bloom:
+    blur_rgb_texture(bright_tex, post_proc_tex, post_proc_fbo, GAUSSIAN_RGB_11, 2);
+
+    // Show bloom buffer:
+    /*glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[SHOW_RGB_COMPONENT]);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, post_proc_tex);*/
+
+    // Add bloom to original image and draw to screen quad:
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[HDR_BLOOM]);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, color_tex);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, post_proc_tex);
+
+    glUniform1f(glGetUniformLocation(shaders[HDR_BLOOM], "exposure"), 0.4f);
+
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    Profiler::stop_timer("Post processing");
+}
+
+// --------------------------
 
 inline GLfloat lerp(GLfloat a, GLfloat b, GLfloat f)
 {
@@ -337,11 +385,9 @@ void Renderer::toggle_ssao_smoothing()
 
 void Renderer::clear_ssao()
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_fbo);
     float clearColor[1] = {1.0};
-    glClearBufferfv(GL_COLOR, 0, clearColor);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbo);
     glClearBufferfv(GL_COLOR, 0, clearColor);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -352,7 +398,7 @@ void Renderer::ssao_pass()
 {
     Profiler::start_timer("SSAO pass");
 
-    glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbo);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(shaders[SSAO]);
     glActiveTexture(GL_TEXTURE0);
@@ -378,17 +424,7 @@ void Renderer::ssao_pass()
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     if (smooth_ssao) {
-        // Blur the ssao result
-        glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_fbo);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glUseProgram(shaders[SSAO_BLUR]);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, ssao_result);
-
-        // No uniforms needed =)
-        // Render quad
-        glBindVertexArray(quad_vao);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        blur_red_texture(ssao_tex, ssao_tex, ssao_fbo, UNIFORM_RED_5, 1);
     }
 
     for (GLuint i = 0; i < 3; i++) {
@@ -399,6 +435,90 @@ void Renderer::ssao_pass()
     glUseProgram(0);
 
     Profiler::stop_timer("SSAO pass");
+}
+
+// --------------------------
+
+ping_pong_shader Renderer::upload_filter(filter_type ft)
+{
+    GLfloat uniform[5] = {1, 1, 1, 1, 1};
+    GLfloat gaussian_big[11] = {0.090154, 0.090606, 0.090959, 0.091212, 0.091364,
+                                0.091414, 0.091364, 0.091212, 0.090959, 0.090606, 0.090154};
+
+    ping_pong_shader shader;
+    switch (ft) {
+    case GAUSSIAN_RGB_11:
+        shader.x = shaders[BLUR_RGB_11_X];
+        glUseProgram(shader.x);
+        glUniform1fv(glGetUniformLocation(shader.x, "kernel"), 11, gaussian_big);
+        glUniform1f(glGetUniformLocation(shader.x, "magnitude"), 1.0f);
+
+        shader.y = shaders[BLUR_RGB_11_Y];
+        glUseProgram(shader.y);
+        glUniform1fv(glGetUniformLocation(shader.y, "kernel"), 11, gaussian_big);
+        glUniform1f(glGetUniformLocation(shader.y, "magnitude"), 1.0f);
+        break;
+    case UNIFORM_RED_5:
+        shader.x = shaders[BLUR_RED_5_X];
+        glUseProgram(shader.x);
+        glUniform1fv(glGetUniformLocation(shader.x, "kernel"), 5, uniform);
+        glUniform1f(glGetUniformLocation(shader.x, "magnitude"), 5);
+
+        shader.y = shaders[BLUR_RED_5_Y];
+        glUseProgram(shader.y);
+        glUniform1fv(glGetUniformLocation(shader.y, "kernel"), 5, uniform);
+        glUniform1f(glGetUniformLocation(shader.y, "magnitude"), 5);
+        break;
+    }
+    return shader;
+}
+
+// --------------------------
+
+void Renderer::filter_pass(GLuint source_tex, GLuint target_fbo)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, target_fbo);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, source_tex);
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
+// --------------------------
+
+void Renderer::blur_red_texture(GLuint source_tex, GLuint fbo_tex, GLuint target_fbo, filter_type ft, int iterations)
+{
+    ping_pong_shader shader = upload_filter(ft);
+
+    for (int i=0; i<iterations; i++) {
+        glUseProgram(shader.x);
+        filter_pass(source_tex, ping_pong_fbo_red);
+        source_tex = fbo_tex;
+        glUseProgram(shader.y);
+        filter_pass(ping_pong_tex_red, target_fbo);
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glUseProgram(0);
+}
+
+// --------------------------
+
+void Renderer::blur_rgb_texture(GLuint source_tex, GLuint fbo_tex, GLuint target_fbo, filter_type ft, int iterations)
+{
+    ping_pong_shader shader = upload_filter(ft);
+
+    for (int i=0; i<iterations; i++) {
+        glUseProgram(shader.x);
+        filter_pass(source_tex, ping_pong_fbo_rgb);
+        source_tex = fbo_tex;
+        glUseProgram(shader.y);
+        filter_pass(ping_pong_tex_rgb, target_fbo);
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glUseProgram(0);
 }
 
 // --------------------------
@@ -490,7 +610,7 @@ void Renderer::geometry_pass()
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(0);
-    
+
     Profiler::stop_timer("Geometry pass");
 }
 
@@ -581,18 +701,13 @@ void Renderer::render_ssao()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_SSAO]);
     glActiveTexture(GL_TEXTURE0);
-    if (smooth_ssao) {
-        glBindTexture(GL_TEXTURE_2D, ssao_blurred);
-    } else {
-        glBindTexture(GL_TEXTURE_2D, ssao_result);
-    }
+    glBindTexture(GL_TEXTURE_2D, ssao_tex);
 
     // Render quad
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     glUseProgram(0);
-
 }
 
 
@@ -639,7 +754,7 @@ void Renderer::init_ssao()
     std::default_random_engine generator;
 
     /* Random rotations of the kernel */
-    for (GLuint i = 0; i < 16; i++) {
+    for (GLuint i = 0; i < 25; i++) {
         glm::vec3 noise(
                         randomFloats(generator) * 2.0 - 1.0,
                         randomFloats(generator) * 2.0 - 1.0,
@@ -656,49 +771,73 @@ void Renderer::init_ssao()
     /*  Noise texture, really small and repeated */
     glGenTextures(1, &noise_texture);
     glBindTexture(GL_TEXTURE_2D, noise_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssao_noise[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 5, 5, 0, GL_RGB, GL_FLOAT, &ssao_noise[0]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     /* Framebuffer for SSAO shader */
-    glGenFramebuffers(1, &ssao_fbuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbuffer);
+    glGenFramebuffers(1, &ssao_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbo);
 
 
-    glGenTextures(1, &ssao_result);
-    glBindTexture(GL_TEXTURE_2D, ssao_result);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glGenTextures(1, &ssao_tex);
+    glBindTexture(GL_TEXTURE_2D, ssao_tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_result, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_tex, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "SSAO Framebuffer not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    /* SSAO blurring */
-    glUseProgram(shaders[SSAO_BLUR]);
-    glUniform1i(glGetUniformLocation(shaders[SSAO_BLUR], "ssao_input"), 0);
-
-    /* SSAO blurring framebuffer */
-    glGenFramebuffers(1, &ssao_blur_fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_fbo);
-
-    glGenTextures(1, &ssao_blurred);
-    glBindTexture(GL_TEXTURE_2D, ssao_blurred);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_blurred, 0);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "SSAO blur Framebuffer not complete!" << std::endl;
 
 
     glUseProgram(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+// --------------------------
+
+/* Intended for use as a substep when doing multipass filtering */
+void Renderer::init_ping_pong_fbos()
+{
+    // R16f fbo
+    glGenFramebuffers(1, &ping_pong_fbo_red);
+    glBindFramebuffer(GL_FRAMEBUFFER, ping_pong_fbo_red);
+
+    glGenTextures(1, &ping_pong_tex_red);
+    glBindTexture(GL_TEXTURE_2D, ping_pong_tex_red);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ping_pong_tex_red, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "Ping pong red framebuffer not complete!" << std::endl;
+
+
+    // RGB16f fbo
+    glGenFramebuffers(1, &ping_pong_fbo_rgb);
+    glBindFramebuffer(GL_FRAMEBUFFER, ping_pong_fbo_rgb);
+
+    glGenTextures(1, &ping_pong_tex_rgb);
+    glBindTexture(GL_TEXTURE_2D, ping_pong_tex_rgb);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ping_pong_tex_rgb, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "Ping pong rgb framebuffer not complete!" << std::endl;
+
+    glUseProgram(0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
 // --------------------------
 
@@ -741,7 +880,7 @@ void Renderer::init_g_buffer()
     /* Position */
     glGenTextures(1, &g_position);
     glBindTexture(GL_TEXTURE_2D, g_position);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -788,6 +927,82 @@ void Renderer::init_g_buffer()
 
 // -----------------
 
+void Renderer::init_hdr_fbo()
+{
+    glDisable(GL_BLEND);
+    glGenFramebuffers(1, &hdr_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, hdr_fbo);
+
+    /* Lighting buffer. Contains shaded light from deferred shader. */
+    glGenTextures(1, &color_tex);
+    glBindTexture(GL_TEXTURE_2D, color_tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_tex, 0);
+
+
+    /* Bloom buffer */
+    glGenTextures(1, &bright_tex);
+    glBindTexture(GL_TEXTURE_2D, bright_tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bright_tex, 0);
+
+
+    GLuint attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    glDrawBuffers(2, attachments);
+
+    /* Attach a depth buffer */
+    GLuint depth_buffer;
+    glGenRenderbuffers(1, &depth_buffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::ostringstream error_msg;
+        error_msg << "GL enum: " << glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        Error::throw_error(Error::renderer_init_fail, error_msg.str());
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+// -----------------
+
+void Renderer::init_post_proc_fbo()
+{
+    glDisable(GL_BLEND);
+    glGenFramebuffers(1, &post_proc_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, post_proc_fbo);
+
+    /* Texture for post processing. Filter result etc. */
+    glGenTextures(1, &post_proc_tex);
+    glBindTexture(GL_TEXTURE_2D, post_proc_tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, post_proc_tex, 0);
+
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::ostringstream error_msg;
+        error_msg << "GL enum: " << glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        Error::throw_error(Error::renderer_init_fail, error_msg.str());
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+// -----------------
+
 void Renderer::init_rgb_component_shader()
 {
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
@@ -814,6 +1029,32 @@ void Renderer::init_show_ssao_shader()
     glUseProgram(0);
 }
 
+void Renderer::init_blur_shaders()
+{
+    glUseProgram(shaders[BLUR_RED_5_X]);
+    glUniform1i(glGetUniformLocation(shaders[BLUR_RED_5_X], "input_tex"), 0);
+    glUseProgram(shaders[BLUR_RED_5_Y]);
+    glUniform1i(glGetUniformLocation(shaders[BLUR_RED_5_Y], "input_tex"), 0);
+
+    glUseProgram(shaders[BLUR_RGB_11_X]);
+    glUniform1i(glGetUniformLocation(shaders[BLUR_RGB_11_X], "input_tex"), 0);
+    glUseProgram(shaders[BLUR_RGB_11_Y]);
+    glUniform1i(glGetUniformLocation(shaders[BLUR_RGB_11_Y], "input_tex"), 0);
+
+    glUseProgram(0);
+}
+
+// -----------------
+
+
+void Renderer::init_hdr_bloom_shader()
+{
+    glUseProgram(shaders[HDR_BLOOM]);
+    glUniform1i(glGetUniformLocation(shaders[HDR_BLOOM], "input_tex1"), 0);
+    glUniform1i(glGetUniformLocation(shaders[HDR_BLOOM], "input_tex2"), 1);
+
+    glUseProgram(0);
+}
 // -----------------
 
 void Renderer::draw_tweak_bar()
@@ -848,7 +1089,7 @@ void Renderer::init_tweak_bar(Camera* camera)
     TwAddVarRW(tweak_bar, "cam-pos-x", TW_TYPE_FLOAT, &this->cam_pos.x, "label=cam-pos-x help=current-camera-x-coord");
     TwAddVarRW(tweak_bar, "cam-pos-y", TW_TYPE_FLOAT, &this->cam_pos.y, "label=cam-pos-y help=current-camera-y-coord");
     TwAddVarRW(tweak_bar, "cam-pos-z", TW_TYPE_FLOAT, &this->cam_pos.z, "label=cam-pos-z help=current-camera-z-coord");
-    
+
     TwAddVarRW(tweak_bar, "look-spline", TW_TYPE_INT32, &this->cam_spline_look_id, "label=look-spline help='cam look animation path id'");
     TwAddVarRW(tweak_bar, "look-spline-para", TW_TYPE_FLOAT, &this->cam_spline_look_para, "label=look-spline-para help='time parameter along look spline'");
     TwAddVarRW(tweak_bar, "follow-spline", TW_TYPE_INT32, &this->cam_spline_move_id , "label=folow-spline help='cam move animation path id'");
@@ -857,7 +1098,7 @@ void Renderer::init_tweak_bar(Camera* camera)
 
     this->n_lightsources = Light::get_number_of_lightsources();
     TwAddVarRW(tweak_bar, "Number of lights", TW_TYPE_INT32, &this->n_lightsources , "label='Number of lights' help='Total number of lights in scene'");
-    
+    TwAddVarRW(tweak_bar, "Number of culled lights", TW_TYPE_INT32, Light::get_number_of_culled_lightsources(), "label='Culled lights' help='Lights with bounding sphere outside of viewing frustum.'");
 }
 
 // ---------------

@@ -16,7 +16,6 @@ bool sdl_init(const GLuint screen_width, const GLuint screen_height,
     main_window = SDL_CreateWindow("TSBK07 Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                    screen_width, screen_height, SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL);
 #endif
-    //main_window = SDL_CreateWindow("TSBK07 Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screen_width, screen_height, SDL_WINDOW_OPENGL);
     if (!main_window) {
         std::cerr << "Unable to create window\n";
         return false;
@@ -41,7 +40,7 @@ bool sdl_init(const GLuint screen_width, const GLuint screen_height,
     glEnable(GL_DEPTH_TEST);
     SDL_GL_SwapWindow(main_window);
 
-    if ( SDL_GL_SetSwapInterval(1) != 0 ) {
+    if ( SDL_GL_SetSwapInterval(0) != 0 ) {
       printf("WARNING: Unable to enable vsync, %s\n", SDL_GetError());
     }
 
@@ -127,7 +126,8 @@ GLuint load_shaders(const GLchar* vertex_file_path, const GLchar* fragment_file_
     glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(vertex, 512, NULL, info_log);
-        Error::throw_error(Error::cant_load_shader, "Vertex shader compilation failed: " + std::string(info_log));
+        Error::throw_error(Error::cant_load_shader, "Vertex shader " +
+                           (std::string) vertex_file_path + " compilation failed: " + std::string(info_log));
     }
 
     /* Compile fragment shader */
@@ -137,7 +137,8 @@ GLuint load_shaders(const GLchar* vertex_file_path, const GLchar* fragment_file_
     glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(fragment, 512, NULL, info_log);
-        Error::throw_error(Error::cant_load_shader, "Fragment shader compilation failed: " + std::string(info_log));
+        Error::throw_error(Error::cant_load_shader, "Fragment shader " +
+                           (std::string) fragment_file_path + " compilation failed: " + std::string(info_log));
     }
 
     /* Create shader program */

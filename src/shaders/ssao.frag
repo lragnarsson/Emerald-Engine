@@ -7,15 +7,12 @@ uniform sampler2D tex_noise;
 
 uniform mat4 view;
 uniform float kernel_radius;
-
-const int MAX_N_SAMPELS = 256;
-
-uniform vec3 samples[256]; // Kernel samples from surrounding screen space geometry
+uniform vec3 samples[_SSAO_N_SAMPLES_]; // Kernel samples from surrounding screen space geometry
 uniform mat4 projection;
 
 
 // scaling for the noise texture coords to ensure that the noise texture tiles across the screen.
-const vec2 noise_scale = vec2(SCREEN_WIDTH / 4.0, SCREEN_HEIGHT / 4.0);
+const vec2 noise_scale = vec2(SCREEN_WIDTH / 5.0, SCREEN_HEIGHT / 5.0);
 
 
 

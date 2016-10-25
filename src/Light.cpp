@@ -1,8 +1,11 @@
 #include "Light.hpp"
+#include <iostream>
+
 
 std::vector<Light*> Light::lights;
 std::vector<unsigned int> Light::free_ids;
 GLuint Light::shader_program;
+uint Light::culled_number = 0;
 unsigned int Light::next_to_turn_on = 0;
 
 // ------------
@@ -11,7 +14,7 @@ unsigned int Light::next_to_turn_on = 0;
 Light::Light(const glm::vec3 world_coord, const glm::vec3 color)
 {
     this->position = world_coord;
-    this->color = color;
+    this->color = 1.f * color;
     this->active_light = true;
 
     // Check if there are free places in the vector for lights
@@ -25,6 +28,7 @@ Light::Light(const glm::vec3 world_coord, const glm::vec3 color)
         free_ids.pop_back();
         lights[id] = this;
     }
+    generate_bounding_sphere();
 }
 
 Light::~Light()
@@ -47,7 +51,7 @@ void Light::upload()
     glUniform3fv(glGetUniformLocation(shader_program, ("lights[" + std::to_string(this->id) + "].color").c_str()), 1,
                  glm::value_ptr(this->color));
     glUniform1i(glGetUniformLocation(shader_program, ("lights[" + std::to_string(this->id) + "].active_light").c_str()),
-                this->active_light);
+                this->active_light && this->inside_frustum);
     glUseProgram(0);
 }
 
@@ -62,7 +66,7 @@ void Light::upload_all()
             glUniform3fv(glGetUniformLocation(shader_program, ("lights[" + std::to_string(i) + "].color").c_str()), 1,
                          glm::value_ptr(lights[i]->color));
             glUniform1i(glGetUniformLocation(shader_program, ("lights[" + std::to_string(i) + "].active_light").c_str()),
-                        lights[i]->active_light);
+                        lights[i]->active_light && lights[i]->inside_frustum);
         }
     }
     glUseProgram(0);
@@ -94,6 +98,7 @@ void Light::set_color(glm::vec3 color)
     this->upload();
 }
 
+
 void Light::turn_off_all_lights()
 {
     for (int id = 0; id < lights.size(); id++) {
@@ -105,6 +110,23 @@ void Light::turn_off_all_lights()
     upload_all();
 }
 
+void Light::cull_light_sources(Camera &camera)
+{
+    Profiler::start_timer("Light culling");
+    int i = 0;
+    for (auto light : lights) {
+        if (camera.sphere_in_frustum(light->position, light->bounding_sphere_radius)) {
+            light->inside_frustum = true;
+        } else {
+            light->inside_frustum = false;
+            i++;
+        }
+    }
+    upload_all();
+    Light::culled_number = i;
+    Profiler::stop_timer("Light culling");
+}
+
 void Light::turn_on_one_lightsource()
 {
     if (std::find(free_ids.begin(), free_ids.end(), next_to_turn_on) == free_ids.end()) {
@@ -114,4 +136,16 @@ void Light::turn_on_one_lightsource()
     if (++next_to_turn_on == lights.size()) {
         next_to_turn_on = 0;
     }
+}
+
+void Light::generate_bounding_sphere()
+{
+    float a = _ATT_CON_;
+    float b = _ATT_LIN_;
+    float c = _ATT_QUAD_;
+    float alpha = 0.02; // 2 percent
+    float beta = glm::length(this->color);
+
+    // Solve quadratic equation to determine at what distance the light is dimmer than alpha times beta:
+    this->bounding_sphere_radius = -b / ( 2 * c) + std::sqrt(b * b / (4 * c * c) - a / c + beta / (alpha * c));
 }
