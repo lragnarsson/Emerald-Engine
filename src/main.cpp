@@ -78,7 +78,7 @@ void handle_input()
 {
     Profiler::start_timer("Input");
     handle_keyboard_input(camera, renderer);
-    handle_mouse_input(camera);
+    handle_mouse_input(camera, renderer);
     Profiler::stop_timer("Input");
 }
 
@@ -120,6 +120,7 @@ void run()
         Profiler::start_timer("Swap");
         SDL_GL_SwapWindow(main_window);
         Profiler::stop_timer("Swap");
+
         //SDL_Delay(20);
         Profiler::stop_timer("-> Frame time");
     }
