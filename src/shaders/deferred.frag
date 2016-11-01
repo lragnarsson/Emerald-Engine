@@ -53,7 +53,7 @@ void main()
                 vec3 halfway_dir = normalize(light_dir + view_direction);
                 float s = pow(max(dot(normal, halfway_dir), 0.0), shininess);
 
-                vec3 specular_light = s * lights[i].color ; // * albedo; Specular color should not depend on color of material.
+                vec3 specular_light = s * lights[i].color * albedo; 
 
                 light += attenuation * (diffuse_light + specular_light);
             }
