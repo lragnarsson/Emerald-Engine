@@ -82,13 +82,12 @@ namespace Light
 
         glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubos[0]);
         glBindBufferBase(GL_UNIFORM_BUFFER, 1, ubos[1]);
-
-        //upload_lights();
     }
 
 
     void cull_light_sources(Camera &camera)
     {
+        Profiler::start_timer("Cull lights");
         int num_visible = 0;
         culled_lights = 0;
         for (int i=0; i<num_lights; i++) {
@@ -104,6 +103,7 @@ namespace Light
             }
         }
         upload_lights();
+        Profiler::stop_timer("Cull lights");
     }
 
 

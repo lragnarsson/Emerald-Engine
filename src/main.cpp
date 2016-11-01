@@ -10,6 +10,7 @@ void free_resources()
 
 void cull_models()
 {
+    Profiler::start_timer("Cull models");
     // TODO: Run in parallel
     uint i = 0;
     for (auto model : Model::get_loaded_models()) {
@@ -25,6 +26,7 @@ void cull_models()
             i++;
     }
     renderer.objects_drawn = i;
+    Profiler::stop_timer("Cull models");
 }
 
 
@@ -66,11 +68,9 @@ void cull_turned_off_flat_objects()
 
 void culling()
 {
-    Profiler::start_timer("Culling");
     cull_models();
     //cull_turned_off_flat_objects();
     Light::cull_light_sources(camera);
-    Profiler::stop_timer("Culling");
 }
 
 // --------------------------
