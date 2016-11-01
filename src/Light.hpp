@@ -28,14 +28,23 @@ namespace Light
         float padding;
     } Light;
 
+    typedef struct {
+        float radius;
+        bool active;
+    } Light_meta;
+
+    const int light_size = 40;
+    const int info_size = 4;
+
     extern Light lights[_MAX_LIGHTS_]; // Always same order
     extern Light gpu_lights[_MAX_LIGHTS_]; // Sorted, pushed to GPU
-    extern float light_radii[_MAX_LIGHTS_];
-    extern glm::vec4 light_info; // Contains num_lights + padding.
+    extern Light_meta light_metas[_MAX_LIGHTS_]; // Metadata about lights such as radius, on/off.
+    extern std::vector<GLuint> shader_programs; // For UBO binding on init.
     extern GLuint ubos[2];
     extern int num_lights;
     extern int culled_lights;
-    extern std::vector<GLuint> shader_programs;
+    extern int next_to_turn_on;
+
 
     int create_light(glm::vec3 position, float brightness, glm::vec3 color);
     void destroy_light(int index);
@@ -44,8 +53,9 @@ namespace Light
     void upload_lights();
     void generate_bounding_sphere(int light);
 
-    //void turn_off_all_lights();
-    //void turn_on_one_lightsource();
+    void turn_off_all_lights();
+    void turn_on_all_lights();
+    void turn_on_one_light();
 
 }
 #endif

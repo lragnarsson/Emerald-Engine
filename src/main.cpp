@@ -29,6 +29,14 @@ void cull_models()
     Profiler::stop_timer("Cull models");
 }
 
+void cull_turned_off_flat_objects()
+{
+    for (auto model: Model::get_loaded_flat_models()) {
+        if (!model->get_light_active()) {
+            model->draw_me = false;
+        }
+    }
+}
 
 // --------------------------
 
@@ -50,27 +58,13 @@ void animate_models()
     Profiler::stop_timer("Animate models");
 }
 
-
-// --------------------------
-
-/*
-void cull_turned_off_flat_objects()
-{
-    for (auto model: Model::get_loaded_flat_models()) {
-        if (model->get_lights().size() > 0 &&
-            model->get_lights()[0]->is_active() == false) {
-            model->draw_me = false;
-        }
-    }
-    }*/
-
 // --------------------------
 
 void culling()
 {
     cull_models();
-    //cull_turned_off_flat_objects();
     Light::cull_light_sources(camera);
+    cull_turned_off_flat_objects();
 }
 
 // --------------------------

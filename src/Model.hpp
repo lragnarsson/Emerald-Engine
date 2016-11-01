@@ -94,6 +94,7 @@ public:
     glm::vec3 get_center_point_world();
     glm::vec3 get_center_point();
     glm::vec3 get_light_color();
+    bool get_light_active();
     void attach_animation_path(int animation_id, float start_parameter);
     bool has_animation_path() {return has_animation;}
     void move_along_path(float elapsed_time);

@@ -5,13 +5,12 @@ namespace Light
 {
     Light lights[_MAX_LIGHTS_]; // Always same order
     Light gpu_lights[_MAX_LIGHTS_]; // Sorted, pushed to GPU
-    float light_radii[_MAX_LIGHTS_];
+    Light_meta light_metas[_MAX_LIGHTS_]; // Metadata about lights such as radius, on/off.
+    std::vector<GLuint> shader_programs; // For UBO binding on init.
     GLuint ubos[2]; // Light ubo, light_info ubo
-    std::vector<GLuint> shader_programs;
     int num_lights;
     int culled_lights;
-    const int light_size = 40;
-    const int info_size = 4;
+    int next_to_turn_on;
 
 
     int create_light(glm::vec3 position, float brightness,
@@ -37,7 +36,7 @@ namespace Light
             lights[index].position = lights[num_lights-1].position;
             lights[index].brightness = lights[num_lights-1].brightness;
             lights[index].color = lights[num_lights-1].color;
-            light_radii[index] = light_radii[num_lights-1];
+            light_metas[index].radius = light_metas[num_lights-1].radius;
             num_lights--;
         }
     }
@@ -82,6 +81,8 @@ namespace Light
 
         glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubos[0]);
         glBindBufferBase(GL_UNIFORM_BUFFER, 1, ubos[1]);
+
+        turn_on_all_lights();
     }
 
 
@@ -91,8 +92,10 @@ namespace Light
         int num_visible = 0;
         culled_lights = 0;
         for (int i=0; i<num_lights; i++) {
-            if (camera.sphere_in_frustum(lights[i].position,
-                                         light_radii[i])) {
+            // Use lights which are turned on or inside viewing frustum:
+            if (light_metas[i].active &&
+                camera.sphere_in_frustum(lights[i].position,
+                                         light_metas[i].radius)) {
                 // Move visible lights to gpu array:
                 gpu_lights[num_visible].position = lights[i].position;
                 gpu_lights[num_visible].brightness = lights[i].brightness;
@@ -116,32 +119,32 @@ namespace Light
         float beta = glm::length(lights[light].color) * lights[light].brightness;
 
         // Solve quadratic equation to determine at what distance the light is dimmer than alpha times beta:
-        light_radii[light] = -b / (2 * c) + std::sqrt(b * b / (4 * c * c) - a / c + beta / (alpha * c));
+        light_metas[light].radius = -b / (2 * c) + std::sqrt(b * b / (4 * c * c) - a / c + beta / (alpha * c));
     }
 
 
-/*void Light::turn_off_all_lights()
+    void turn_off_all_lights()
     {
-        for (int id = 0; id < lights.size(); id++) {
-            // id not in free_ids
-            if (std::find(free_ids.begin(), free_ids.end(), id) == free_ids.end()) {
-                lights[id]->active_light = false;
-            }
+        for (int i = 0; i < num_lights; i++) {
+            light_metas[i].active = false;
         }
-        upload_all();
+    }
+
+    void turn_on_all_lights()
+    {
+        for (int i = 0; i < num_lights; i++) {
+            light_metas[i].active = true;
+        }
     }
 
 
-
-    void Light::turn_on_one_lightsource()
+    void turn_on_one_light()
     {
-        if (std::find(free_ids.begin(), free_ids.end(), next_to_turn_on) == free_ids.end()) {
-            lights[next_to_turn_on]->active_light = true;
-            lights[next_to_turn_on]->upload();
+        if (next_to_turn_on < num_lights) {
+            light_metas[next_to_turn_on].active = true;
         }
-        if (++next_to_turn_on == lights.size()) {
+        if (++next_to_turn_on == num_lights) {
             next_to_turn_on = 0;
         }
     }
-*/
 }

@@ -136,6 +136,12 @@ glm::vec3 Model::get_light_color()
     return glm::vec3(1.f);
 }
 
+bool Model::get_light_active()
+{
+    if (num_lights > 0)
+        return Light::light_metas[attached_lights[0].light].active;
+    return true;
+}
 
 void Model::attach_light(int light, glm::vec3 relative_pos) {
     light_container new_light = {light, relative_pos};
