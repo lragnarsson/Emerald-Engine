@@ -305,7 +305,7 @@ void Renderer::post_processing()
     glGenerateMipmap(GL_TEXTURE_2D);
 
     // Blur overexposed areas to cause bloom:
-    blur_rgb_texture(bright_tex, post_proc_tex, post_proc_fbo, GAUSSIAN_RGB_11, 2);
+    blur_rgb_texture(bright_tex, post_proc_tex, post_proc_fbo, GAUSSIAN_RGB_11, 3);
 
     // Show bloom buffer:
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -398,6 +398,7 @@ void Renderer::ssao_pass()
     Profiler::start_timer("SSAO pass");
 
     glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbo);
+    glViewport(0,0, SCREEN_WIDTH / _SSAO_SCALE_, SCREEN_HEIGHT / _SSAO_SCALE_);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(shaders[SSAO]);
     glActiveTexture(GL_TEXTURE0);
@@ -431,6 +432,7 @@ void Renderer::ssao_pass()
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0,0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glUseProgram(0);
 
     Profiler::stop_timer("SSAO pass");
@@ -489,7 +491,7 @@ void Renderer::filter_pass(GLuint source_tex, GLuint target_fbo)
 void Renderer::blur_red_texture(GLuint source_tex, GLuint fbo_tex, GLuint target_fbo, filter_type ft, int iterations)
 {
     ping_pong_shader shader = upload_filter(ft);
-
+    
     for (int i=0; i<iterations; i++) {
         glUseProgram(shader.x);
         filter_pass(source_tex, ping_pong_fbo_red);
@@ -499,6 +501,7 @@ void Renderer::blur_red_texture(GLuint source_tex, GLuint fbo_tex, GLuint target
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0,0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glUseProgram(0);
 }
 
@@ -783,9 +786,9 @@ void Renderer::init_ssao()
 
     glGenTextures(1, &ssao_tex);
     glBindTexture(GL_TEXTURE_2D, ssao_tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH / _SSAO_SCALE_, SCREEN_HEIGHT / _SSAO_SCALE_, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Use hardware linear interpolation.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_tex, 0);
@@ -809,7 +812,7 @@ void Renderer::init_ping_pong_fbos()
 
     glGenTextures(1, &ping_pong_tex_red);
     glBindTexture(GL_TEXTURE_2D, ping_pong_tex_red);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH / _SSAO_SCALE_, SCREEN_HEIGHT / _SSAO_SCALE_, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
