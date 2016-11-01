@@ -65,7 +65,7 @@ public:
     void toggle_ssao_smoothing();
     void toggle_tweak_bar();
     void copy_tweak_bar_cam_values(const Camera& camera);
-    unsigned get_time_diff();
+    float get_time_diff();
 
 private:
     enum shader {

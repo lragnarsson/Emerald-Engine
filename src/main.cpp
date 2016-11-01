@@ -82,8 +82,9 @@ void run()
 
         Profiler::start_timer("Input and camera");
         handle_keyboard_input(camera, renderer);
-        handle_mouse_input(camera);
-        
+
+        handle_mouse_input(camera, renderer);
+
         if (!camera.can_move_free()) {
             camera.move_along_path(0.1f);
         }
