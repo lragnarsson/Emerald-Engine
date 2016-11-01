@@ -1,148 +1,147 @@
 #include "Light.hpp"
 
 
-std::vector<Light*> Light::lights;
-std::vector<unsigned int> Light::free_ids;
-GLuint Light::shader_program;
-uint Light::culled_number = 0;
-unsigned int Light::next_to_turn_on = 0;
-
-// ------------
-// Construct and destruct
-
-Light::Light(const glm::vec3 world_coord, const glm::vec3 color)
+namespace Light
 {
-    this->position = world_coord;
-    this->color = 1.f * color;
-    this->active_light = true;
-
-    // Check if there are free places in the vector for lights
-    if (free_ids.empty()) {
-        lights.push_back(this);
-        this->id = lights.size() - 1;
-    }
-    else {
-
-        this->id = free_ids.back();
-        free_ids.pop_back();
-        lights[id] = this;
-    }
-    generate_bounding_sphere();
-}
-
-Light::~Light()
-{
-    this->color = glm::vec3(0);
-    this->active_light = false;
-    this->upload();
-    free_ids.push_back(this->id);
-    lights[this->id] = nullptr;
-}
-
-// ------------
-// Uploads to GPU
-
-void Light::upload()
-{
-    glUseProgram(shader_program);
-    glUniform3fv(glGetUniformLocation(shader_program, ("lights[" + std::to_string(this->id) + "].position").c_str()), 1,
-                 glm::value_ptr(this->position));
-    glUniform3fv(glGetUniformLocation(shader_program, ("lights[" + std::to_string(this->id) + "].color").c_str()), 1,
-                 glm::value_ptr(this->color));
-    glUniform1i(glGetUniformLocation(shader_program, ("lights[" + std::to_string(this->id) + "].active_light").c_str()),
-                this->active_light && this->inside_frustum);
-    glUseProgram(0);
-}
+    Light lights[_MAX_LIGHTS_]; // Always same order
+    Light gpu_lights[_MAX_LIGHTS_]; // Sorted, pushed to GPU
+    float light_radii[_MAX_LIGHTS_];
+    GLuint ubos[2]; // Light ubo, light_info ubo
+    std::vector<GLuint> shader_programs;
+    int num_lights;
+    int culled_lights;
+    const int light_size = 40;
+    const int info_size = 4;
 
 
-void Light::upload_all()
-{
-    glUseProgram(shader_program);
-    for (int i = 0; i < lights.size(); i++) {
-        if (lights[i] != nullptr) {
-            glUniform3fv(glGetUniformLocation(shader_program, ("lights[" + std::to_string(i) + "].position").c_str()), 1,
-                         glm::value_ptr(lights[i]->position));
-            glUniform3fv(glGetUniformLocation(shader_program, ("lights[" + std::to_string(i) + "].color").c_str()), 1,
-                         glm::value_ptr(lights[i]->color));
-            glUniform1i(glGetUniformLocation(shader_program, ("lights[" + std::to_string(i) + "].active_light").c_str()),
-                        lights[i]->active_light && lights[i]->inside_frustum);
+    int create_light(glm::vec3 position, float brightness,
+                     glm::vec3 color)
+    {
+        if (num_lights < _MAX_LIGHTS_) {
+            lights[num_lights].position = position;
+            lights[num_lights].brightness = brightness;
+            lights[num_lights].color = color;
+            generate_bounding_sphere(num_lights);
+            num_lights++;
+            return num_lights - 1;
+        } else { // Reached max number of lights
+            return -1;
         }
     }
-    glUseProgram(0);
-}
 
 
-glm::vec3 Light::get_color()
-{
-    return this->color;
-}
-
-
-void Light::move_to(glm::vec3 world_coord)
-{
-    this->position = world_coord;
-}
-
-glm::vec3 Light::get_pos()
-{
-    return this->position;
-}
-
-// ------------
-// Changes color of light
-
-void Light::set_color(glm::vec3 color)
-{
-    this->color = color;
-    this->upload();
-}
-
-
-void Light::turn_off_all_lights()
-{
-    for (int id = 0; id < lights.size(); id++) {
-        // id not in free_ids
-        if (std::find(free_ids.begin(), free_ids.end(), id) == free_ids.end()) {
-            lights[id]->active_light = false;
+    void destroy_light(int index)
+    {
+        // Take the last light and move it to index. Decrease num lights.
+        if (index >= 0 && index < num_lights) {
+            lights[index].position = lights[num_lights-1].position;
+            lights[index].brightness = lights[num_lights-1].brightness;
+            lights[index].color = lights[num_lights-1].color;
+            light_radii[index] = light_radii[num_lights-1];
+            num_lights--;
         }
     }
-    upload_all();
-}
 
-void Light::cull_light_sources(Camera &camera)
-{
-    int i = 0;
-    for (auto light : lights) {
-        if (camera.sphere_in_frustum(light->position, light->bounding_sphere_radius)) {
-            light->inside_frustum = true;
-        } else {
-            light->inside_frustum = false;
-            i++;
+
+    void upload_lights()
+    {
+        int visible_lights = num_lights - culled_lights;
+
+        glBindBuffer(GL_UNIFORM_BUFFER, ubos[0]);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0,
+                        light_size * visible_lights, gpu_lights);
+
+        glBindBuffer(GL_UNIFORM_BUFFER, ubos[1]);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0,
+                        info_size, &visible_lights);
+
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    }
+
+
+    void init()
+    {
+        for (auto shader : shader_programs) {
+            GLuint light_index = glGetUniformBlockIndex(shader, "light_block");
+            glUniformBlockBinding(shader, light_index, 0);
+            GLuint info_index = glGetUniformBlockIndex(shader, "light_info_block");
+            glUniformBlockBinding(shader, info_index, 1);
+        }
+
+        glGenBuffers(2, ubos);
+        glBindBuffer(GL_UNIFORM_BUFFER, ubos[0]);
+        glBufferData(GL_UNIFORM_BUFFER,
+                     light_size * _MAX_LIGHTS_,
+                     NULL, GL_DYNAMIC_DRAW);
+
+        glBindBuffer(GL_UNIFORM_BUFFER, ubos[1]);
+        glBufferData(GL_UNIFORM_BUFFER, info_size,
+                     NULL, GL_DYNAMIC_DRAW);
+
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubos[0]);
+        glBindBufferBase(GL_UNIFORM_BUFFER, 1, ubos[1]);
+
+        //upload_lights();
+    }
+
+
+    void cull_light_sources(Camera &camera)
+    {
+        int num_visible = 0;
+        culled_lights = 0;
+        for (int i=0; i<num_lights; i++) {
+            if (camera.sphere_in_frustum(lights[i].position,
+                                         light_radii[i])) {
+                // Move visible lights to gpu array:
+                gpu_lights[num_visible].position = lights[i].position;
+                gpu_lights[num_visible].brightness = lights[i].brightness;
+                gpu_lights[num_visible].color = lights[i].color;
+                num_visible++;
+            } else {
+                culled_lights++;
+            }
+        }
+        upload_lights();
+    }
+
+
+    void generate_bounding_sphere(int light)
+    {
+        float a = _ATT_CON_;
+        float b = _ATT_LIN_;
+        float c = _ATT_QUAD_;
+        float alpha = 0.02; // 2 percent
+        float beta = glm::length(lights[light].color) * lights[light].brightness;
+
+        // Solve quadratic equation to determine at what distance the light is dimmer than alpha times beta:
+        light_radii[light] = -b / (2 * c) + std::sqrt(b * b / (4 * c * c) - a / c + beta / (alpha * c));
+    }
+
+
+/*void Light::turn_off_all_lights()
+    {
+        for (int id = 0; id < lights.size(); id++) {
+            // id not in free_ids
+            if (std::find(free_ids.begin(), free_ids.end(), id) == free_ids.end()) {
+                lights[id]->active_light = false;
+            }
+        }
+        upload_all();
+    }
+
+
+
+    void Light::turn_on_one_lightsource()
+    {
+        if (std::find(free_ids.begin(), free_ids.end(), next_to_turn_on) == free_ids.end()) {
+            lights[next_to_turn_on]->active_light = true;
+            lights[next_to_turn_on]->upload();
+        }
+        if (++next_to_turn_on == lights.size()) {
+            next_to_turn_on = 0;
         }
     }
-    upload_all();
-    Light::culled_number = i;
-}
-
-void Light::turn_on_one_lightsource()
-{
-    if (std::find(free_ids.begin(), free_ids.end(), next_to_turn_on) == free_ids.end()) {
-        lights[next_to_turn_on]->active_light = true;
-        lights[next_to_turn_on]->upload();
-    }
-    if (++next_to_turn_on == lights.size()) {
-        next_to_turn_on = 0;
-    }
-}
-
-void Light::generate_bounding_sphere()
-{
-    float a = _ATT_CON_;
-    float b = _ATT_LIN_;
-    float c = _ATT_QUAD_;
-    float alpha = 0.02; // 2 percent
-    float beta = glm::length(this->color);
-
-    // Solve quadratic equation to determine at what distance the light is dimmer than alpha times beta:
-    this->bounding_sphere_radius = -b / ( 2 * c) + std::sqrt(b * b / (4 * c * c) - a / c + beta / (alpha * c));
+*/
 }

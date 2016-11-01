@@ -19,41 +19,33 @@
 #include "Profiler.hpp"
 
 
-class Light
+namespace Light
 {
-public:
-    static void upload_all();
-    static GLuint shader_program;
+    typedef struct {
+        glm::vec3 position; // 16
+        float brightness; // 4
+        glm::vec3 color; // 16
+        float padding;
+    } Light;
 
-    float bounding_sphere_radius = -1.f;
+    extern Light lights[_MAX_LIGHTS_]; // Always same order
+    extern Light gpu_lights[_MAX_LIGHTS_]; // Sorted, pushed to GPU
+    extern float light_radii[_MAX_LIGHTS_];
+    extern glm::vec4 light_info; // Contains num_lights + padding.
+    extern GLuint ubos[2];
+    extern int num_lights;
+    extern int culled_lights;
+    extern std::vector<GLuint> shader_programs;
 
-    Light(const glm::vec3 world_coord, const glm::vec3 color);
-    ~Light();
+    int create_light(glm::vec3 position, float brightness, glm::vec3 color);
+    void destroy_light(int index);
+    void init();
+    void cull_light_sources(Camera &camera);
+    void upload_lights();
+    void generate_bounding_sphere(int light);
 
-    void upload();
-    glm::vec3 get_color();
-    void set_color(glm::vec3 color);
-    glm::vec3 get_pos();
-    void move_to(glm::vec3 world_coord); // does not upload data
-    bool is_active() {return this->active_light;}
-    static uint* get_number_of_culled_lightsources() {return &culled_number;}
-    static void cull_light_sources(Camera &camera);
-    static int get_number_of_lightsources() {return lights.size();}
-    static void turn_off_all_lights();
-    static void turn_on_one_lightsource();
+    //void turn_off_all_lights();
+    //void turn_on_one_lightsource();
 
-private:
-    unsigned int id;
-    glm::vec3 position, color;
-    GLboolean active_light, inside_frustum;
-
-    static unsigned int next_to_turn_on, culled_number;
-    static std::vector<Light*> lights;
-    static std::vector<unsigned int> free_ids;
-
-    void generate_bounding_sphere();
-};
-
-
-
+}
 #endif

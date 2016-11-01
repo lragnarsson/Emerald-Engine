@@ -2,9 +2,19 @@
 
 struct Light {
     vec3 position;
+    float brightness;
     vec3 color;
-    bool active_light;
+    float padding;
 };
+
+layout (std140) uniform light_block {
+    Light lights[_MAX_LIGHTS_];
+};
+
+layout (std140) uniform light_info_block {
+    int num_lights;
+};
+
 
 //-------------------------
 
@@ -20,7 +30,7 @@ uniform sampler2D ssao_blurred;
 
 uniform vec3 camPos;
 
-uniform Light lights[_MAX_LIGHTS_];
+//uniform Light lights[_MAX_LIGHTS_];
 
 
 void main()
@@ -37,25 +47,22 @@ void main()
     // Ambient
     vec3 light = 0.03 * occlusion * albedo;
 
-    for(int i=0; i < _MAX_LIGHTS_; i++) {
-        if (lights[i].active_light)
-            {
-                float distance = length(lights[i].position - position);
-                float attenuation = 1.0 / (_ATT_CON_ + _ATT_LIN_ * distance + _ATT_QUAD_ * distance * distance);
-                vec3 light_dir = normalize(lights[i].position - position);
+    for(int i=0; i < num_lights; i++) {
+        float distance = length(lights[i].position - position);
+        float attenuation = 1.0 / (_ATT_CON_ + _ATT_LIN_ * distance + _ATT_QUAD_ * distance * distance);
+        vec3 light_dir = normalize(lights[i].position - position);
 
-                // Diffuse
-                float d = max(dot(normalize(normal), light_dir), 0.0);
-                vec3 diffuse_light = occlusion * d * lights[i].color * albedo;
+        // Diffuse
+        float d = max(dot(normalize(normal), light_dir), 0.0);
+        vec3 diffuse_light = occlusion * d * lights[i].color * albedo;
 
-                // Blinn-Phon Specular
-                vec3 halfway_dir = normalize(light_dir + view_direction);
-                float s = pow(max(dot(normal, halfway_dir), 0.0), shininess);
+        // Blinn-Phon Specular
+        vec3 halfway_dir = normalize(light_dir + view_direction);
+        float s = pow(max(dot(normal, halfway_dir), 0.0), shininess);
 
-                vec3 specular_light = s * lights[i].color * albedo;
+        vec3 specular_light = s * lights[i].color * albedo;
 
-                light += attenuation * (diffuse_light + specular_light);
-            }
+        light += attenuation * (diffuse_light + specular_light);
     }
 
     OutColor = vec4(light, 1.0);

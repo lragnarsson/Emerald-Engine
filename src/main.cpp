@@ -51,6 +51,7 @@ void animate_models()
 
 // --------------------------
 
+/*
 void cull_turned_off_flat_objects()
 {
     for (auto model: Model::get_loaded_flat_models()) {
@@ -59,7 +60,7 @@ void cull_turned_off_flat_objects()
             model->draw_me = false;
         }
     }
-}
+    }*/
 
 // --------------------------
 
@@ -67,7 +68,7 @@ void culling()
 {
     Profiler::start_timer("Culling");
     cull_models();
-    cull_turned_off_flat_objects();
+    //cull_turned_off_flat_objects();
     Light::cull_light_sources(camera);
     Profiler::stop_timer("Culling");
 }
@@ -121,7 +122,7 @@ void run()
         SDL_GL_SwapWindow(main_window);
         Profiler::stop_timer("Swap");
 
-        //SDL_Delay(20);
+        SDL_Delay(30);
         Profiler::stop_timer("-> Frame time");
     }
 }
@@ -145,7 +146,8 @@ void print_welcome()
 
 // --------------------------
 
-int main(int argc, char *argv[])
+
+void init(int argc, char *argv[])
 {
     if (!sdl_init(SCREEN_WIDTH, SCREEN_HEIGHT, main_window, main_context)) {
         Error::throw_error(Error::display_init_fail);
@@ -160,10 +162,14 @@ int main(int argc, char *argv[])
     Loader::load_scene(Parser::get_scene_file_from_command_line(argc, argv), &camera);
     renderer.init_tweak_bar(&camera);
 
+    Light::init();
+}
 
-    Light::upload_all();
-    //    Light::next_to_turn_on = 0;
+// --------------------------
 
+int main(int argc, char *argv[])
+{
+    init(argc, argv);
     run();
 
     TwTerminate();
