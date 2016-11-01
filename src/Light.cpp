@@ -35,19 +35,19 @@ Light::~Light()
 {
     this->color = glm::vec3(0);
     this->active_light = false;
-    this->upload();
     free_ids.push_back(this->id);
     lights[this->id] = nullptr;
 }
 
 // ------------
 // Uploads to GPU
+// Position is converted to view-space. Lights should be uploaded every frame.
 
-void Light::upload()
+void Light::upload(const Camera &camera)
 {
     glUseProgram(shader_program);
-    glUniform3fv(glGetUniformLocation(shader_program, ("lights[" + std::to_string(this->id) + "].position").c_str()), 1,
-                 glm::value_ptr(this->position));
+    glUniform3fv(glGetUniformLocation(shader_program, ("lights[" + std::to_string(this->id) + "].viewSpacePosition").c_str()), 1,
+                 glm::value_ptr(glm::vec3(camera.get_view_matrix() * glm::vec4(this->position, 1.0f))));
     glUniform3fv(glGetUniformLocation(shader_program, ("lights[" + std::to_string(this->id) + "].color").c_str()), 1,
                  glm::value_ptr(this->color));
     glUniform1i(glGetUniformLocation(shader_program, ("lights[" + std::to_string(this->id) + "].active_light").c_str()),
@@ -55,14 +55,14 @@ void Light::upload()
     glUseProgram(0);
 }
 
-
-void Light::upload_all()
+// Position is converted to view-space. Lights should be uploaded every frame.
+void Light::upload_all(const Camera &camera)
 {
     glUseProgram(shader_program);
     for (int i = 0; i < lights.size(); i++) {
         if (lights[i] != nullptr) {
-            glUniform3fv(glGetUniformLocation(shader_program, ("lights[" + std::to_string(i) + "].position").c_str()), 1,
-                         glm::value_ptr(lights[i]->position));
+            glUniform3fv(glGetUniformLocation(shader_program, ("lights[" + std::to_string(i) + "].viewSpacePosition").c_str()), 1,
+                         glm::value_ptr(glm::vec3(camera.get_view_matrix() * glm::vec4(lights[i]->position, 1.0f))));
             glUniform3fv(glGetUniformLocation(shader_program, ("lights[" + std::to_string(i) + "].color").c_str()), 1,
                          glm::value_ptr(lights[i]->color));
             glUniform1i(glGetUniformLocation(shader_program, ("lights[" + std::to_string(i) + "].active_light").c_str()),
@@ -95,7 +95,6 @@ glm::vec3 Light::get_pos()
 void Light::set_color(glm::vec3 color)
 {
     this->color = color;
-    this->upload();
 }
 
 
@@ -107,7 +106,6 @@ void Light::turn_off_all_lights()
             lights[id]->active_light = false;
         }
     }
-    upload_all();
 }
 
 void Light::cull_light_sources(Camera &camera)
@@ -122,7 +120,6 @@ void Light::cull_light_sources(Camera &camera)
             i++;
         }
     }
-    upload_all();
     Light::culled_number = i;
     Profiler::stop_timer("Light culling");
 }
@@ -131,7 +128,6 @@ void Light::turn_on_one_lightsource()
 {
     if (std::find(free_ids.begin(), free_ids.end(), next_to_turn_on) == free_ids.end()) {
         lights[next_to_turn_on]->active_light = true;
-        lights[next_to_turn_on]->upload();
     }
     if (++next_to_turn_on == lights.size()) {
         next_to_turn_on = 0;

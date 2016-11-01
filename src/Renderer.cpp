@@ -121,7 +121,6 @@ void Renderer::set_mode(render_mode mode)
         Light::shader_program = shaders[DEFERRED];
         break;
     }
-    Light::upload_all();
 }
 
 // --------------------------
@@ -129,13 +128,12 @@ void Renderer::set_mode(render_mode mode)
 void Renderer::init_uniforms(const Camera &camera)
 {
     glm::mat4 projection_matrix;
-    w2v_matrix = glm::lookAt(camera.get_pos(), camera.get_pos() + camera.front, camera.up);
     projection_matrix = glm::perspective(Y_FOV, ASPECT_RATIO, NEAR, FAR);
-    for (int i = 0; i < 10; i ++) {
-        glUseProgram(shaders[i]);
-        glUniformMatrix4fv(glGetUniformLocation(shaders[i], "view"),
-                           1, GL_FALSE, glm::value_ptr(w2v_matrix));
-        glUniformMatrix4fv(glGetUniformLocation(shaders[i], "projection"),
+    for (auto shaderProgram : shaders) {
+        glUseProgram(shaderProgram);
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"),
+                           1, GL_FALSE, glm::value_ptr(camera.get_view_matrix()));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"),
                            1, GL_FALSE, glm::value_ptr(projection_matrix));
     }
     glUseProgram(0);
@@ -145,12 +143,12 @@ void Renderer::init_uniforms(const Camera &camera)
 
 void Renderer::upload_camera_uniforms(const Camera &camera)
 {
-    w2v_matrix = glm::lookAt(camera.get_pos(), camera.get_pos() + camera.front, camera.up);
-    for (int i = 0; i < 10; i ++) {
-        glUseProgram(shaders[i]);
-        glUniformMatrix4fv(glGetUniformLocation(shaders[i], "view"),
-                           1, GL_FALSE, glm::value_ptr(w2v_matrix));
-        glUniform3fv(glGetUniformLocation(shaders[i], "camPos"),
+    //w2v_matrix = glm::lookAt(camera.get_pos(), camera.get_pos() + camera.front, camera.up);
+    for (auto shaderProgram : shaders) {
+        glUseProgram(shaderProgram);
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"),
+                           1, GL_FALSE, glm::value_ptr(camera.get_view_matrix()));
+        glUniform3fv(glGetUniformLocation(shaderProgram, "camPos"),
                      1, glm::value_ptr(camera.get_pos()));
     }
     glUseProgram(0);
@@ -208,6 +206,7 @@ void Renderer::render_deferred(const Camera &camera)
     render_flat();
     render_skybox(camera);
 
+    // Disabled post processing
     post_processing();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -309,12 +308,12 @@ void Renderer::post_processing()
     blur_rgb_texture(bright_tex, post_proc_tex, post_proc_fbo, GAUSSIAN_RGB_11, 2);
 
     // Show bloom buffer:
-    /*glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, post_proc_tex);*/
-
+    glBindTexture(GL_TEXTURE_2D, post_proc_tex);
+    
     // Add bloom to original image and draw to screen quad:
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

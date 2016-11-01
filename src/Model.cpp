@@ -132,14 +132,12 @@ void Model::attach_light(Light* light, glm::vec3 relative_pos) {
 
     glm::vec3 light_pos = glm::vec3(m2w_matrix * glm::vec4(relative_pos, 1.f));
     light->move_to(light_pos);
-    light->upload();
-
+    
     this->attached_lightsources.push_back(new_light);
 }
 
 
-/* Move model and all attached lights to world_coord and upload
-the changed values to GPU.
+/* Move model and all attached lights to world_coord.
 Important: the lights does not currently keep their relative
 position to the model */
 void Model::move_to(glm::vec3 world_coord) {
@@ -150,8 +148,7 @@ void Model::move_to(glm::vec3 world_coord) {
 
     for (auto light_container : this->attached_lightsources) {
         glm::vec3 new_pos = glm::vec3(m2w_matrix * glm::vec4(light_container.relative_pos, 1.f));
-        light_container.light->move_to(new_pos);
-        light_container.light->upload();
+        light_container.light->move_to(new_pos);        
     }
 }
 
@@ -168,7 +165,6 @@ void Model::rotate(glm::vec3 axis, float angle) {
     for (auto light_container : this->attached_lightsources) {
         glm::vec3 new_pos = glm::vec3(m2w_matrix * glm::vec4(light_container.relative_pos, 1.f));
         light_container.light->move_to(new_pos);
-        light_container.light->upload();
     }
 }
 
