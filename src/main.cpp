@@ -82,8 +82,8 @@ void run()
 
         Profiler::start_timer("Input and camera");
         handle_keyboard_input(camera, renderer);
+
         handle_mouse_input(camera, renderer);
-        camera.update_culling_frustum();
 
         if (!camera.can_move_free()) {
             camera.move_along_path(0.1f);
@@ -94,10 +94,14 @@ void run()
         renderer.copy_tweak_bar_cam_values(camera);
         Profiler::stop_timer("Input and camera");
 
+        camera.update_culling_frustum();
+        camera.update_view_matrix();
+
         animate_models();
         cull_models();
         cull_turned_off_flat_objects();
         Light::cull_light_sources(camera);
+        Light::upload_all(camera);
 
         renderer.render(camera);
         Profiler::start_timer("swap");
@@ -141,10 +145,6 @@ int main(int argc, char *argv[])
 
     Loader::load_scene(Parser::get_scene_file_from_command_line(argc, argv), &camera);
     renderer.init_tweak_bar(&camera);
-
-
-    Light::upload_all();
-    //    Light::next_to_turn_on = 0;
 
     run();
 

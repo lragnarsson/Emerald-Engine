@@ -121,7 +121,6 @@ void Renderer::set_mode(render_mode mode)
         Light::shader_program = shaders[DEFERRED];
         break;
     }
-    Light::upload_all();
 }
 
 // --------------------------
@@ -129,13 +128,12 @@ void Renderer::set_mode(render_mode mode)
 void Renderer::init_uniforms(const Camera &camera)
 {
     glm::mat4 projection_matrix;
-    w2v_matrix = glm::lookAt(camera.get_pos(), camera.get_pos() + camera.front, camera.up);
     projection_matrix = glm::perspective(Y_FOV, ASPECT_RATIO, NEAR, FAR);
-    for (int i = 0; i < 10; i ++) {
-        glUseProgram(shaders[i]);
-        glUniformMatrix4fv(glGetUniformLocation(shaders[i], "view"),
-                           1, GL_FALSE, glm::value_ptr(w2v_matrix));
-        glUniformMatrix4fv(glGetUniformLocation(shaders[i], "projection"),
+    for (auto shaderProgram : shaders) {
+        glUseProgram(shaderProgram);
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"),
+                           1, GL_FALSE, glm::value_ptr(camera.get_view_matrix()));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"),
                            1, GL_FALSE, glm::value_ptr(projection_matrix));
     }
     glUseProgram(0);
@@ -145,12 +143,11 @@ void Renderer::init_uniforms(const Camera &camera)
 
 void Renderer::upload_camera_uniforms(const Camera &camera)
 {
-    w2v_matrix = glm::lookAt(camera.get_pos(), camera.get_pos() + camera.front, camera.up);
-    for (int i = 0; i < 10; i ++) {
-        glUseProgram(shaders[i]);
-        glUniformMatrix4fv(glGetUniformLocation(shaders[i], "view"),
-                           1, GL_FALSE, glm::value_ptr(w2v_matrix));
-        glUniform3fv(glGetUniformLocation(shaders[i], "camPos"),
+    for (auto shaderProgram : shaders) {
+        glUseProgram(shaderProgram);
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"),
+                           1, GL_FALSE, glm::value_ptr(camera.get_view_matrix()));
+        glUniform3fv(glGetUniformLocation(shaderProgram, "camPos"),
                      1, glm::value_ptr(camera.get_pos()));
     }
     glUseProgram(0);
@@ -208,6 +205,7 @@ void Renderer::render_deferred(const Camera &camera)
     render_flat();
     render_skybox(camera);
 
+    // Disabled post processing
     post_processing();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -306,14 +304,14 @@ void Renderer::post_processing()
     glGenerateMipmap(GL_TEXTURE_2D);
 
     // Blur overexposed areas to cause bloom:
-    blur_rgb_texture(bright_tex, post_proc_tex, post_proc_fbo, GAUSSIAN_RGB_11, 2);
+    blur_rgb_texture(bright_tex, post_proc_tex, post_proc_fbo, GAUSSIAN_RGB_11, 3);
 
     // Show bloom buffer:
-    /*glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, post_proc_tex);*/
+    glBindTexture(GL_TEXTURE_2D, post_proc_tex);
 
     // Add bloom to original image and draw to screen quad:
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -399,6 +397,7 @@ void Renderer::ssao_pass()
     Profiler::start_timer("SSAO pass");
 
     glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbo);
+    glViewport(0,0, SCREEN_WIDTH / _SSAO_SCALE_, SCREEN_HEIGHT / _SSAO_SCALE_);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(shaders[SSAO]);
     glActiveTexture(GL_TEXTURE0);
@@ -415,8 +414,6 @@ void Renderer::ssao_pass()
     }
     GLuint radius_loc = glGetUniformLocation(shaders[SSAO], "kernel_radius");
     glUniform1f(radius_loc, kernel_radius);
-    //    GLuint size_loc = glGetUniformLocation(shaders[SSAO], "ssao_n_samples");
-    //    glUniform1i(size_loc, _SSAO_N_SAMPLES_);
     // Projection matrix should already be uploaded from init_uniforms
 
     // Render quad
@@ -432,6 +429,7 @@ void Renderer::ssao_pass()
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0,0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glUseProgram(0);
 
     Profiler::stop_timer("SSAO pass");
@@ -500,6 +498,7 @@ void Renderer::blur_red_texture(GLuint source_tex, GLuint fbo_tex, GLuint target
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0,0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glUseProgram(0);
 }
 
@@ -784,9 +783,9 @@ void Renderer::init_ssao()
 
     glGenTextures(1, &ssao_tex);
     glBindTexture(GL_TEXTURE_2D, ssao_tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH / _SSAO_SCALE_, SCREEN_HEIGHT / _SSAO_SCALE_, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Use hardware linear interpolation.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_tex, 0);
@@ -804,13 +803,13 @@ void Renderer::init_ssao()
 /* Intended for use as a substep when doing multipass filtering */
 void Renderer::init_ping_pong_fbos()
 {
-    // R16f fbo
+    // RED fbo
     glGenFramebuffers(1, &ping_pong_fbo_red);
     glBindFramebuffer(GL_FRAMEBUFFER, ping_pong_fbo_red);
 
     glGenTextures(1, &ping_pong_tex_red);
     glBindTexture(GL_TEXTURE_2D, ping_pong_tex_red);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH / _SSAO_SCALE_, SCREEN_HEIGHT / _SSAO_SCALE_, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

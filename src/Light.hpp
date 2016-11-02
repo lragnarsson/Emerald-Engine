@@ -22,7 +22,7 @@
 class Light
 {
 public:
-    static void upload_all();
+    static void upload_all(const Camera &);
     static GLuint shader_program;
 
     float bounding_sphere_radius = -1.f;
@@ -30,11 +30,11 @@ public:
     Light(const glm::vec3 world_coord, const glm::vec3 color);
     ~Light();
 
-    void upload();
+    void upload(const Camera &);
     glm::vec3 get_color();
     void set_color(glm::vec3 color);
     glm::vec3 get_pos();
-    void move_to(glm::vec3 world_coord); // does not upload data
+    void move_to(glm::vec3 world_coord); 
     bool is_active() {return this->active_light;}
     static uint* get_number_of_culled_lightsources() {return &culled_number;}
     static void cull_light_sources(Camera &camera);

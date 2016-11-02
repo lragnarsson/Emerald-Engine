@@ -1,8 +1,8 @@
 out float FragColor;
 in vec2 TexCoord;
 
-uniform sampler2D g_position;
-uniform sampler2D g_normal_shininess;
+uniform sampler2D g_position; // view space position
+uniform sampler2D g_normal_shininess; // view space normals
 uniform sampler2D tex_noise;
 
 uniform mat4 view;
@@ -18,8 +18,8 @@ const vec2 noise_scale = vec2(SCREEN_WIDTH / 5.0, SCREEN_HEIGHT / 5.0);
 
 void main()
 {
-    vec3 frag_pos = vec3(view * vec4(texture(g_position, TexCoord).xyz, 1.0f));
-    vec3 normal = vec3(mat3(view) * texture(g_normal_shininess, TexCoord).rgb);
+    vec3 frag_pos = texture(g_position, TexCoord).xyz;
+    vec3 normal = texture(g_normal_shininess, TexCoord).rgb;
     vec3 random_vec = texture(tex_noise, TexCoord * noise_scale).xyz;
 
     // Create tangent-to-viewspace matrix to transform tangent-space samples to view-space
@@ -44,7 +44,7 @@ void main()
             // at the cost of transforming each sample into view-space
             // This cost would be avoided if the positions and normals would be stored in view-space
             // BUT then we would have to to our deferred lighting pass in view-space as well
-            float sample_depth = (view * vec4(texture(g_position, offset.xy).xyz, 1.0f)).z;
+            float sample_depth = texture(g_position, offset.xy).z;
             float range_check = smoothstep(0.0, 1.0, kernel_radius / abs(frag_pos.z - sample_depth));
             occlusion += (sample_depth >= sample.z ? 1.0 : 0.0) * range_check;
         }
