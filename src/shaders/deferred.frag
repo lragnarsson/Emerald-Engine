@@ -28,7 +28,7 @@ uniform sampler2D g_normal_shininess;
 uniform sampler2D g_albedo_specular;
 uniform sampler2D ssao_blurred;
 
-uniform vec3 camPos;
+// camera position is always 0,0,0 in view space
 
 //uniform Light lights[_MAX_LIGHTS_];
 
@@ -42,7 +42,7 @@ void main()
     vec3 albedo = texture(g_albedo_specular, TexCoord).rgb;
     float specular = texture(g_albedo_specular, TexCoord).a;
     float occlusion = texture(ssao_blurred, TexCoord).r; // Only red
-    vec3 view_direction = normalize(camPos - position);
+    vec3 view_direction = normalize(- position);
 
     // Ambient
     vec3 light = 0.03 * occlusion * albedo;

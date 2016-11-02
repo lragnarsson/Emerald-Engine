@@ -97,7 +97,10 @@ namespace Light
                 camera.sphere_in_frustum(lights[i].position,
                                          light_metas[i].radius)) {
                 // Move visible lights to gpu array:
-                gpu_lights[num_visible].position = lights[i].position;
+                // Position in view-space:
+                glm::vec3 view_space_pos = glm::vec3(camera.get_view_matrix() *
+                                                     glm::vec4(lights[i].position, 1.f));
+                gpu_lights[num_visible].position = view_space_pos;
                 gpu_lights[num_visible].brightness = lights[i].brightness;
                 gpu_lights[num_visible].color = lights[i].color;
                 num_visible++;
@@ -105,7 +108,6 @@ namespace Light
                 culled_lights++;
             }
         }
-        upload_lights();
         Profiler::stop_timer("Cull lights");
     }
 
@@ -129,6 +131,7 @@ namespace Light
             light_metas[i].active = false;
         }
     }
+
 
     void turn_on_all_lights()
     {

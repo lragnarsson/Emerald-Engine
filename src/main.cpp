@@ -64,6 +64,7 @@ void culling()
 {
     cull_models();
     Light::cull_light_sources(camera);
+    Light::upload_lights();
     cull_turned_off_flat_objects();
 }
 
@@ -83,6 +84,7 @@ void update_camera()
 {
     Profiler::start_timer("Camera");
     camera.update_culling_frustum();
+    camera.update_view_matrix();
 
     if (!camera.can_move_free()) {
         camera.move_along_path(0.1f);
@@ -116,7 +118,7 @@ void run()
         SDL_GL_SwapWindow(main_window);
         Profiler::stop_timer("Swap");
 
-        SDL_Delay(30);
+        //SDL_Delay(30);
         Profiler::stop_timer("-> Frame time");
     }
 }
