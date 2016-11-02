@@ -143,7 +143,6 @@ void Renderer::init_uniforms(const Camera &camera)
 
 void Renderer::upload_camera_uniforms(const Camera &camera)
 {
-    //w2v_matrix = glm::lookAt(camera.get_pos(), camera.get_pos() + camera.front, camera.up);
     for (auto shaderProgram : shaders) {
         glUseProgram(shaderProgram);
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"),
@@ -313,7 +312,7 @@ void Renderer::post_processing()
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, post_proc_tex);
-    
+
     // Add bloom to original image and draw to screen quad:
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -415,8 +414,6 @@ void Renderer::ssao_pass()
     }
     GLuint radius_loc = glGetUniformLocation(shaders[SSAO], "kernel_radius");
     glUniform1f(radius_loc, kernel_radius);
-    //    GLuint size_loc = glGetUniformLocation(shaders[SSAO], "ssao_n_samples");
-    //    glUniform1i(size_loc, _SSAO_N_SAMPLES_);
     // Projection matrix should already be uploaded from init_uniforms
 
     // Render quad
@@ -491,7 +488,7 @@ void Renderer::filter_pass(GLuint source_tex, GLuint target_fbo)
 void Renderer::blur_red_texture(GLuint source_tex, GLuint fbo_tex, GLuint target_fbo, filter_type ft, int iterations)
 {
     ping_pong_shader shader = upload_filter(ft);
-    
+
     for (int i=0; i<iterations; i++) {
         glUseProgram(shader.x);
         filter_pass(source_tex, ping_pong_fbo_red);
@@ -806,7 +803,7 @@ void Renderer::init_ssao()
 /* Intended for use as a substep when doing multipass filtering */
 void Renderer::init_ping_pong_fbos()
 {
-    // R16f fbo
+    // RED fbo
     glGenFramebuffers(1, &ping_pong_fbo_red);
     glBindFramebuffer(GL_FRAMEBUFFER, ping_pong_fbo_red);
 

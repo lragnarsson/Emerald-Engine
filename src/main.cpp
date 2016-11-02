@@ -96,13 +96,13 @@ void run()
 
         camera.update_culling_frustum();
         camera.update_view_matrix();
-        
+
         animate_models();
         cull_models();
         cull_turned_off_flat_objects();
         Light::cull_light_sources(camera);
         Light::upload_all(camera);
-        
+
         renderer.render(camera);
         Profiler::start_timer("swap");
         SDL_GL_SwapWindow(main_window);
@@ -145,10 +145,6 @@ int main(int argc, char *argv[])
 
     Loader::load_scene(Parser::get_scene_file_from_command_line(argc, argv), &camera);
     renderer.init_tweak_bar(&camera);
-
-
-    //Light::upload_all();
-    //    Light::next_to_turn_on = 0;
 
     run();
 

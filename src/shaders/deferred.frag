@@ -19,7 +19,6 @@ uniform sampler2D g_albedo_specular;
 uniform sampler2D ssao_blurred;
 
 // camera position is always 0,0,0 in view space
-// uniform vec3 camPos; 
 
 uniform Light lights[_MAX_LIGHTS_];
 
@@ -53,7 +52,7 @@ void main()
                 vec3 halfway_dir = normalize(light_dir + view_direction);
                 float s = pow(max(dot(normal, halfway_dir), 0.0), shininess);
 
-                vec3 specular_light = s * lights[i].color * albedo; 
+                vec3 specular_light = s * lights[i].color * albedo;
 
                 light += attenuation * (diffuse_light + specular_light);
             }
