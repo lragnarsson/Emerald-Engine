@@ -315,7 +315,7 @@ void Renderer::post_processing()
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, post_proc_tex);
 
-    glUniform1f(glGetUniformLocation(shaders[HDR_BLOOM], "exposure"), 0.4f);
+    glUniform1f(glGetUniformLocation(shaders[HDR_BLOOM], "exposure"), 0.5f);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

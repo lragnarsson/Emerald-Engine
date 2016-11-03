@@ -139,7 +139,7 @@ glm::vec3 Model::get_light_color()
 bool Model::get_light_active()
 {
     if (num_lights > 0)
-        return Light::light_metas[attached_lights[0].light].active;
+        return Light::light_meta[attached_lights[0].light].active;
     return true;
 }
 
