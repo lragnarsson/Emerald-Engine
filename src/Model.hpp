@@ -70,8 +70,7 @@ private:
     };
 
     static std::vector<Model*> loaded_models, loaded_flat_models;
-    static std::vector<Texture*> loaded_textures;
-    std::vector<light_container> attached_lights;
+    std::vector<light_container> attached_lightsources;
     std::vector<Mesh*> meshes;
     std::string directory;
     glm::vec3 world_coord;
@@ -82,7 +81,6 @@ private:
 
     void unfold_assimp_node(aiNode* node, const aiScene* scene);
     Mesh* load_mesh(aiMesh* mesh, const aiScene* scene);
-    Texture* load_texture(const std::string filename, const std::string basepath, bool clamp);
     void generate_bounding_sphere();
 };
 
