@@ -132,22 +132,22 @@ glm::vec3 Model::get_center_point()
 glm::vec3 Model::get_light_color()
 {
     if (num_lights > 0)
-        return Light::lights[attached_lights[0].light].color;
+        return attached_lights[0].light->color;
     return glm::vec3(1.f);
 }
 
 bool Model::get_light_active()
 {
     if (num_lights > 0)
-        return Light::light_meta[attached_lights[0].light].active;
+        return attached_lights[0].light->active;
     return true;
 }
 
-void Model::attach_light(int light, glm::vec3 relative_pos) {
+void Model::attach_light(Light *light, glm::vec3 relative_pos) {
     light_container new_light = {light, relative_pos};
 
     glm::vec3 light_pos = glm::vec3(m2w_matrix * glm::vec4(relative_pos, 1.f));
-    Light::lights[light].position = light_pos;
+    light->position = light_pos;
     this->num_lights++;
     this->attached_lights.push_back(new_light);
 }
@@ -164,7 +164,7 @@ void Model::move_to(glm::vec3 world_coord) {
 
     for (auto container : this->attached_lights) {
         glm::vec3 new_pos = glm::vec3(m2w_matrix * glm::vec4(container.relative_pos, 1.f));
-        Light::lights[container.light].position = new_pos;
+        container.light->position = new_pos;
     }
 }
 
@@ -180,7 +180,7 @@ void Model::rotate(glm::vec3 axis, float angle) {
 
     for (auto container : this->attached_lights) {
         glm::vec3 new_pos = glm::vec3(m2w_matrix * glm::vec4(container.relative_pos, 1.f));
-        Light::lights[container.light].position = new_pos;
+        container.light->position = new_pos;
     }
 }
 

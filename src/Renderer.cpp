@@ -1088,7 +1088,7 @@ void Renderer::init_tweak_bar(Camera* camera)
 
     TwAddVarRW(tweak_bar, "follow-spline-para", TW_TYPE_FLOAT, &this->cam_spline_move_para, "label=follow-spline-para help='time parameter along move spline'");
 
-    this->n_lightsources = Light::num_lights;
+    this->n_lightsources = Light::get_num_lights();
     TwAddVarRW(tweak_bar, "Number of lights", TW_TYPE_INT32, &this->n_lightsources , "label='Number of lights' help='Total number of lights in scene'");
     TwAddVarRW(tweak_bar, "Number of culled lights", TW_TYPE_INT32, &Light::culled_lights, "label='Culled lights' help='Lights with bounding sphere outside of viewing frustum.'");
 }
