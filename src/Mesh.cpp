@@ -1,7 +1,8 @@
-#include "Model.hpp"
+#include "Mesh.hpp"
 
 /* --- MESH --- */
 /* Public Mesh functions */
+std::vector<Texture*> Mesh::loaded_textures;
 
 void Mesh::upload_mesh_data()
 {
@@ -48,8 +49,55 @@ void Mesh::upload_mesh_data()
     glBindVertexArray(0);
 }
 
+// --------------------
+
 GLuint Mesh::get_VAO()
 {
     return VAO;
 }
 
+// --------------------
+
+Texture* Mesh::load_texture(const std::string filename, const std::string basepath, bool clamp)
+{
+    std::string filepath = basepath + "/" + filename;
+    for (uint i = 0; i < Mesh::loaded_textures.size(); i++) {
+        if (!filename.compare(std::string(Mesh::loaded_textures[i]->path.C_Str()))) {
+            return Mesh::loaded_textures[i];
+        }
+    }
+
+    SDL_Surface* surface = IMG_Load(filepath.c_str());
+    if (surface == NULL) {
+        Error::throw_error(Error::cant_load_image, SDL_GetError());
+    }
+
+    /* Upload texture */
+    Texture* texture = new Texture();
+    glGenTextures(1, &texture->id);
+    glBindTexture(GL_TEXTURE_2D, texture->id);
+
+    if (clamp) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    } else {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    }
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    if (surface->format->BytesPerPixel == 4) {
+        GLenum color_format = surface->format->Rmask == 255 ? GL_RGBA : GL_BGRA;
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, color_format, GL_UNSIGNED_BYTE, surface->pixels);
+    } else {
+        GLenum color_format = surface->format->Rmask == 255 ? GL_RGB : GL_BGR;
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, color_format, GL_UNSIGNED_BYTE, surface->pixels);
+    }
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    Mesh::loaded_textures.push_back(texture);
+
+    return texture;
+}

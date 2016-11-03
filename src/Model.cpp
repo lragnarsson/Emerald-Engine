@@ -2,7 +2,6 @@
 
 /* --- MODEL ---*/
 std::vector<Model*> Model::loaded_models, Model::loaded_flat_models;
-std::vector<Texture*> Model::loaded_textures;
 
 Model::Model(const std::string path)
 {
@@ -197,13 +196,13 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         aiString filepath;
         material->GetTexture(aiTextureType_DIFFUSE, 0, &filepath);
         Texture* texture;
-        texture = load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
+        texture = m->load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
         texture->type = DIFFUSE;
         texture->path = filepath;
         m->diffuse_map = texture;
     } else {
         Texture* texture;
-        texture = load_texture(DEFAULT_DIFFUSE, DEFAULT_PATH, clamp_textures);
+        texture = m->load_texture(DEFAULT_DIFFUSE, DEFAULT_PATH, clamp_textures);
         texture->type = DIFFUSE;
         texture->path = DEFAULT_PATH;
         m->diffuse_map = texture;
@@ -213,7 +212,7 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         aiString filepath;
         material->GetTexture(aiTextureType_SPECULAR, 0, &filepath);
         Texture* texture;
-        texture = load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
+        texture = m->load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
         texture->type = SPECULAR;
         texture->path = filepath;
         m->specular_map = texture;
@@ -225,13 +224,13 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         aiString filepath;
         material->GetTexture(aiTextureType_HEIGHT, 0, &filepath);
         Texture* texture;
-        texture = load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
+        texture = m->load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
         texture->type = NORMAL;
         texture->path = filepath;
         m->normal_map = texture;
     } else { // Default normal map keeps the geometry defined normals
         Texture* texture;
-        texture = load_texture(DEFAULT_NORMAL, DEFAULT_PATH, clamp_textures);
+        texture = m->load_texture(DEFAULT_NORMAL, DEFAULT_PATH, clamp_textures);
         texture->type = NORMAL;
         texture->path = DEFAULT_PATH;
         m->normal_map = texture;
@@ -240,51 +239,6 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
     m->upload_mesh_data();
 
     return m;
-}
-
-
-Texture* Model::load_texture(const std::string filename, const std::string basepath, bool clamp)
-{
-    std::string filepath = basepath + "/" + filename;
-    for (uint i = 0; i < Model::loaded_textures.size(); i++) {
-        if (!filename.compare(std::string(Model::loaded_textures[i]->path.C_Str()))) {
-            return Model::loaded_textures[i];
-        }
-    }
-
-    SDL_Surface* surface = IMG_Load(filepath.c_str());
-    if (surface == NULL) {
-        Error::throw_error(Error::cant_load_image, SDL_GetError());
-    }
-
-    /* Upload texture */
-    Texture* texture = new Texture();
-    glGenTextures(1, &texture->id);
-    glBindTexture(GL_TEXTURE_2D, texture->id);
-
-    if (clamp) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    } else {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    }
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    if (surface->format->BytesPerPixel == 4) {
-        GLenum color_format = surface->format->Rmask == 255 ? GL_RGBA : GL_BGRA;
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, color_format, GL_UNSIGNED_BYTE, surface->pixels);
-    } else {
-        GLenum color_format = surface->format->Rmask == 255 ? GL_RGB : GL_BGR;
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, color_format, GL_UNSIGNED_BYTE, surface->pixels);
-    }
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    Model::loaded_textures.push_back(texture);
-
-    return texture;
 }
 
 
