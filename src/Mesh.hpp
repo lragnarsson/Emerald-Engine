@@ -26,9 +26,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "Light.hpp"
 #include "Error.hpp"
-#include "Animation_Path.hpp"
 
 const std::string DEFAULT_PATH = "res/models/default";
 const std::string DEFAULT_DIFFUSE = "default_diffuse.jpg";
@@ -62,8 +60,10 @@ public:
     /* Upload vertices, normals etc to the GPU */
     void upload_mesh_data();
     GLuint get_VAO();
+    Texture* load_texture(const std::string filename, const std::string basepath, bool clamp);
 
 private:
+    static std::vector<Texture*> loaded_textures;
     GLuint VAO, EBO;
     GLuint VBO[4]; // Vertices, normals, texCoords, tangents
 };
