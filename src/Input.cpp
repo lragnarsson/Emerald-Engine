@@ -116,7 +116,7 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     Light::turn_off_all_lights();
                     break;
                 case SDLK_x:
-                    Light::turn_on_one_lightsource();
+                    Light::turn_on_one_light();
                     break;
                 }
             }

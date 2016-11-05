@@ -37,6 +37,9 @@ void Renderer::init()
     skybox = new Model("res/models/skybox/skybox.obj");
     skybox->move_to(glm::vec3(-0.5f, -0.5f, -0.5f));
     set_mode(DEFERRED_MODE);
+
+    Light::shader_programs.push_back(shaders[DEFERRED]);
+    Light::shader_programs.push_back(shaders[FORWARD]);
 }
 
 // --------------------------
@@ -99,26 +102,19 @@ void Renderer::set_mode(render_mode mode)
     this->mode = mode;
     switch (mode) {
     case FORWARD_MODE:
-        Light::shader_program = shaders[FORWARD];
         break;
     case DEFERRED_MODE:
-        Light::shader_program = shaders[DEFERRED];
         clear_ssao();
         break;
     case POSITION_MODE:
-        Light::shader_program = shaders[DEFERRED];
         break;
     case NORMAL_MODE:
-        Light::shader_program = shaders[DEFERRED];
         break;
     case ALBEDO_MODE:
-        Light::shader_program = shaders[DEFERRED];
         break;
     case SPECULAR_MODE:
-        Light::shader_program = shaders[DEFERRED];
         break;
     case SSAO_MODE:
-        Light::shader_program = shaders[DEFERRED];
         break;
     }
 }
@@ -272,11 +268,8 @@ void Renderer::render_flat()
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
 
         GLuint color = glGetUniformLocation(shaders[FLAT], "color");
-        if (model->get_lights().size() > 0) {
-            glUniform3fv(color, 1, glm::value_ptr(model->get_lights()[0]->get_color()));
-        } else {
-            glUniform3fv(color, 1, glm::value_ptr(glm::vec3(1.f)));
-        }
+        glUniform3fv(color, 1,
+                     glm::value_ptr(model->get_light_color()));
 
         for (auto mesh : model->get_meshes()) {
             glBindVertexArray(mesh->get_VAO());
@@ -322,7 +315,7 @@ void Renderer::post_processing()
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, post_proc_tex);
 
-    glUniform1f(glGetUniformLocation(shaders[HDR_BLOOM], "exposure"), 0.4f);
+    glUniform1f(glGetUniformLocation(shaders[HDR_BLOOM], "exposure"), 0.5f);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -1095,9 +1088,9 @@ void Renderer::init_tweak_bar(Camera* camera)
 
     TwAddVarRW(tweak_bar, "follow-spline-para", TW_TYPE_FLOAT, &this->cam_spline_move_para, "label=follow-spline-para help='time parameter along move spline'");
 
-    this->n_lightsources = Light::get_number_of_lightsources();
+    this->n_lightsources = Light::get_num_lights();
     TwAddVarRW(tweak_bar, "Number of lights", TW_TYPE_INT32, &this->n_lightsources , "label='Number of lights' help='Total number of lights in scene'");
-    TwAddVarRW(tweak_bar, "Number of culled lights", TW_TYPE_INT32, Light::get_number_of_culled_lightsources(), "label='Culled lights' help='Lights with bounding sphere outside of viewing frustum.'");
+    TwAddVarRW(tweak_bar, "Number of culled lights", TW_TYPE_INT32, &Light::culled_lights, "label='Culled lights' help='Lights with bounding sphere outside of viewing frustum.'");
 }
 
 // ---------------

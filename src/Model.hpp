@@ -74,6 +74,7 @@ public:
     glm::mat4 m2w_matrix, move_matrix, rot_matrix, scale_matrix;
     float bounding_sphere_radius = -1.f, scale = 1.f;
     bool draw_me = true, clamp_textures = false;
+    int num_lights;
 
     Model() { };
     Model(const std::string path);
@@ -86,26 +87,27 @@ public:
     static const std::vector<Model*> get_loaded_flat_models();
     const std::vector<Mesh*> get_meshes();
 
-    void attach_light(Light* light, glm::vec3 relative_pos);
+    void attach_light(Light *light, glm::vec3 relative_pos);
     void move_to(glm::vec3 world_coord);
     void move(glm::vec3 relative);
     void rotate(glm::vec3 axis, float angle);
-    std::vector<Light*> get_lights();
     glm::vec3 get_center_point_world();
     glm::vec3 get_center_point();
+    glm::vec3 get_light_color();
+    bool get_light_active();
     void attach_animation_path(int animation_id, float start_parameter);
     bool has_animation_path() {return has_animation;}
     void move_along_path(float elapsed_time);
 
 private:
     struct light_container {
-        Light* light;
+        Light *light;
         glm::vec3 relative_pos;
     };
 
     static std::vector<Model*> loaded_models, loaded_flat_models;
     static std::vector<Texture*> loaded_textures;
-    std::vector<light_container> attached_lightsources;
+    std::vector<light_container> attached_lights;
     std::vector<Mesh*> meshes;
     std::string directory;
     glm::vec3 world_coord;

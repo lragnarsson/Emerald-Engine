@@ -2,11 +2,11 @@
 #define LIGHT_H
 
 #ifdef __linux__
-  #include <GL/glew.h>
+#include <GL/glew.h>
 #endif
 
 #ifdef __APPLE__
-  #include <OpenGL/gl3.h>
+#include <OpenGL/gl3.h>
 #endif
 
 #include <glm/glm.hpp>
@@ -19,41 +19,49 @@
 #include "Profiler.hpp"
 
 
+typedef struct {
+    glm::vec3 position; // 12 +
+    float brightness;   // 4 +
+    glm::vec3 color;    // 12 +
+    float padding;      // 4 = 40 bytes
+} gpu_light;
+
 class Light
 {
 public:
-    static void upload_all(const Camera &);
-    static GLuint shader_program;
+    static std::vector<GLuint> shader_programs; // For UBO binding on init.
+    static int culled_lights;
+    glm::vec3 position;
+    float brightness;
+    glm::vec3 color;
+    bool active;
+    float radius;
 
-    float bounding_sphere_radius = -1.f;
-
-    Light(const glm::vec3 world_coord, const glm::vec3 color);
+    Light(const glm::vec3 position,
+          const float brightness, const glm::vec3 color);
     ~Light();
 
-    void upload(const Camera &);
-    glm::vec3 get_color();
-    void set_color(glm::vec3 color);
-    glm::vec3 get_pos();
-    void move_to(glm::vec3 world_coord); 
-    bool is_active() {return this->active_light;}
-    static uint* get_number_of_culled_lightsources() {return &culled_number;}
+    static void init();
     static void cull_light_sources(Camera &camera);
-    static int get_number_of_lightsources() {return lights.size();}
+    static void upload_lights();
     static void turn_off_all_lights();
-    static void turn_on_one_lightsource();
+    static void turn_on_all_lights();
+    static void turn_on_one_light();
+    static int get_num_lights() { return lights.size(); }
+    static int get_culled_lights() { return culled_lights; }
 
 private:
-    unsigned int id;
-    glm::vec3 position, color;
-    GLboolean active_light, inside_frustum;
-
-    static unsigned int next_to_turn_on, culled_number;
+    static const int light_size = 40;
+    static const int info_size = 4;
     static std::vector<Light*> lights;
+    static gpu_light gpu_lights[_MAX_LIGHTS_]; // Sorted, pushed to GPU
     static std::vector<unsigned int> free_ids;
+    static GLuint ubos[2];
+    static int next_to_turn_on;
+
+    int id;
 
     void generate_bounding_sphere();
+
 };
-
-
-
 #endif

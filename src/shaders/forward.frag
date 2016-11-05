@@ -3,8 +3,17 @@
 
 struct Light {
     vec3 position;
+    float brightness;
     vec3 color;
-    bool active_light;
+    float padding;
+};
+
+layout (std140) uniform light_block {
+    Light lights[_MAX_LIGHTS_];
+};
+
+layout (std140) uniform light_info_block {
+    int num_lights;
 };
 
 out vec4 out_Color;
@@ -19,7 +28,7 @@ uniform sampler2D normal_map;
 
 uniform float shininess;
 uniform vec3 camPos;
-uniform Light lights[_MAX_LIGHTS_];
+//uniform Light lights[_MAX_LIGHTS_];
 
 
 vec3 PhongShading(Light l, vec3 Normal) {
@@ -46,11 +55,8 @@ void main(void)
     vec3 Normal = texture(normal_map, TexCoord).rgb;
     Normal = normalize(TBN * (Normal * 2.0 - vec3(1.0)));
 
-    for (i = 0; i < _MAX_LIGHTS_; i++) {
-      if(lights[i].active_light)
-      {
-          result += PhongShading(lights[i], Normal);
-      }
+    for (i = 0; i < num_lights; i++) {
+        result += PhongShading(lights[i], Normal);
     }
 
     out_Color =  vec4(result, 1.0);

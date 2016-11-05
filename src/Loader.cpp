@@ -101,7 +101,7 @@ void Loader::load_animation(vector<string> animation_line){
 
 // ------------------
 
-Light* Loader::load_light(vector<string> light_line)
+Light *Loader::load_light(vector<string> light_line)
 {
     vector<float> numbers;
 
@@ -109,7 +109,7 @@ Light* Loader::load_light(vector<string> light_line)
         numbers.push_back(stof(light_line[i]));
     }
 
-    return new Light(glm::vec3(numbers[0], numbers[1], numbers[2]), glm::vec3(numbers[3], numbers[4], numbers[5]));
+    return new Light(glm::vec3(numbers[0], numbers[1], numbers[2]), 1.f, glm::vec3(numbers[3], numbers[4], numbers[5]));
 }
 
 // ------------------
@@ -124,7 +124,7 @@ void Loader::load_model(ifstream* read_file, int* current_line, vector<string>& 
     float animation_start_point;
 
     int nr_of_lights;
-    Light* attach_light;
+    Light *attach_light;
     Model* this_model;
 
 
@@ -163,8 +163,9 @@ void Loader::load_model(ifstream* read_file, int* current_line, vector<string>& 
             cout << "Light source attached to model: " << light_line << endl;
             #endif
 
-            attach_light = load_light( split_string(light_line, _SEPARATOR_) );
-            this_model->attach_light(attach_light, attach_light->get_pos());
+            attach_light = load_light(split_string(light_line, _SEPARATOR_) );
+            this_model->attach_light(attach_light,
+                                     attach_light->position);
         }
     }
 }

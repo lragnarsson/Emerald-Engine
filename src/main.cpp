@@ -11,7 +11,6 @@ void free_resources()
 void cull_models()
 {
     Profiler::start_timer("Cull models");
-
     // TODO: Run in parallel
     uint i = 0;
     for (auto model : Model::get_loaded_models()) {
@@ -27,10 +26,17 @@ void cull_models()
             i++;
     }
     renderer.objects_drawn = i;
-
     Profiler::stop_timer("Cull models");
 }
 
+void cull_turned_off_flat_objects()
+{
+    for (auto model: Model::get_loaded_flat_models()) {
+        if (!model->get_light_active()) {
+            model->draw_me = false;
+        }
+    }
+}
 
 // --------------------------
 
@@ -52,24 +58,42 @@ void animate_models()
     Profiler::stop_timer("Animate models");
 }
 
-
 // --------------------------
 
-void cull_turned_off_flat_objects()
+void culling()
 {
-    for (auto model: Model::get_loaded_flat_models()) {
-        if (model->get_lights().size() > 0 &&
-            model->get_lights()[0]->is_active() == false) {
-            model->draw_me = false;
-        }
-    }
+    cull_models();
+    Light::cull_light_sources(camera);
+    Light::upload_lights();
+    cull_turned_off_flat_objects();
 }
 
 // --------------------------
 
-void cull_light_sources()
+void handle_input()
 {
+    Profiler::start_timer("Input");
+    handle_keyboard_input(camera, renderer);
+    handle_mouse_input(camera, renderer);
+    Profiler::stop_timer("Input");
+}
 
+// --------------------------
+
+void update_camera()
+{
+    Profiler::start_timer("Camera");
+    camera.update_culling_frustum();
+    camera.update_view_matrix();
+
+    if (!camera.can_move_free()) {
+        camera.move_along_path(0.1f);
+    }
+    if (!camera.can_look_free()) {
+        camera.move_look_point_along_path(0.1f);
+    }
+    renderer.copy_tweak_bar_cam_values(camera);
+    Profiler::stop_timer("Camera");
 }
 
 // --------------------------
@@ -80,34 +104,21 @@ void run()
     while (renderer.running) {
         Profiler::start_timer("-> Frame time");
 
-        Profiler::start_timer("Input and camera");
-        handle_keyboard_input(camera, renderer);
+        handle_input();
 
-        handle_mouse_input(camera, renderer);
-
-        if (!camera.can_move_free()) {
-            camera.move_along_path(0.1f);
-        }
-        if (!camera.can_look_free()) {
-            camera.move_look_point_along_path(0.1f);
-        }
-        renderer.copy_tweak_bar_cam_values(camera);
-        Profiler::stop_timer("Input and camera");
-
-        camera.update_culling_frustum();
-        camera.update_view_matrix();
+        update_camera();
 
         animate_models();
-        cull_models();
-        cull_turned_off_flat_objects();
-        Light::cull_light_sources(camera);
-        Light::upload_all(camera);
+
+        culling();
 
         renderer.render(camera);
-        Profiler::start_timer("swap");
+
+        Profiler::start_timer("Swap");
         SDL_GL_SwapWindow(main_window);
-        Profiler::stop_timer("swap");
-        // Stop measuring
+        Profiler::stop_timer("Swap");
+
+        SDL_Delay(30);
         Profiler::stop_timer("-> Frame time");
     }
 }
@@ -131,7 +142,8 @@ void print_welcome()
 
 // --------------------------
 
-int main(int argc, char *argv[])
+
+void init(int argc, char *argv[])
 {
     if (!sdl_init(SCREEN_WIDTH, SCREEN_HEIGHT, main_window, main_context)) {
         Error::throw_error(Error::display_init_fail);
@@ -146,6 +158,14 @@ int main(int argc, char *argv[])
     Loader::load_scene(Parser::get_scene_file_from_command_line(argc, argv), &camera);
     renderer.init_tweak_bar(&camera);
 
+    Light::init();
+}
+
+// --------------------------
+
+int main(int argc, char *argv[])
+{
+    init(argc, argv);
     run();
 
     TwTerminate();
