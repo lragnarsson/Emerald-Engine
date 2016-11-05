@@ -1,5 +1,6 @@
 #include "Renderer.hpp"
 
+
 void Renderer::init()
 {
     shaders[FORWARD] = load_shaders("build/shaders/forward.vert", "build/shaders/forward.frag");
@@ -34,8 +35,9 @@ void Renderer::init()
     init_ping_pong_fbos();
 
     sphere = new Model("res/models/sphere/sphere.obj");
-    skybox = new Model("res/models/skybox/skybox.obj");
-    skybox->move_to(glm::vec3(-0.5f, -0.5f, -0.5f));
+    skydome = new Skydome();
+    skydome->init();
+
     set_mode(DEFERRED_MODE);
 
     Light::shader_programs.push_back(shaders[DEFERRED]);
@@ -51,7 +53,7 @@ void Renderer::render(const Camera &camera)
     case FORWARD_MODE:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         render_forward();
-        render_skybox(camera);
+        skydome->draw(camera);
         break;
     case DEFERRED_MODE:
         render_deferred(camera);
@@ -123,14 +125,14 @@ void Renderer::set_mode(render_mode mode)
 
 void Renderer::init_uniforms(const Camera &camera)
 {
-    glm::mat4 projection_matrix;
-    projection_matrix = glm::perspective(Y_FOV, ASPECT_RATIO, NEAR, FAR);
+    mat4 projection_matrix;
+    projection_matrix = perspective(Y_FOV, ASPECT_RATIO, NEAR, FAR);
     for (auto shaderProgram : shaders) {
         glUseProgram(shaderProgram);
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"),
-                           1, GL_FALSE, glm::value_ptr(camera.get_view_matrix()));
+                           1, GL_FALSE, value_ptr(camera.get_view_matrix()));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"),
-                           1, GL_FALSE, glm::value_ptr(projection_matrix));
+                           1, GL_FALSE, value_ptr(projection_matrix));
     }
     glUseProgram(0);
 }
@@ -142,9 +144,9 @@ void Renderer::upload_camera_uniforms(const Camera &camera)
     for (auto shaderProgram : shaders) {
         glUseProgram(shaderProgram);
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"),
-                           1, GL_FALSE, glm::value_ptr(camera.get_view_matrix()));
+                           1, GL_FALSE, value_ptr(camera.get_view_matrix()));
         glUniform3fv(glGetUniformLocation(shaderProgram, "camPos"),
-                     1, glm::value_ptr(camera.get_pos()));
+                     1, value_ptr(camera.get_pos()));
     }
     glUseProgram(0);
 }
@@ -175,6 +177,8 @@ void Renderer::render_deferred(const Camera &camera)
     glBindFramebuffer(GL_FRAMEBUFFER, hdr_fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    skydome->propagate_time(this->time_diff);
+    skydome->upload_sun(shaders[DEFERRED], camera);
     Profiler::start_timer("Deferred pass");
     glUseProgram(shaders[DEFERRED]);
 
@@ -194,14 +198,14 @@ void Renderer::render_deferred(const Camera &camera)
     // Blit depth buffer from g-buffer:
     glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, hdr_fbo);
-    glBlitFramebuffer(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glBlitFramebuffer(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0,SCREEN_WIDTH,
+                      SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     Profiler::stop_timer("Deferred pass");
 
-    // Draw flat objects and skybox with forward shading:
+    // Draw flat objects with forward shading and skydome:
     render_flat();
-    render_skybox(camera);
+    skydome->draw(camera);
 
-    // Disabled post processing
     post_processing();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -220,7 +224,7 @@ void Renderer::render_forward()
             continue;
         }
         GLuint m2w_location = glGetUniformLocation(shaders[FORWARD], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(model->m2w_matrix));
 
         for (auto mesh : model->get_meshes()) {
             glActiveTexture(GL_TEXTURE0);
@@ -265,11 +269,11 @@ void Renderer::render_flat()
             continue;
         }
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(model->m2w_matrix));
 
         GLuint color = glGetUniformLocation(shaders[FLAT], "color");
         glUniform3fv(color, 1,
-                     glm::value_ptr(model->get_light_color()));
+                     value_ptr(model->get_light_color()));
 
         for (auto mesh : model->get_meshes()) {
             glBindVertexArray(mesh->get_VAO());
@@ -335,18 +339,19 @@ void Renderer::create_ssao_samples()
 
     ssao_kernel.clear();
     /* Create a unit hemisphere with n samples */
-    std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // random floats between 0.0 - 1.0
+    // random floats between 0.0 - 1.0
+    std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0);
     std::default_random_engine generator;
 
     GLfloat scale;
-    glm::vec3 sample;
+    vec3 sample;
     for (int i = 0; i < _SSAO_N_SAMPLES_; ++i) {
-        sample = glm::vec3(
-                           randomFloats(generator) * 2.0 - 1.0,
-                           randomFloats(generator) * 2.0 - 1.0,
-                           randomFloats(generator)
-                           );
-        sample = glm::normalize(sample);
+        sample = vec3(
+            randomFloats(generator) * 2.0 - 1.0,
+            randomFloats(generator) * 2.0 - 1.0,
+            randomFloats(generator)
+            );
+        sample = normalize(sample);
         sample *= randomFloats(generator);
         scale = GLfloat(i) / _SSAO_N_SAMPLES_;
         scale = lerp(0.1f, 1.0f, scale * scale);
@@ -402,7 +407,8 @@ void Renderer::ssao_pass()
 
     // Upload shader samples
     for (GLuint i = 0; i < _SSAO_N_SAMPLES_; i++) {
-        GLuint sample_loc = glGetUniformLocation(shaders[SSAO], ("samples[" + std::to_string(i) + "]").c_str());
+        GLuint sample_loc = glGetUniformLocation(shaders[SSAO],
+                                                 ("samples[" + std::to_string(i) + "]").c_str());
         glUniform3fv(sample_loc, 1, &ssao_kernel[i][0]);
     }
     GLuint radius_loc = glGetUniformLocation(shaders[SSAO], "kernel_radius");
@@ -478,7 +484,8 @@ void Renderer::filter_pass(GLuint source_tex, GLuint target_fbo)
 
 // --------------------------
 
-void Renderer::blur_red_texture(GLuint source_tex, GLuint fbo_tex, GLuint target_fbo, filter_type ft, int iterations)
+void Renderer::blur_red_texture(GLuint source_tex, GLuint fbo_tex,
+                                GLuint target_fbo, filter_type ft, int iterations)
 {
     ping_pong_shader shader = upload_filter(ft);
 
@@ -497,7 +504,8 @@ void Renderer::blur_red_texture(GLuint source_tex, GLuint fbo_tex, GLuint target
 
 // --------------------------
 
-void Renderer::blur_rgb_texture(GLuint source_tex, GLuint fbo_tex, GLuint target_fbo, filter_type ft, int iterations)
+void Renderer::blur_rgb_texture(GLuint source_tex, GLuint fbo_tex,
+                                GLuint target_fbo, filter_type ft, int iterations)
 {
     ping_pong_shader shader = upload_filter(ft);
 
@@ -522,14 +530,16 @@ void Renderer::render_bounding_spheres()
     glUseProgram(shaders[FLAT]);
     Mesh* mesh = this->sphere->get_meshes()[0];
     GLuint color = glGetUniformLocation(shaders[FLAT], "color");
-    glUniform3fv(color, 1, glm::value_ptr(glm::vec3(1.f)));
+    glUniform3fv(color, 1, value_ptr(vec3(1.f)));
 
     for (auto model : Model::get_loaded_flat_models()) {
-        glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), glm::vec3(model->bounding_sphere_radius) / 1.5f);
-        glm::mat4 bounding_move = glm::translate(glm::mat4(1.f), model->scale * model->get_center_point());
+        mat4 bounding_scale = scale(mat4(1.f), vec3(model->bounding_sphere_radius) / 1.5f);
+        mat4 bounding_move = translate(mat4(1.f), model->scale * model->get_center_point());
 
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->move_matrix * model->rot_matrix * bounding_move * model->scale_matrix * bounding_scale));
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
+                           value_ptr(model->move_matrix * model->rot_matrix *
+                                     bounding_move * model->scale_matrix * bounding_scale));
 
         // DRAW
         glBindVertexArray(mesh->get_VAO());
@@ -538,11 +548,14 @@ void Renderer::render_bounding_spheres()
     }
 
     for (auto model : Model::get_loaded_models()) {
-        glm::mat4 bounding_scale = glm::scale(glm::mat4(1.f), glm::vec3(model->bounding_sphere_radius) / 1.5f);
-        glm::mat4 bounding_move = model->scale * glm::translate(glm::mat4(1.f), model->scale * model->get_center_point());
+        mat4 bounding_scale = scale(mat4(1.f), vec3(model->bounding_sphere_radius) / 1.5f);
+        mat4 bounding_move = model->scale * translate(mat4(1.f), model->scale *
+                                                      model->get_center_point());
 
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->move_matrix * model->rot_matrix * bounding_move * model->scale_matrix * bounding_scale));
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
+                           value_ptr(model->move_matrix * model->rot_matrix *
+                                     bounding_move * model->scale_matrix * bounding_scale));
 
         // DRAW
         glBindVertexArray(mesh->get_VAO());
@@ -569,7 +582,7 @@ void Renderer::geometry_pass()
             continue;
         }
         GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(model->m2w_matrix));
 
         for (auto mesh : model->get_meshes()) {
             glActiveTexture(GL_TEXTURE0);
@@ -703,33 +716,6 @@ void Renderer::render_ssao()
 }
 
 
-void Renderer::render_skybox(const Camera &camera)
-{
-    glDepthRange(0.999f, 1.f);
-
-    glUseProgram(shaders[FLAT_TEXTURE]);
-    glm::mat4 skybox_view = glm::lookAt(glm::vec3(0.f), camera.front, camera.up);
-    glUniformMatrix4fv(glGetUniformLocation(shaders[FLAT_TEXTURE], "view"), 1, GL_FALSE, glm::value_ptr(skybox_view));
-    glUniformMatrix4fv(glGetUniformLocation(shaders[FLAT_TEXTURE], "model"), 1, GL_FALSE, glm::value_ptr(skybox->m2w_matrix));
-
-    Mesh* mesh = skybox->get_meshes()[0];
-    glActiveTexture(GL_TEXTURE0);
-    GLuint diffuse_loc = glGetUniformLocation(shaders[FLAT_TEXTURE], "tex_unit");
-    glUniform1i(diffuse_loc, 0);
-    glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
-
-    /* DRAW */
-    glBindVertexArray(mesh->get_VAO());
-    glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
-
-    glBindVertexArray(0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    glDepthRange(0.f, 1.f);
-    glUseProgram(0);
-}
-
 // --------------------------
 
 
@@ -741,16 +727,16 @@ void Renderer::init_ssao()
 
     /* Create ssao kernel */
     create_ssao_samples();
-
-    std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // random floats between 0.0 - 1.0
+    // random floats between 0.0 - 1.0
+    std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0);
     std::default_random_engine generator;
 
     /* Random rotations of the kernel */
     for (GLuint i = 0; i < 25; i++) {
-        glm::vec3 noise(
-                        randomFloats(generator) * 2.0 - 1.0,
-                        randomFloats(generator) * 2.0 - 1.0,
-                        0.0f);
+        vec3 noise(
+            randomFloats(generator) * 2.0 - 1.0,
+            randomFloats(generator) * 2.0 - 1.0,
+            0.0f);
         ssao_noise.push_back(noise);
     }
 
@@ -776,7 +762,8 @@ void Renderer::init_ssao()
 
     glGenTextures(1, &ssao_tex);
     glBindTexture(GL_TEXTURE_2D, ssao_tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH / _SSAO_SCALE_, SCREEN_HEIGHT / _SSAO_SCALE_, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH / _SSAO_SCALE_,
+                 SCREEN_HEIGHT / _SSAO_SCALE_, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Use hardware linear interpolation.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -802,12 +789,14 @@ void Renderer::init_ping_pong_fbos()
 
     glGenTextures(1, &ping_pong_tex_red);
     glBindTexture(GL_TEXTURE_2D, ping_pong_tex_red);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH / _SSAO_SCALE_, SCREEN_HEIGHT / _SSAO_SCALE_, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH / _SSAO_SCALE_,
+                 SCREEN_HEIGHT / _SSAO_SCALE_, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ping_pong_tex_red, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                           GL_TEXTURE_2D, ping_pong_tex_red, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "Ping pong red framebuffer not complete!" << std::endl;
 
@@ -818,12 +807,14 @@ void Renderer::init_ping_pong_fbos()
 
     glGenTextures(1, &ping_pong_tex_rgb);
     glBindTexture(GL_TEXTURE_2D, ping_pong_tex_rgb);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT,
+                 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ping_pong_tex_rgb, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                           ping_pong_tex_rgb, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "Ping pong rgb framebuffer not complete!" << std::endl;
 
@@ -850,7 +841,8 @@ void Renderer::init_quad()
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat),
+                          (GLvoid*)(3 * sizeof(GLfloat)));
 }
 
 // --------------------------
@@ -872,28 +864,34 @@ void Renderer::init_g_buffer()
     /* Position */
     glGenTextures(1, &g_position);
     glBindTexture(GL_TEXTURE_2D, g_position);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT,
+                 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_position, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                           g_position, 0);
 
     /* Normal buffer */
     glGenTextures(1, &g_normal_shininess);
     glBindTexture(GL_TEXTURE_2D, g_normal_shininess);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT,
+                 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, g_normal_shininess, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
+                           g_normal_shininess, 0);
 
     /* Albedo and Specular buffer*/
     glGenTextures(1, &g_albedo_specular);
     glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT,
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, g_albedo_specular, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D,
+                           g_albedo_specular, 0);
 
     /* Specify color attachments of the buffer */
     GLuint attachments[3] = {GL_COLOR_ATTACHMENT0,
@@ -905,8 +903,10 @@ void Renderer::init_g_buffer()
     GLuint depth_buffer;
     glGenRenderbuffers(1, &depth_buffer);
     glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, SCREEN_WIDTH, SCREEN_HEIGHT);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32,
+                          SCREEN_WIDTH, SCREEN_HEIGHT);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                              GL_RENDERBUFFER, depth_buffer);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::ostringstream error_msg;
@@ -928,23 +928,27 @@ void Renderer::init_hdr_fbo()
     /* Lighting buffer. Contains shaded light from deferred shader. */
     glGenTextures(1, &color_tex);
     glBindTexture(GL_TEXTURE_2D, color_tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT,
+                 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_tex, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                           GL_TEXTURE_2D, color_tex, 0);
 
 
     /* Bloom buffer */
     glGenTextures(1, &bright_tex);
     glBindTexture(GL_TEXTURE_2D, bright_tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT,
+                 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bright_tex, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
+                           GL_TEXTURE_2D, bright_tex, 0);
 
 
     GLuint attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
@@ -954,8 +958,10 @@ void Renderer::init_hdr_fbo()
     GLuint depth_buffer;
     glGenRenderbuffers(1, &depth_buffer);
     glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, SCREEN_WIDTH, SCREEN_HEIGHT);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32,
+                          SCREEN_WIDTH, SCREEN_HEIGHT);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                              GL_RENDERBUFFER, depth_buffer);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::ostringstream error_msg;
@@ -977,12 +983,14 @@ void Renderer::init_post_proc_fbo()
     /* Texture for post processing. Filter result etc. */
     glGenTextures(1, &post_proc_tex);
     glBindTexture(GL_TEXTURE_2D, post_proc_tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH,SCREEN_HEIGHT,
+                 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, post_proc_tex, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                           GL_TEXTURE_2D, post_proc_tex, 0);
 
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
@@ -1069,28 +1077,43 @@ void Renderer::init_tweak_bar(Camera* camera)
     TwDefine(" emerald label='Emerald Engine' ");
     TwDefine(" emerald refresh=1 ");
 
-    TwAddVarRO(tweak_bar, "FPS", TW_TYPE_DOUBLE, &fps," label='FPS' help='Frames per second' ");
-    TwAddVarRW(tweak_bar, "Objects drawn", TW_TYPE_INT32, &objects_drawn, " label='Objects drawn' help='Objects not removed by frustum culling.' ");
+    TwAddVarRO(tweak_bar, "FPS", TW_TYPE_DOUBLE, &fps,
+               " label='FPS' help='Frames per second' ");
+    TwAddVarRW(tweak_bar, "Objects drawn", TW_TYPE_INT32,&objects_drawn,
+               " label='Objects drawn' help='Objects not removed by frustum culling.' ");
     // SSAO stuff
-    TwAddVarRW(tweak_bar, "SSAO ON", TW_TYPE_BOOL8, &ssao_on, " label='SSAO ON' help='Status of SSAO' ");
-    TwAddVarRW(tweak_bar, "SSAO samples", TW_TYPE_INT32, &ssao_n_samples, " label='SSAO samples' help='Defines the number of SSAO samples used.' ");
-    TwAddVarRW(tweak_bar, "SSAO kernel radius", TW_TYPE_FLOAT, &kernel_radius, " label='SSAO k-radius' help='Defines the radius of SSAO samples.' ");
-    TwAddVarRW(tweak_bar, "SSAO smoothing", TW_TYPE_BOOL8, &smooth_ssao, " label='SSAO smoothing' help='Blur filter for SSAO' ");
+    TwAddVarRW(tweak_bar, "SSAO ON", TW_TYPE_BOOL8, &ssao_on,
+               " label='SSAO ON' help='Status of SSAO' ");
+    TwAddVarRW(tweak_bar, "SSAO samples", TW_TYPE_INT32, &ssao_n_samples,
+               " label='SSAO samples' help='Defines the number of SSAO samples used.' ");
+    TwAddVarRW(tweak_bar, "SSAO kernel radius", TW_TYPE_FLOAT, &kernel_radius,
+               " label='SSAO k-radius' help='Defines the radius of SSAO samples.' ");
+    TwAddVarRW(tweak_bar, "SSAO smoothing", TW_TYPE_BOOL8, &smooth_ssao,
+               " label='SSAO smoothing' help='Blur filter for SSAO' ");
 
     // Camera position
-    TwAddVarRW(tweak_bar, "cam-pos-x", TW_TYPE_FLOAT, &this->cam_pos.x, "label=cam-pos-x help=current-camera-x-coord");
-    TwAddVarRW(tweak_bar, "cam-pos-y", TW_TYPE_FLOAT, &this->cam_pos.y, "label=cam-pos-y help=current-camera-y-coord");
-    TwAddVarRW(tweak_bar, "cam-pos-z", TW_TYPE_FLOAT, &this->cam_pos.z, "label=cam-pos-z help=current-camera-z-coord");
+    TwAddVarRW(tweak_bar, "cam-pos-x", TW_TYPE_FLOAT, &this->cam_pos.x,
+               "label=cam-pos-x help=current-camera-x-coord");
+    TwAddVarRW(tweak_bar, "cam-pos-y", TW_TYPE_FLOAT, &this->cam_pos.y,
+               "label=cam-pos-y help=current-camera-y-coord");
+    TwAddVarRW(tweak_bar, "cam-pos-z", TW_TYPE_FLOAT, &this->cam_pos.z,
+               "label=cam-pos-z help=current-camera-z-coord");
 
-    TwAddVarRW(tweak_bar, "look-spline", TW_TYPE_INT32, &this->cam_spline_look_id, "label=look-spline help='cam look animation path id'");
-    TwAddVarRW(tweak_bar, "look-spline-para", TW_TYPE_FLOAT, &this->cam_spline_look_para, "label=look-spline-para help='time parameter along look spline'");
-    TwAddVarRW(tweak_bar, "follow-spline", TW_TYPE_INT32, &this->cam_spline_move_id , "label=folow-spline help='cam move animation path id'");
+    TwAddVarRW(tweak_bar, "look-spline", TW_TYPE_INT32, &this->cam_spline_look_id,
+               "label=look-spline help='cam look animation path id'");
+    TwAddVarRW(tweak_bar, "look-spline-para", TW_TYPE_FLOAT, &this->cam_spline_look_para,
+               "label=look-spline-para help='time parameter along look spline'");
+    TwAddVarRW(tweak_bar, "follow-spline", TW_TYPE_INT32, &this->cam_spline_move_id ,
+               "label=folow-spline help='cam move animation path id'");
 
-    TwAddVarRW(tweak_bar, "follow-spline-para", TW_TYPE_FLOAT, &this->cam_spline_move_para, "label=follow-spline-para help='time parameter along move spline'");
+    TwAddVarRW(tweak_bar, "follow-spline-para", TW_TYPE_FLOAT, &this->cam_spline_move_para,
+               "label=follow-spline-para help='time parameter along move spline'");
 
     this->n_lightsources = Light::get_num_lights();
-    TwAddVarRW(tweak_bar, "Number of lights", TW_TYPE_INT32, &this->n_lightsources , "label='Number of lights' help='Total number of lights in scene'");
-    TwAddVarRW(tweak_bar, "Number of culled lights", TW_TYPE_INT32, &Light::culled_lights, "label='Culled lights' help='Lights with bounding sphere outside of viewing frustum.'");
+    TwAddVarRW(tweak_bar, "Number of lights", TW_TYPE_INT32, &this->n_lightsources ,
+               "label='Number of lights' help='Total number of lights in scene'");
+    TwAddVarRW(tweak_bar, "Number of culled lights", TW_TYPE_INT32, &Light::culled_lights,
+               "label='Culled lights' help='Lights with bounding sphere outside frustum.'");
 }
 
 // ---------------
@@ -1101,7 +1124,7 @@ void Renderer::count_fps()
     double timediff = (current_time-last_timestamp);
 
     if (timediff != 0) {
-      fps = 1000/timediff;
+        fps = 1000/timediff;
     }
 }
 

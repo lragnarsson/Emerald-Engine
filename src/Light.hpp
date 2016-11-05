@@ -15,14 +15,17 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+
 #include "Camera.hpp"
 #include "Profiler.hpp"
 
 
+using namespace glm;
+
 typedef struct {
-    glm::vec3 position; // 12 +
+    vec3 position; // 12 +
     float brightness;   // 4 +
-    glm::vec3 color;    // 12 +
+    vec3 color;    // 12 +
     float padding;      // 4 = 40 bytes
 } gpu_light;
 
@@ -31,14 +34,14 @@ class Light
 public:
     static std::vector<GLuint> shader_programs; // For UBO binding on init.
     static int culled_lights;
-    glm::vec3 position;
+    vec3 position;
     float brightness;
-    glm::vec3 color;
+    vec3 color;
     bool active;
     float radius;
 
-    Light(const glm::vec3 position,
-          const float brightness, const glm::vec3 color);
+    Light(const vec3 position,
+          const float brightness, const vec3 color);
     ~Light();
 
     static void init();
