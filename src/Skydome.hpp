@@ -27,7 +27,6 @@
 
 using namespace glm;
 
-
 class Skydome
 {
 public:
@@ -44,22 +43,35 @@ private:
     vec3 sun_color;
     Model *sphere; // actual dome
     GLuint shader;
+    float altitude, azimuth, interp, interp_night;
 
-    vec3 current_zenith_color;
-    vec3 current_horizon_color;
-
-    vec3 zenith_dawn = {0.53f, 0.81f, 0.98f};
-    vec3 horizon_dawn = {0.53f, 0.81f, 0.98f};
-
-    vec3 zenith_noon = {0.1f, 0.4f, 1.f};
-    vec3 horizon_noon = {0.3f, 0.5f, 0.98f};
-
-    vec3 zenith_dusk = {0.53f, 0.81f, 0.98f};
-    vec3 horizon_dusk = {0.53f, 0.81f, 0.98f};
+    vec3 zenith_color;
+    vec3 horizon_color;
 
     void init_uniforms();
     void calculate_sky();
     void calculate_sun();
+
+
+    // Constant color values:
+    static const vec3 sun_dawn;
+    static const vec3 sun_noon;
+    static const vec3 sun_dusk;
+    static const vec3 sun_midnight;
+
+    static const vec3 zenith_dawn;
+    static const vec3 horizon_dawn;
+
+    static const vec3 zenith_noon;
+    static const vec3 horizon_noon;
+
+    static const vec3 zenith_dusk;
+    static const vec3 horizon_dusk;
+
+    static const vec3 zenith_midnight;
+    static const vec3 horizon_midnight;
+
+    static const float altitude_margin;
 };
 
 #endif

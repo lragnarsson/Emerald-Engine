@@ -69,6 +69,7 @@ public:
     void toggle_tweak_bar();
     void copy_tweak_bar_cam_values(const Camera& camera);
     float get_time_diff();
+    void propagate_time(bool forward);
 
 private:
     enum shader {

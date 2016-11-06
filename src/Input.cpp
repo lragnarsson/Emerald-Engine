@@ -39,6 +39,13 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
         }
         camera.set_pos(camera.get_pos() + glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed * renderer.get_time_diff());
     }
+    if(keystate[SDL_GetScancodeFromKey(SDLK_LEFT)]) {
+        renderer.propagate_time(false);
+    }
+    if(keystate[SDL_GetScancodeFromKey(SDLK_RIGHT)]) {
+        renderer.propagate_time(true);
+    }
+
 
     while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT)

@@ -159,6 +159,13 @@ float Renderer::get_time_diff()
 }
 
 
+void Renderer::propagate_time(bool forward)
+{
+    float delta = forward ? this->time_diff : -(float)this->time_diff;
+    skydome->propagate_time(delta);
+}
+
+
 /* Private Renderer functions */
 
 // --------------------------
@@ -177,7 +184,7 @@ void Renderer::render_deferred(const Camera &camera)
     glBindFramebuffer(GL_FRAMEBUFFER, hdr_fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    skydome->propagate_time(this->time_diff);
+    //skydome->propagate_time(this->time_diff);
     skydome->upload_sun(shaders[DEFERRED], camera);
     Profiler::start_timer("Deferred pass");
     glUseProgram(shaders[DEFERRED]);
