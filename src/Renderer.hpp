@@ -71,6 +71,7 @@ private:
     enum shader {
       FORWARD,
       GEOMETRY,
+      GEOMETRY_NORMALS,
       DEFERRED,
       FLAT,
       FLAT_TEXTURE,
@@ -86,7 +87,7 @@ private:
     };
 
     render_mode mode;
-    GLuint shaders[14];
+    GLuint shaders[15];
     // Frame buffers
     GLuint g_buffer, ssao_fbo, hdr_fbo, post_proc_fbo, ping_pong_fbo_red, ping_pong_fbo_rgb;
     // Textures
@@ -152,6 +153,7 @@ private:
     void blur_rgb_texture(GLuint source_tex, GLuint fbo_tex, GLuint target_fbo, filter_type ft, int iterations);
 
     void geometry_pass();
+    void normal_visualization_pass();
     void render_g_position();
     void render_g_normal();
     void render_g_albedo();

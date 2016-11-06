@@ -159,3 +159,102 @@ GLuint load_shaders(const GLchar* vertex_file_path, const GLchar* fragment_file_
 
     return program;
 }
+
+/* Loads, compiles and activates vertex, geometry and fragment shaders */
+GLuint load_shaders_geom(const GLchar* vertex_file_path, const GLchar* geometry_file_path,
+                         const GLchar* fragment_file_path)
+{
+    std::string vertex_source;
+    std::string geometry_source;
+    std::string fragment_source;
+    std::ifstream vertex_shader_file;
+    std::ifstream geometry_shader_file;
+    std::ifstream fragment_shader_file;
+
+    vertex_shader_file.exceptions(std::ifstream::badbit);
+    geometry_shader_file.exceptions(std::ifstream::badbit);
+    fragment_shader_file.exceptions(std::ifstream::badbit);
+
+    /* Read shaders from files */
+    try {
+        vertex_shader_file.open(vertex_file_path);
+        geometry_shader_file.open(geometry_file_path);
+        fragment_shader_file.open(fragment_file_path);
+
+        std::stringstream vShaderStream, gShaderStream, fShaderStream;
+        vShaderStream << vertex_shader_file.rdbuf();
+        gShaderStream << geometry_shader_file.rdbuf();
+        fShaderStream << fragment_shader_file.rdbuf();
+        vertex_shader_file.close();
+        geometry_shader_file.close();
+        fragment_shader_file.close();
+
+        vertex_source = vShaderStream.str();
+        geometry_source = gShaderStream.str();
+        fragment_source = fShaderStream.str();
+    }
+    catch (std::ifstream::failure e) {
+        Error::throw_error(Error::cant_load_shader, "Could not read file: " + std::string(e.what()));
+    }
+
+    const GLchar* vSource = vertex_source.c_str();
+    const GLchar* gSource = geometry_source.c_str();
+    const GLchar* fSource = fragment_source.c_str();
+
+    GLuint vertex, geometry, fragment;
+    GLint success;
+    GLchar info_log[512];
+
+    /* Compile vertex shader */
+    vertex = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex, 1, &vSource, NULL);
+    glCompileShader(vertex);
+    glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(vertex, 512, NULL, info_log);
+        Error::throw_error(Error::cant_load_shader, "Vertex shader " +
+                           (std::string) vertex_file_path + " compilation failed: " + std::string(info_log));
+    }
+
+    /* Compule geomtetry shader */
+    geometry = glCreateShader(GL_GEOMETRY_SHADER);
+    glShaderSource(geometry, 1, &gSource, NULL);
+    glCompileShader(geometry);
+    glGetShaderiv(geometry, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(geometry, 512, NULL, info_log);
+        Error::throw_error(Error::cant_load_shader, "Geometry shader " +
+                           (std::string) geometry_file_path + " compilation failed: " + std::string(info_log));
+    }
+
+    /* Compile fragment shader */
+    fragment = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment, 1, &fSource, NULL);
+    glCompileShader(fragment);
+    glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(fragment, 512, NULL, info_log);
+        Error::throw_error(Error::cant_load_shader, "Fragment shader " +
+                           (std::string) fragment_file_path + " compilation failed: " + std::string(info_log));
+    }
+
+    /* Create shader program */
+    GLuint program = glCreateProgram();
+    glAttachShader(program, vertex);
+    glAttachShader(program, geometry);                
+    glAttachShader(program, fragment);
+    glLinkProgram(program);
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(program, 512, NULL, info_log);
+        Error::throw_error(Error::cant_load_shader, "Linking failed: " + std::string(info_log));
+    }
+    
+    glDeleteShader(vertex);
+    glDeleteShader(geometry);
+    glDeleteShader(fragment);
+
+    glUseProgram(program);
+
+    return program;
+}

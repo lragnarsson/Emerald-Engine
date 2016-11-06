@@ -20,14 +20,14 @@ out vec4 out_Color;
 
 in vec2 TexCoord;
 in vec3 FragPos;
-in mat3 TBN;
+in mat3 TBN_viewSpace;
 
 uniform sampler2D diffuse_map;
 uniform sampler2D specular_map;
 uniform sampler2D normal_map;
 
 uniform float shininess;
-uniform vec3 camPos;
+//uniform vec3 camPos;
 //uniform Light lights[_MAX_LIGHTS_];
 
 
@@ -41,7 +41,7 @@ vec3 PhongShading(Light l, vec3 Normal) {
 
     vec3 reflection = normalize(reflect(-lightDir, Normal));
 
-    vec3 viewDir = normalize(camPos - FragPos);
+    vec3 viewDir = normalize( - FragPos);
     float s = pow(max(dot(viewDir, reflection), 0.0), shininess);
     vec3 specular = s * l.color * vec3(texture(diffuse_map, TexCoord)) * vec3(texture(specular_map, TexCoord).r);
 
@@ -53,7 +53,7 @@ void main(void)
     int i;
     vec3 result = 0.05 * vec3(texture(diffuse_map, TexCoord));
     vec3 Normal = texture(normal_map, TexCoord).rgb;
-    Normal = normalize(TBN * (Normal * 2.0 - vec3(1.0)));
+    Normal = normalize(TBN_viewSpace * (Normal * 2.0 - vec3(1.0)));
 
     for (i = 0; i < num_lights; i++) {
         result += PhongShading(lights[i], Normal);

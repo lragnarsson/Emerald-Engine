@@ -4,6 +4,9 @@ void Renderer::init()
 {
     shaders[FORWARD] = load_shaders("build/shaders/forward.vert", "build/shaders/forward.frag");
     shaders[GEOMETRY] = load_shaders("build/shaders/geometry.vert", "build/shaders/geometry.frag");
+    shaders[GEOMETRY_NORMALS] = load_shaders_geom("build/shaders/geometry_visualize_normals.vert",
+                                                  "build/shaders/geometry_visualize_normals.geom",
+                                                  "build/shaders/geometry_visualize_normals.frag");
     shaders[DEFERRED] = load_shaders("build/shaders/deferred.vert", "build/shaders/deferred.frag");
     shaders[FLAT] = load_shaders("build/shaders/flat.vert", "build/shaders/flat.frag");
     shaders[FLAT_TEXTURE] = load_shaders("build/shaders/flat_texture.vert", "build/shaders/flat_texture.frag");
@@ -166,6 +169,9 @@ void Renderer::render_deferred(const Camera &camera)
     /* GEOMETRY PASS */
     geometry_pass();
 
+    /* VISUALIZE NORMALS: EXPERIMENTAL STUFF */
+    normal_visualization_pass();
+    
     // SSAO PASS
     if (this->ssao_on) {
         ssao_pass();
@@ -315,7 +321,7 @@ void Renderer::post_processing()
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, post_proc_tex);
 
-    glUniform1f(glGetUniformLocation(shaders[HDR_BLOOM], "exposure"), 0.5f);
+    glUniform1f(glGetUniformLocation(shaders[HDR_BLOOM], "exposure"), 0.6f);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -606,11 +612,52 @@ void Renderer::geometry_pass()
     Profiler::stop_timer("Geometry pass");
 }
 
+
+// --------------------------
+void Renderer::normal_visualization_pass()
+{
+    Profiler::start_timer("Normal visualization pass");
+    glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
+
+    glUseProgram(shaders[GEOMETRY_NORMALS]);
+
+    for (auto model : Model::get_loaded_models()) {
+        if (!model->draw_me) {
+            continue;
+        }
+        GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
+
+        for (auto mesh : model->get_meshes()) {
+            glActiveTexture(GL_TEXTURE0);
+            GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY], "diffuse_map");
+            glUniform1i(diffuse_loc, 0);
+            glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
+
+            glBindVertexArray(mesh->get_VAO());
+
+            /* DRAW GEOMETRY */
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        }
+    }
+
+    glBindVertexArray(0);
+    
+    glActiveTexture(GL_TEXTURE0 );
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glUseProgram(0);
+
+    Profiler::stop_timer("Normal visualization pass");
+}
 // --------------------------
 
 void Renderer::render_g_position()
 {
     geometry_pass();
+
+    normal_visualization_pass();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
@@ -631,6 +678,8 @@ void Renderer::render_g_normal()
 {
     geometry_pass();
 
+    normal_visualization_pass();
+    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
     glActiveTexture(GL_TEXTURE0);
@@ -650,6 +699,8 @@ void Renderer::render_g_albedo()
 {
     geometry_pass();
 
+    normal_visualization_pass();
+    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
     glActiveTexture(GL_TEXTURE0);
@@ -669,6 +720,8 @@ void Renderer::render_g_specular()
 {
     geometry_pass();
 
+    normal_visualization_pass();
+    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_ALPHA_COMPONENT]);
     glActiveTexture(GL_TEXTURE0);
@@ -687,6 +740,8 @@ void Renderer::render_g_specular()
 void Renderer::render_ssao()
 {
     geometry_pass();
+
+    normal_visualization_pass();    
 
     ssao_pass();
 

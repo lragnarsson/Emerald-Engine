@@ -35,4 +35,7 @@ void sdl_print_attributes();
 /* Loads, compiles and activates vertex and fragment shaders */
 GLuint load_shaders(const GLchar* vertex_file_path, const GLchar* fragment_file_path);
 
+/* Loads, compiles and activates vertex, geometry and fragment shaders */
+GLuint load_shaders_geom(const GLchar* vertex_file_path, const GLchar* geometry_file_path,
+                         const GLchar* fragment_file_path);
 #endif // UTILS_H
