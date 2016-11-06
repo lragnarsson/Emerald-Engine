@@ -76,6 +76,7 @@ void Skydome::upload_sun(const GLuint shader, const Camera &camera)
                  1, value_ptr(view_space_dir));
     glUniform3fv(glGetUniformLocation(shader, "sun_color"),
                  1, value_ptr(this->sun_color));
+
     glUseProgram(0);
 }
 
@@ -145,15 +146,18 @@ void Skydome::calculate_sun()
     int sha_sign = (solar_hour_angle > 0) - (solar_hour_angle < 0);
     this->altitude = asin(cos(latitude) *
                           cos(solar_hour_angle));
-    float max_altitude = asin(cos(latitude)) + altitude_margin; // used for color interpolation
+
     this->azimuth = sha_sign * acos(sin(altitude) * sin(latitude) /
                                     (cos(altitude) * cos(latitude)));
 
     this->sun_direction = normalize(vec3(sin(azimuth), sin(altitude), -cos(azimuth)));
 
     // Linear interpolation between two adjacent colors:
-    this->interp = (max_altitude - altitude - altitude_margin) / max_altitude;
-    this->interp_night = (max_altitude + altitude - altitude_margin) / max_altitude / 3;
+    float max_altitude = asin(cos(latitude)) - altitude_margin;
+    float min_altitude = asin(cos(latitude)) + altitude_margin;
+    this->interp = (max_altitude - altitude + altitude_margin) / max_altitude;
+    // Take night interpolation to power of 4 to speed up arrival of darkness:
+    this->interp_night = pow((min_altitude + altitude - altitude_margin) / min_altitude, 4);
 
     // Between dawn and noon:
     if (altitude >= altitude_margin && azimuth <= 0) {
