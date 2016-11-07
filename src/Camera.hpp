@@ -33,11 +33,12 @@ class Camera
 public:
     glm::vec3 front, up, right;
     float speed, rot_speed;
-    
-    Camera(glm::vec3 position, glm::vec3 front, glm::vec3 up, glm::vec3 right, float speed, float rot_speed);
+
+    Camera(glm::vec3 position, glm::vec3 front, glm::vec3 up,
+           glm::vec3 right, float speed, float rot_speed);
     glm::vec3 get_pos() const {return position;}
     void set_pos(glm::vec3 new_pos);
-    glm::mat4 get_view_matrix() const {return viewMatrix;}
+    glm::mat4 get_view_matrix() const {return view_matrix;}
     bool can_move_free() const {return free_cam;}
     bool can_look_free() const {return free_look;}
 
@@ -61,11 +62,11 @@ public:
     void update_culling_frustum();
     bool sphere_in_frustum(glm::vec3 center, float radius);
 
-    void update_view_matrix() {viewMatrix = glm::lookAt(position, position + front, up);}
-    
+    void update_view_matrix() {view_matrix = glm::lookAt(position, position + front, up);}
+
 private:
     glm::vec3 position, look_pos; // Look pos will be invalid if free look is enabled
-    glm::mat4 viewMatrix;
+    glm::mat4 view_matrix;
     float spline_move_parameter, spline_look_parameter;
     bool has_move_anim_path;
     bool has_look_anim_path;

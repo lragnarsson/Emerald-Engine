@@ -10,8 +10,8 @@ GLuint Light::ubos[2];
 int Light::next_to_turn_on;
 
 
-Light::Light(const glm::vec3 position,
-             const float brightness, const glm::vec3 color)
+Light::Light(const vec3 position,
+             const float brightness, const vec3 color)
 {
     this->position = position;
     this->color = color;
@@ -34,7 +34,7 @@ Light::Light(const glm::vec3 position,
 
 Light::~Light()
 {
-    this->color = glm::vec3(0);
+    this->color = vec3(0);
     this->active = false;
     free_ids.push_back(this->id);
     lights[this->id] = nullptr;
@@ -94,8 +94,8 @@ void Light::cull_light_sources(Camera &camera)
                                      light->radius)) {
             // Move visible lights to gpu array:
             // Position in view-space:
-            glm::vec3 view_space_pos = glm::vec3(camera.get_view_matrix() *
-                                                 glm::vec4(light->position, 1.f));
+            vec3 view_space_pos = vec3(camera.get_view_matrix() *
+                                       vec4(light->position, 1.f));
             gpu_lights[num_visible].position = view_space_pos;
             gpu_lights[num_visible].brightness = light->brightness;
             gpu_lights[num_visible].color = light->color;
@@ -140,7 +140,7 @@ void Light::generate_bounding_sphere()
     float b = _ATT_LIN_;
     float c = _ATT_QUAD_;
     float alpha = 0.02; // 2 percent
-    float beta = glm::length(this->color) * this->brightness;
+    float beta = length(this->color) * this->brightness;
 
     // Solve quadratic equation to determine at what distance the light is dimmer than alpha times beta:
     this->radius = -b / (2 * c) + std::sqrt(b * b / (4 * c * c) - a / c + beta / (alpha * c));

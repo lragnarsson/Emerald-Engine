@@ -28,9 +28,9 @@ uniform sampler2D g_normal_shininess;
 uniform sampler2D g_albedo_specular;
 uniform sampler2D ssao_blurred;
 
+uniform vec3 sun_direction;
+uniform vec3 sun_color;
 // camera position is always 0,0,0 in view space
-
-//uniform Light lights[_MAX_LIGHTS_];
 
 
 void main()
@@ -47,6 +47,7 @@ void main()
     // Ambient
     vec3 light = 0.03 * occlusion * albedo;
 
+    // Point lights:
     for(int i=0; i < num_lights; i++) {
         float distance = length(lights[i].position - position);
         float attenuation = 1.0 / (_ATT_CON_ + _ATT_LIN_ * distance + _ATT_QUAD_ * distance * distance);
@@ -64,6 +65,15 @@ void main()
 
         light += attenuation * (diffuse_light + specular_light);
     }
+
+    // Directional light source (sun):
+    float d = max(dot(normalize(normal), sun_direction), 0.0);
+    vec3 diffuse_light = occlusion * d * sun_color * albedo;
+    vec3 halfway_dir = normalize(sun_direction + view_direction);
+    float s = pow(max(dot(normal, halfway_dir), 0.0), shininess);
+    vec3 specular_light = s * sun_color * albedo;
+    light += diffuse_light + specular_light;
+
 
     OutColor = vec4(light, 1.0);
 
