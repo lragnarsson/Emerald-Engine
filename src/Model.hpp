@@ -70,7 +70,7 @@ private:
     };
 
     static std::vector<Model*> loaded_models, loaded_flat_models;
-    std::vector<light_container> attached_lightsources;
+    std::vector<light_container> attached_lights;
     std::vector<Mesh*> meshes;
     std::string directory;
     glm::vec3 world_coord;
