@@ -258,6 +258,16 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
 }
 
 
+std::vector<Light *> Model::get_lights()
+{
+    std::vector<Light *> lights;
+    for (auto container : attached_lightsources) {
+        lights.push_back(container.light);
+    }
+    return lights;
+}
+
+
 void Model::generate_bounding_sphere()
 {
     GLfloat v = this->meshes[0]->vertices[0];
