@@ -46,7 +46,7 @@ private:
     GLuint VBO[4]; // Vertices, normals, texCoords, tangents
     std::vector<Mesh*> meshes;
     
-    int get_pixel_height(int x, int y, SDL_Surface* image);
+    float get_pixel_height(int x, int y, SDL_Surface* image);
     int get_pixel_index(int x, int y, SDL_Surface* image);
     Mesh* load_mesh(aiMesh* ai_mesh, const aiScene* scene);
 };
