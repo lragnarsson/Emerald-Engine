@@ -19,7 +19,7 @@ int Terrain::get_pixel_index(int x, int y, SDL_Surface* image)
 // -------------------
 // Height is the mean of the rgb pixel values in the image
 
-int Terrain::get_pixel_height(int x, int y, SDL_Surface* image)
+float Terrain::get_pixel_height(int x, int y, SDL_Surface* image)
 {
     Uint8 red,green,blue,alpha;
     int index = get_pixel_index(x, y, image);
