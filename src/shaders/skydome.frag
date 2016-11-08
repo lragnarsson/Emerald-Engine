@@ -13,14 +13,18 @@ uniform vec3 sun_direction;
 
 void main(void)
 {
+    // Normalize to get position on unit sphere:
+    vec3 unit_pos = normalize(sky_pos);
     // Blend sky colors based on height over horizon:
-    float height = pow(abs(sky_pos.y) / 1.5, 0.5); // Over horizon
+    // Raise to power lower than 1 to make horizon color more local
+    float height = pow(2 * abs(unit_pos.y), 0.6);
     out_color = vec4(mix(horizon_color, zenith_color, height), 1);
 
     // Add a sun:
-    if (sky_pos.y > 0) { // if over horizon
-        vec3 compensated = normalize(sun_direction - 9 * sky_pos / 10.0);
-        float sun = 100 * pow(max(dot(sky_pos, compensated), 0.0), 50);
+    if (unit_pos.y > 0) { // If over horizon
+        // Align vectors more to make sun smaller:
+        vec3 compensated = normalize(sun_direction - 9 * unit_pos / 10.0);
+        float sun = 100 * pow(max(dot(unit_pos, compensated), 0.0), 50);
         out_color += vec4(sun * sun_color, 1);
     }
 }
