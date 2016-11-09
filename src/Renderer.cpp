@@ -321,7 +321,7 @@ void Renderer::post_processing()
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, post_proc_tex);
 
-    glUniform1f(glGetUniformLocation(shaders[HDR_BLOOM], "exposure"), 0.6f);
+    glUniform1f(glGetUniformLocation(shaders[HDR_BLOOM], "exposure"), 0.7f);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -618,7 +618,7 @@ void Renderer::normal_visualization_pass()
 {
     Profiler::start_timer("Normal visualization pass");
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
-
+    
     glUseProgram(shaders[GEOMETRY_NORMALS]);
 
     for (auto model : Model::get_loaded_models()) {
