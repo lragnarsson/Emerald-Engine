@@ -12,7 +12,7 @@ uniform float scene_brightness; // TODO: Calculate average of brightness of scre
 
 void main()
 {
-    const float gamma = 1.5;
+    const float gamma = 1.8;
 
     vec3 hdrColor = texture(input_tex1, TexCoord).rgb + texture(input_tex2, TexCoord).rgb;
 

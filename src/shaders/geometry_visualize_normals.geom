@@ -26,8 +26,7 @@ void GenerateLine(int index)
     FragPos = gs_in[index].FragPos;
     Normal = gs_in[index].Normal;
     EmitVertex();
-    vec4 clip_space_normal = vec4(vec3(projection *
-                                       vec4(gs_in[index].Normal * MAGNITUDE, 1.0)), 0.0f);
+    vec4 clip_space_normal = projection * vec4(gs_in[index].Normal * MAGNITUDE, 0.0);
     gl_Position = gl_in[index].gl_Position +  clip_space_normal;
     TexCoord = gs_in[index].TexCoord; // should make the line have the color of the originating vertex
     FragPos = gs_in[index].FragPos + gs_in[index].Normal * MAGNITUDE;
