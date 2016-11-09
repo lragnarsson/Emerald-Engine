@@ -9,7 +9,6 @@ layout (location = 3) in vec3 in_Tangent;
 out vec2 TexCoord;
 out vec3 FragPos;
 out mat3 TBN_viewSpace;
-//out mat3 NormalMatrix;
 
 uniform mat4 model;
 uniform mat4 view;

@@ -16,12 +16,15 @@
 
 #include "Camera.hpp"
 #include "Model.hpp"
+#include "Skydome.hpp"
 #include "Utils.hpp"
 #include "Error.hpp"
 #include "Profiler.hpp"
 
 
 #define MAX_SSAO_SAMPLES 256
+
+using namespace glm;
 
 enum render_mode {
     FORWARD_MODE,
@@ -66,6 +69,7 @@ public:
     void toggle_tweak_bar();
     void copy_tweak_bar_cam_values(const Camera& camera);
     float get_time_diff();
+    void propagate_time(bool forward);
 
 private:
     enum shader {
@@ -93,8 +97,9 @@ private:
     // Textures
     GLuint g_position, g_normal_shininess, g_albedo_specular, ssao_tex, color_tex, bright_tex, post_proc_tex,  ping_pong_tex_red, ping_pong_tex_rgb;
     GLuint quad_vao, quad_vbo;
-    glm::mat4 w2v_matrix;
-    Model *sphere, *skybox;
+    mat4 w2v_matrix;
+    Model *sphere;
+    Skydome *skydome;
 
     // Renderer keeps track of time so animations are time based
     unsigned last_timestamp = 0;
@@ -103,8 +108,8 @@ private:
 
 
     GLuint noise_texture; // Really small and tiled across the screen
-    std::vector<glm::vec3> ssao_kernel;
-    std::vector<glm::vec3> ssao_noise;
+    std::vector<vec3> ssao_kernel;
+    std::vector<vec3> ssao_noise;
     GLfloat kernel_radius = 5; // Could be interesting to tweak this
     GLint ssao_n_samples;
     bool ssao_on;
@@ -119,7 +124,7 @@ private:
     // Copied camera spline variables
     float cam_spline_move_para, cam_spline_look_para;
     int cam_spline_move_id, cam_spline_look_id, n_lightsources;
-    glm::vec3 cam_pos;
+    vec3 cam_pos;
 
     void init_g_buffer();
     void init_hdr_fbo();
@@ -159,7 +164,6 @@ private:
     void render_g_albedo();
     void render_g_specular();
     void render_ssao();
-    void render_skybox(const Camera &camera);
 };
 
 #endif

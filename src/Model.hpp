@@ -78,7 +78,8 @@ public:
 
     Model() { };
     Model(const std::string path);
-    Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3 world_coord, float scale, bool flat);
+    Model(const std::string path, const glm::mat4 rot_matrix,
+          const glm::vec3 world_coord, float scale, bool flat);
 
     ~Model() { };
 

@@ -83,15 +83,16 @@ void handle_input()
 void update_camera()
 {
     Profiler::start_timer("Camera");
-    camera.update_culling_frustum();
-    camera.update_view_matrix();
-
     if (!camera.can_move_free()) {
         camera.move_along_path(0.1f);
     }
     if (!camera.can_look_free()) {
         camera.move_look_point_along_path(0.1f);
     }
+    
+    camera.update_culling_frustum();
+    camera.update_view_matrix();
+    
     renderer.copy_tweak_bar_cam_values(camera);
     Profiler::stop_timer("Camera");
 }
@@ -117,8 +118,6 @@ void run()
         Profiler::start_timer("Swap");
         SDL_GL_SwapWindow(main_window);
         Profiler::stop_timer("Swap");
-
-        SDL_Delay(30);
         Profiler::stop_timer("-> Frame time");
     }
 }
