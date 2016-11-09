@@ -1,18 +1,18 @@
 #include "Skydome.hpp"
 
-const vec3 Skydome::sun_dawn = {.7f, .35f, 0.2f};
+const vec3 Skydome::sun_dawn = {.8f, .3f, 0.2f};
 const vec3 Skydome::sun_noon = {.5f, .35f, 0.2f};
-const vec3 Skydome::sun_dusk = {1.f, 0.2f, 0.2f};
+const vec3 Skydome::sun_dusk = {0.9f, 0.3f, 0.1f};
 const vec3 Skydome::sun_midnight = {0.f, 0.f, 0.f};
 
 const vec3 Skydome::zenith_dawn = {0.1f, 0.1f, 0.65f};
 const vec3 Skydome::horizon_dawn = {0.5f, 0.15f, 0.4f};
 
 const vec3 Skydome::zenith_noon = {0.1f, 0.4f, 1.f};
-const vec3 Skydome::horizon_noon = {0.34f, 0.54f, 0.92f};
+const vec3 Skydome::horizon_noon = {0.34f, 0.54f, 0.88f};
 
-const vec3 Skydome::zenith_dusk = {0.2f, 0.1f, 0.75f};
-const vec3 Skydome::horizon_dusk = {0.75f, 0.2f, 0.1f};
+const vec3 Skydome::zenith_dusk = {0.5f, 0.4f, 0.3f};
+const vec3 Skydome::horizon_dusk = {0.9f, 0.4f, 0.1f};
 
 const vec3 Skydome::zenith_midnight = {0.f, 0.0f, 0.01f};
 const vec3 Skydome::horizon_midnight = {0.f, 0.01f, 0.05f};
