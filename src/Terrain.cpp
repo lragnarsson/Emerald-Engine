@@ -1,9 +1,9 @@
 #include "Terrain.hpp"
 
 
-using namespace std;
+using namespace glm;
 
-Terrain::Terrain(string heightmap_file)
+Terrain::Terrain(std::string heightmap_file)
 {
     load_heightmap(heightmap_file);
 }
@@ -17,7 +17,7 @@ int Terrain::get_pixel_index(int x, int z, SDL_Surface* image)
 
 
 // -------------------
-// Height is the mean of the rgb pixel values in the image
+// Height is chosen as the mean of the rgb pixel values in the image
 
 float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
 {
@@ -34,7 +34,7 @@ float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
 
 // -------------------
 
-void Terrain::load_heightmap(string heightmap_file) 
+void Terrain::load_heightmap(std::string heightmap_file) 
 {
     SDL_Surface* heightmap = nullptr;
     heightmap = IMG_Load(heightmap_file.c_str());
@@ -45,9 +45,9 @@ void Terrain::load_heightmap(string heightmap_file)
     }
 
     if (heightmap->format->BitsPerPixel != 32){
-        Error::throw_error(Error::cant_load_image, "Need 32-bit per pixel images for heightmap, this image is " + to_string(heightmap->format->BitsPerPixel) + "-bit!");
+        Error::throw_error(Error::cant_load_image, "Need 32-bit per pixel images for heightmap, this image is " + std::to_string(heightmap->format->BitsPerPixel) + "-bit!");
     }
-    
+
     for (int z = 0; z < heightmap->h; z++){
         for (int x = 0; x < heightmap->w; x++){
             // Create vertices (points in 3D space)
@@ -57,21 +57,40 @@ void Terrain::load_heightmap(string heightmap_file)
 
             // Create a normal for each vertice unless at edges of terrain.
             // Then normal is pointing straight upward
-            if ( x < heightmap->w-1 and x > 0 and z < heightmap->h-1 and z > 0){
-                
-            }
+            vec3 normal = get_normal(x, z, heightmap);
+            m->normals.push_back(normal.x);
+            m->normals.push_back(normal.y);
+            m->normals.push_back(normal.z);
         }
     }
 }
 
 
 // -------------------
-
 /* Private Model functions */
 
+vec3 Terrain::get_normal(int x, int z, SDL_Surface* image){
+    // If not along edges
+    if ( x < image->w-1 and x > 0 and z < image->h-1 and z > 0){
+        vec3 base1 = vec3(x, get_pixel_height(x, z, image), z) - vec3(x-1, get_pixel_height(x-1, z, image), z);
+        vec3 base2 = vec3(x, get_pixel_height(x, z+1, image), z+1) - vec3(x-1, get_pixel_height(x-1, z, image), z);
+        vec3 normal1 = cross(base1, base2);
 
-Mesh* Terrain::load_mesh(aiMesh* ai_mesh, const aiScene* scene) 
-{
+        base1 = vec3(x+1, get_pixel_height(x+1, z, image), z) - vec3(x, get_pixel_height(x, z, image), z);
+        base2 = vec3(x+1, get_pixel_height(x+1, z+1, image), z+1) - vec3(x, get_pixel_height(x, z, image), z);
+        vec3 normal2 = cross(base1, base2);
+        
+        base1 = vec3(x, get_pixel_height(x, z-1, image), z-1) - vec3(x-1, get_pixel_height(x-1, z-1, image), z-1);
+        base2 = vec3(x, get_pixel_height(x, z, image), z) - vec3(x-1, get_pixel_height(x-1, z-1, image), z-1);
+        vec3 normal3 = cross(base1, base2);
 
+        return normalize(normal1 + normal2 + normal3);
+    }
+    else { // Along edges just return upVector for now
+        // TODO: Return normal for slopes
+        return vec3(0, 1, 0);
+    }
 }
+
+
 
