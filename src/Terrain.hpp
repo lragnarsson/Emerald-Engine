@@ -38,14 +38,16 @@ public:
 
     const std::vector<Mesh*> get_meshes();
     void load_heightmap(std::string heightmap_file);
-
+    static const std::vector<Terrain*> get_loaded_terrain();
     glm::vec3 get_center_point_world();
     glm::vec3 get_center_point();
-private:
+    bool draw_me = true, clamp_textures = false;
     glm::mat4 m2w_matrix, move_matrix, rot_matrix, scale_matrix;
     glm::vec3 world_coord;
     float bounding_sphere_radius = -1.f, scale = 1.f;
-    bool draw_me = true, clamp_textures = false;
+
+private:
+    static std::vector<Terrain*> loaded_terrain;
 
     GLuint VAO, EBO;
     GLuint VBO[4]; // Vertices, normals, texCoords, tangents

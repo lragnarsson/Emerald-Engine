@@ -3,6 +3,10 @@
 
 using namespace glm;
 
+
+std::vector<Terrain*> Terrain::loaded_terrain;
+
+
 Terrain::Terrain(std::string heightmap_file)
 {   this->rot_matrix = glm::mat4(1.f);
     this->scale = 1.f;
@@ -13,6 +17,8 @@ Terrain::Terrain(std::string heightmap_file)
     this->clamp_textures = true;
     
     load_heightmap(heightmap_file);
+
+    Terrain::loaded_terrain.push_back(this);
 }
 
 // -------------------
@@ -46,7 +52,8 @@ void Terrain::load_heightmap(std::string heightmap_file)
     SDL_Surface* heightmap = nullptr;
     heightmap = IMG_Load(heightmap_file.c_str());
     Mesh* m = new Mesh();
-
+    std::string directory = heightmap_file.substr(0, heightmap_file.find_last_of('/'));
+    
     if (heightmap == nullptr){
         Error::throw_error(Error::cant_load_image, heightmap_file);
     }
@@ -55,6 +62,9 @@ void Terrain::load_heightmap(std::string heightmap_file)
         Error::throw_error(Error::cant_load_image, "Need 32-bit per pixel images for heightmap, this image is " + std::to_string(heightmap->format->BitsPerPixel) + "-bit!");
     }
 
+    m->index_count = 3*(heightmap->w * heightmap->h);
+    m->vertex_count = heightmap->w * heightmap->h;
+    
     for (int z = 0; z < heightmap->h; z++){
         for (int x = 0; x < heightmap->w; x++){
             float height = get_pixel_height(x, z, heightmap);
@@ -99,9 +109,28 @@ void Terrain::load_heightmap(std::string heightmap_file)
     normal_map->type = NORMAL;
     normal_map->path = DEFAULT_PATH;
     m->normal_map = normal_map;
+    
+    // Load texture
+    m->load_texture("texture.jpg", directory, clamp_textures);
 
+    meshes.push_back(m);
+    m->upload_mesh_data();
 }
 
+// ------------------
+// Returns mesh
+
+const std::vector<Mesh*> Terrain::get_meshes()
+{
+    return meshes;
+}
+
+// -----------
+
+const std::vector<Terrain*> Terrain::get_loaded_terrain()
+{
+    return Terrain::loaded_terrain;
+}
 
 // -------------------
 /* Private Model functions */
