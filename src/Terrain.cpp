@@ -25,7 +25,7 @@ Terrain::Terrain(std::string heightmap_file)
 
 int Terrain::get_pixel_index(int x, int z, SDL_Surface* image)
 {
-    return image->w * z + x;
+    return (image->w * z + x)*3; // 8*3=24-bit
 }
 
 
@@ -34,15 +34,21 @@ int Terrain::get_pixel_index(int x, int z, SDL_Surface* image)
 
 float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
 {
-    Uint8 red,green,blue,alpha;
+    Uint8 red,green,blue;
     int index = get_pixel_index(x, z, image);
 
-    Uint32 *all_pixels = (Uint32*) image->pixels; 
-    Uint32 pixel = all_pixels[index]; 
+    Uint8 *all_pixels = (Uint8*) image->pixels; 
+    red = all_pixels[index]; 
+    green = all_pixels[index+1]; 
+    blue = all_pixels[index+2]; 
 
-    SDL_GetRGBA(pixel, image->format, &red, &green, &blue, &alpha);
+    //SDL_GetRGB(pixel, image->format, &red, &green, &blue);
     
-    return (red+green+blue)/3.f;
+    //if ( red != 0 or blue != 0 or green != 0){
+    //    std::cout << red << " " << green << " " << blue << std::endl;
+    //}
+
+    return (red+green+blue)/(3.f*20.f);
 }
 
 // -------------------
@@ -57,8 +63,8 @@ void Terrain::load_heightmap(std::string heightmap_file)
         Error::throw_error(Error::cant_load_image, heightmap_file);
     }
 
-    if (heightmap->format->BitsPerPixel != 32){
-        Error::throw_error(Error::cant_load_image, "Need 32-bit per pixel images for heightmap, this image is " + std::to_string(heightmap->format->BitsPerPixel) + "-bit!");
+    if (heightmap->format->BitsPerPixel != 24){
+        Error::throw_error(Error::cant_load_image, "Need 24-bit per pixel images for heightmap, this image is " + std::to_string(heightmap->format->BitsPerPixel) + "-bit!");
     }
 
     m->index_count = 3*(heightmap->w * heightmap->h);
@@ -67,6 +73,7 @@ void Terrain::load_heightmap(std::string heightmap_file)
     for (int z = 0; z < heightmap->h; z++){
         for (int x = 0; x < heightmap->w; x++){
             float height = get_pixel_height(x, z, heightmap);
+            
             // Create vertices (points in 3D space)
             m->vertices.push_back(x);
             m->vertices.push_back(height);
@@ -109,7 +116,7 @@ void Terrain::load_heightmap(std::string heightmap_file)
     m->normal_map = normal_map;
     
     // Load texture
-    m->load_texture("texture.jpg", directory, clamp_textures);
+    //m->load_texture("texture.jpg", directory, clamp_textures);
 
     meshes.push_back(m);
     m->upload_mesh_data();
