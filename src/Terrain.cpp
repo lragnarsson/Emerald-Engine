@@ -41,7 +41,7 @@ float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
     Uint32 pixel = all_pixels[index]; 
 
     SDL_GetRGBA(pixel, image->format, &red, &green, &blue, &alpha);
-
+    
     return (red+green+blue)/3.f;
 }
 
@@ -49,12 +49,11 @@ float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
 
 void Terrain::load_heightmap(std::string heightmap_file) 
 {
-    SDL_Surface* heightmap = nullptr;
-    heightmap = IMG_Load(heightmap_file.c_str());
+    SDL_Surface* heightmap = IMG_Load(heightmap_file.c_str());
     Mesh* m = new Mesh();
     std::string directory = heightmap_file.substr(0, heightmap_file.find_last_of('/'));
-    
-    if (heightmap == nullptr){
+
+    if (heightmap == NULL){
         Error::throw_error(Error::cant_load_image, heightmap_file);
     }
 
@@ -81,7 +80,6 @@ void Terrain::load_heightmap(std::string heightmap_file)
             
             // Texture coords
             m->tex_coords.push_back(x);
-            m->tex_coords.push_back(height);
             m->tex_coords.push_back(z);
 
             // No bitangents
@@ -141,14 +139,17 @@ vec3 Terrain::get_normal(int x, int z, SDL_Surface* image){
         vec3 base1 = vec3(x, get_pixel_height(x, z, image), z) - vec3(x-1, get_pixel_height(x-1, z, image), z);
         vec3 base2 = vec3(x, get_pixel_height(x, z+1, image), z+1) - vec3(x-1, get_pixel_height(x-1, z, image), z);
         vec3 normal1 = cross(base1, base2);
+        normal1.y = (normal1.y > 0) ? normal1.y : -normal1.y;
 
         base1 = vec3(x+1, get_pixel_height(x+1, z, image), z) - vec3(x, get_pixel_height(x, z, image), z);
         base2 = vec3(x+1, get_pixel_height(x+1, z+1, image), z+1) - vec3(x, get_pixel_height(x, z, image), z);
         vec3 normal2 = cross(base1, base2);
+        normal2.y = (normal2.y > 0) ? normal2.y : -normal2.y;
 
         base1 = vec3(x, get_pixel_height(x, z-1, image), z-1) - vec3(x-1, get_pixel_height(x-1, z-1, image), z-1);
         base2 = vec3(x, get_pixel_height(x, z, image), z) - vec3(x-1, get_pixel_height(x-1, z-1, image), z-1);
         vec3 normal3 = cross(base1, base2);
+        normal3.y = (normal3.y > 0) ? normal3.y : -normal3.y;
 
         return normalize(normal1 + normal2 + normal3);
     }
