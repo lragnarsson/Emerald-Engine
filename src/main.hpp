@@ -10,6 +10,7 @@
 #include "CR_Spline.hpp"
 #include "Animation_Path.hpp"
 #include "Profiler.hpp"
+#include "Terrain.hpp"
 
 SDL_Window* main_window;
 SDL_GLContext main_context;
