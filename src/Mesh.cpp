@@ -16,7 +16,7 @@ void Mesh::upload_mesh_data()
     GLfloat* normals = &this->normals[0];
     GLfloat* tex_coords = &this->tex_coords[0];
     GLfloat* tangents = &this->tangents[0];
-
+    
     /* Element array buffer */
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(GLuint), indices, GL_STATIC_DRAW);

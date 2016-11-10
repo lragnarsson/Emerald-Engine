@@ -20,6 +20,7 @@
 #include "Utils.hpp"
 #include "Error.hpp"
 #include "Profiler.hpp"
+#include "Terrain.hpp"
 
 
 #define MAX_SSAO_SAMPLES 256
