@@ -189,17 +189,23 @@ vec3 Terrain::get_normal(int x, int z, SDL_Surface* image){
         vec3 base1 = vec3(x, get_pixel_height(x, z, image), z) - vec3(x-1, get_pixel_height(x-1, z, image), z);
         vec3 base2 = vec3(x, get_pixel_height(x, z+1, image), z+1) - vec3(x-1, get_pixel_height(x-1, z, image), z);
         vec3 normal1 = normalize(cross(base1, base2));
-        normal1.y = (normal1.y > 0) ? normal1.y : -normal1.y;
+        if (normal1.y < 0) {
+           normal1 = -normal1;
+        }
 
         base1 = vec3(x+1, get_pixel_height(x+1, z, image), z) - vec3(x, get_pixel_height(x, z, image), z);
         base2 = vec3(x+1, get_pixel_height(x+1, z+1, image), z+1) - vec3(x, get_pixel_height(x, z, image), z);
         vec3 normal2 = normalize(cross(base1, base2));
-        normal2.y = (normal2.y > 0) ? normal2.y : -normal2.y;
+        if (normal2.y < 0) {
+           normal2 = -normal2;
+        }
 
         base1 = vec3(x, get_pixel_height(x, z-1, image), z-1) - vec3(x-1, get_pixel_height(x-1, z-1, image), z-1);
         base2 = vec3(x, get_pixel_height(x, z, image), z) - vec3(x-1, get_pixel_height(x-1, z-1, image), z-1);
         vec3 normal3 = normalize(cross(base1, base2));
-        normal3.y = (normal3.y > 0) ? normal3.y : -normal3.y;
+        if (normal3.y < 0) {
+           normal3 = -normal3;
+        }
 
         return normalize(normal1 + normal2 + normal3);
     }
