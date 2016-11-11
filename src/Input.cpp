@@ -126,10 +126,13 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     Light::turn_on_one_light();
                     break;
                 case SDLK_i:
-                    renderer.increaseUpInterp();
+                    renderer.increase_up_interp();
                     break;
                 case SDLK_u:
-                    renderer.decreaseUpInterp();
+                    renderer.decrease_up_interp();
+                    break;
+                case SDLK_v:
+                    renderer.toggle_show_normals();
                     break;
                 }
             }

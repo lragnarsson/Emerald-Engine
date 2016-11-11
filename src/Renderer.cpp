@@ -169,20 +169,25 @@ void Renderer::propagate_time(bool forward)
 }
 
 
-void Renderer::increaseUpInterp()
+void Renderer::increase_up_interp()
 {
-    if (this->upInterp >= 0.9f)
-        this->upInterp = 1.0f;
+    if (this->up_interp >= 0.9f)
+        this->up_interp = 1.0f;
     else
-        this->upInterp += 0.1f;
+        this->up_interp += 0.1f;
 }
 
-void Renderer::decreaseUpInterp()
+void Renderer::decrease_up_interp()
 {
-    if (this->upInterp <= 0.1f)
-        this->upInterp = 0.0f;
+    if (this->up_interp <= 0.1f)
+        this->up_interp = 0.0f;
     else
-        this->upInterp -= 0.1f;
+        this->up_interp -= 0.1f;
+}
+
+void Renderer::toggle_show_normals()
+{
+    this->show_normals = !this->show_normals;
 }
 
 /* Private Renderer functions */
@@ -195,7 +200,9 @@ void Renderer::render_deferred(const Camera &camera)
     geometry_pass();
 
     /* VISUALIZE NORMALS: EXPERIMENTAL STUFF */
-    normal_visualization_pass();
+    if (this->show_normals) {
+        normal_visualization_pass();
+    }
     
     // SSAO PASS
     if (this->ssao_on) {
@@ -656,7 +663,7 @@ void Renderer::normal_visualization_pass()
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
     
     glUseProgram(shaders[GEOMETRY_NORMALS]);
-    glUniform1f(glGetUniformLocation(shaders[GEOMETRY_NORMALS], "upInterp"), this->upInterp);
+    glUniform1f(glGetUniformLocation(shaders[GEOMETRY_NORMALS], "upInterp"), this->up_interp);
 
     for (auto model : Model::get_loaded_models()) {
         if (!model->draw_me) {
@@ -694,7 +701,9 @@ void Renderer::render_g_position()
 {
     geometry_pass();
 
-    normal_visualization_pass();
+    if (this->show_normals) {
+        normal_visualization_pass();
+    }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
@@ -715,7 +724,9 @@ void Renderer::render_g_normal()
 {
     geometry_pass();
 
-    normal_visualization_pass();
+    if (this->show_normals) {
+        normal_visualization_pass();
+    }
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
@@ -736,7 +747,9 @@ void Renderer::render_g_albedo()
 {
     geometry_pass();
 
-    normal_visualization_pass();
+    if (this->show_normals) {
+        normal_visualization_pass();
+    }
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
@@ -757,7 +770,9 @@ void Renderer::render_g_specular()
 {
     geometry_pass();
 
-    normal_visualization_pass();
+    if (this->show_normals) {
+        normal_visualization_pass();
+    }
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_ALPHA_COMPONENT]);
@@ -778,7 +793,9 @@ void Renderer::render_ssao()
 {
     geometry_pass();
 
-    normal_visualization_pass();    
+    if (this->show_normals) {
+        normal_visualization_pass();
+    }
 
     ssao_pass();
 
@@ -1193,8 +1210,10 @@ void Renderer::init_tweak_bar(Camera* camera)
                "label='Number of lights' help='Total number of lights in scene'");
     TwAddVarRW(tweak_bar, "Number of culled lights", TW_TYPE_INT32, &Light::culled_lights,
                "label='Culled lights' help='Lights with bounding sphere outside frustum.'");
-    TwAddVarRW(tweak_bar, "Normal vec interp", TW_TYPE_FLOAT, &this->upInterp,
+    TwAddVarRW(tweak_bar, "Normal vec interp", TW_TYPE_FLOAT, &this->up_interp,
                "label='Normal vector interpolation' help='Valid range is [0,1]. 1 uses only up vector.'");
+    TwAddVarRW(tweak_bar, "Show normals", TW_TYPE_BOOL8, &show_normals,
+               "label='Show normals generated in geometry shader' help='Toggles the normal visualization pass'");
     
 }
 
