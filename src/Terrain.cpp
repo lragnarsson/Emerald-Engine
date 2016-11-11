@@ -156,7 +156,7 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
     m->normal_map = normal_map;
     
     // Translate terrain to the middle
-    this->world_coord = glm::vec3(-heightmap->w*2.f, 0, -heightmap->h*2.f);
+    this->world_coord = glm::vec3(-heightmap->w*plane_scale/2.f, 0, -heightmap->h*plane_scale/2.f);
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
     this->m2w_matrix = move_matrix  * rot_matrix * scale_matrix;
     
