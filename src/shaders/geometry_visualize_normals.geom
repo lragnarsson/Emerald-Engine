@@ -1,6 +1,6 @@
 
 layout (triangles) in;
-layout (line_strip, max_vertices = 6) out;
+layout (line_strip, max_vertices = 8) out;
 
 in VS_OUT {
     vec2 TexCoord;
@@ -20,28 +20,37 @@ uniform float upInterp; // Interpolation between up-vector and vertex own normal
 
 const float MAGNITUDE = 0.4f; // Length of generated lines
 
-void GenerateLine(int index)
+
+void GenerateLine(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal)
 {
-    gl_Position = gl_in[index].gl_Position;
-    TexCoord = gs_in[index].TexCoord;
-    FragPos = gs_in[index].FragPos;
-    Normal = gs_in[index].Normal;
+    gl_Position = clipPos;
+    TexCoord = texCoord;
+    FragPos = fragPos;
+    Normal = inNormal;
     EmitVertex();
-    vec4 clip_space_normal = projection * vec4(gs_in[index].Normal * MAGNITUDE, 0.0);
+    vec4 clip_space_normal = projection * vec4(inNormal* MAGNITUDE, 0.0);
     vec4 clip_space_up = projection * vec4(0.0, MAGNITUDE, 0.0, 0.0);
 
-    vec4 outNormal = (1 - upInterp) * clip_space_normal + upInterp * clip_space_up;
-    gl_Position = gl_in[index].gl_Position + outNormal;
-    TexCoord = gs_in[index].TexCoord; // should make the line have the color of the originating vertex
-    FragPos = gs_in[index].FragPos + gs_in[index].Normal * MAGNITUDE;
-    Normal = gs_in[index].Normal;
+    vec4 interpNormal = mix(clip_space_normal, clip_space_up, upInterp);
+    gl_Position = clipPos + interpNormal;
+    TexCoord = texCoord; // should make the line have the color of the originating vertex
+    FragPos = fragPos + inNormal * MAGNITUDE;
+    Normal = inNormal;
     EmitVertex();
     EndPrimitive();
 }
 
 void main()
 {
-    GenerateLine(0); // First vertex normal
-    GenerateLine(1); // Second vertex normal
-    GenerateLine(2); // Third vertex normal
-} 
+    GenerateLine(gl_in[0].gl_Position, gs_in[0].TexCoord, gs_in[0].FragPos, gs_in[0].Normal); // First vertex normal
+    GenerateLine(gl_in[1].gl_Position, gs_in[1].TexCoord, gs_in[1].FragPos, gs_in[1].Normal); // Second vertex normal
+    GenerateLine(gl_in[2].gl_Position, gs_in[2].TexCoord, gs_in[2].FragPos, gs_in[2].Normal); // Third vertex normal
+
+    // Middle of triangle
+    vec4 middlePos = (gl_in[0].gl_Position + gl_in[1].gl_Position + gl_in[2].gl_Position) / 3;
+    vec2 middleTex = (gs_in[0].TexCoord + gs_in[1].TexCoord + gs_in[2].TexCoord) / 3;
+    vec3 middleFragPos = (gs_in[0].FragPos + gs_in[1].FragPos + gs_in[2].FragPos) / 3;
+    vec3 middleNormal = (gs_in[0].Normal + gs_in[1].Normal + gs_in[2].Normal) / 3;
+
+    GenerateLine(middlePos, middleTex, middleFragPos, middleNormal);
+}
