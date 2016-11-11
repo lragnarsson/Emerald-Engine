@@ -101,3 +101,16 @@ Texture* Mesh::load_texture(const std::string filename, const std::string basepa
 
     return texture;
 }
+
+// -----------------
+// Culling
+
+glm::vec3 Mesh::get_center_point_world(glm::mat4 m2w_matrix)
+{
+    return glm::vec3(m2w_matrix * glm::vec4(this->bounding_sphere_center, 1.f));
+}
+
+glm::vec3 Mesh::get_center_point()
+{
+    return this->bounding_sphere_center;
+}

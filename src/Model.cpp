@@ -257,6 +257,8 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
     return m;
 }
 
+// -----------------
+// Culling
 
 void Model::generate_bounding_sphere()
 {
@@ -264,39 +266,71 @@ void Model::generate_bounding_sphere()
     GLfloat x_max = v, y_max = v, z_max = v, x_min = v, y_min = v, z_min = v;
 
     for (auto mesh : this->meshes) {
+        GLfloat v_local = mesh->vertices[0];
+        GLfloat x_local_max = v_local, y_local_max = v_local, z_local_max = v_local, x_local_min = v_local, y_local_min = v_local, z_local_min = v_local;
         for (int i=0; i < mesh->vertices.size() - 2; i+=3) {
+            // Maxes
             if (mesh->vertices[i] > x_max){
                 x_max = mesh->vertices[i];
+            }
+            if(mesh->vertices[i] > x_local_max){
+                x_local_max = mesh->vertices[i];
             }
 
             if (mesh->vertices[i + 1] > y_max){
                 y_max = mesh->vertices[i + 1];
             }
+            if(mesh->vertices[i + 1] > y_local_max){
+                y_local_max = mesh->vertices[i + 1];
+            }
 
             if (mesh->vertices[i + 2] > z_max){
                 z_max = mesh->vertices[i + 2];
             }
-
+            if(mesh->vertices[i + 2] > z_local_max){
+                z_local_max = mesh->vertices[i + 2];
+            }
+            
+            // Mins
             if (mesh->vertices[i] < x_min){
                 x_min = mesh->vertices[i];
+            }
+            if (mesh->vertices[i] < x_local_min){
+                x_local_min = mesh->vertices[i];
             }
 
             if (mesh->vertices[i + 1] < y_min){
                 y_min = mesh->vertices[i + 1];
             }
+            if (mesh->vertices[i + 1] < y_local_min){
+                y_local_min = mesh->vertices[i + 1];
+            }
 
             if (mesh->vertices[i + 2] < z_min){
                 z_min = mesh->vertices[i + 2];
             }
+            if (mesh->vertices[i + 2] < z_local_min){
+                z_local_min = mesh->vertices[i + 2];
+            }
         }
+        // Make sure meshes has bounding spheres
+        glm::vec3 max_corner = glm::vec3(x_local_max, y_local_max, z_local_max);
+        glm::vec3 min_corner = glm::vec3(x_local_min, y_local_min, z_local_min);
+
+        glm::vec3 r_vector = 0.5f * (max_corner - min_corner);
+        mesh->bounding_sphere_radius = glm::length(r_vector);
+        mesh->bounding_sphere_center = min_corner + r_vector;
     }
+    // Make sure entire model has bounding sphere
     glm::vec3 max_corner = glm::vec3(x_max, y_max, z_max);
     glm::vec3 min_corner = glm::vec3(x_min, y_min, z_min);
 
     glm::vec3 r_vector = 0.5f * (max_corner - min_corner);
     this->bounding_sphere_radius = glm::length(r_vector);
     this->bounding_sphere_center = min_corner + r_vector;
+
 }
+
 
 // -----------
 

@@ -263,6 +263,9 @@ void Renderer::render_forward()
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(model->m2w_matrix));
 
         for (auto mesh : model->get_meshes()) {
+            if (!mesh->draw_me) {
+                continue;
+            }
             glActiveTexture(GL_TEXTURE0);
             GLuint diffuse_loc = glGetUniformLocation(shaders[FORWARD], "diffuse_map");
             glUniform1i(diffuse_loc, 0);
@@ -309,7 +312,7 @@ void Renderer::render_flat()
 
         GLuint color = glGetUniformLocation(shaders[FLAT], "color");
         glUniform3fv(color, 1,
-                     value_ptr(model->get_light_color()));
+                value_ptr(model->get_light_color()));
 
         for (auto mesh : model->get_meshes()) {
             glBindVertexArray(mesh->get_VAO());
@@ -383,10 +386,10 @@ void Renderer::create_ssao_samples()
     vec3 sample;
     for (int i = 0; i < _SSAO_N_SAMPLES_; ++i) {
         sample = vec3(
-            randomFloats(generator) * 2.0 - 1.0,
-            randomFloats(generator) * 2.0 - 1.0,
-            randomFloats(generator)
-            );
+                randomFloats(generator) * 2.0 - 1.0,
+                randomFloats(generator) * 2.0 - 1.0,
+                randomFloats(generator)
+                );
         sample = normalize(sample);
         sample *= randomFloats(generator);
         scale = GLfloat(i) / _SSAO_N_SAMPLES_;
@@ -444,7 +447,7 @@ void Renderer::ssao_pass()
     // Upload shader samples
     for (GLuint i = 0; i < _SSAO_N_SAMPLES_; i++) {
         GLuint sample_loc = glGetUniformLocation(shaders[SSAO],
-                                                 ("samples[" + std::to_string(i) + "]").c_str());
+                ("samples[" + std::to_string(i) + "]").c_str());
         glUniform3fv(sample_loc, 1, &ssao_kernel[i][0]);
     }
     GLuint radius_loc = glGetUniformLocation(shaders[SSAO], "kernel_radius");
@@ -476,32 +479,32 @@ ping_pong_shader Renderer::upload_filter(filter_type ft)
 {
     GLfloat uniform[5] = {1, 1, 1, 1, 1};
     GLfloat gaussian_big[11] = {0.090154, 0.090606, 0.090959, 0.091212, 0.091364,
-                                0.091414, 0.091364, 0.091212, 0.090959, 0.090606, 0.090154};
+        0.091414, 0.091364, 0.091212, 0.090959, 0.090606, 0.090154};
 
     ping_pong_shader shader;
     switch (ft) {
-    case GAUSSIAN_RGB_11:
-        shader.x = shaders[BLUR_RGB_11_X];
-        glUseProgram(shader.x);
-        glUniform1fv(glGetUniformLocation(shader.x, "kernel"), 11, gaussian_big);
-        glUniform1f(glGetUniformLocation(shader.x, "magnitude"), 1.0f);
+        case GAUSSIAN_RGB_11:
+            shader.x = shaders[BLUR_RGB_11_X];
+            glUseProgram(shader.x);
+            glUniform1fv(glGetUniformLocation(shader.x, "kernel"), 11, gaussian_big);
+            glUniform1f(glGetUniformLocation(shader.x, "magnitude"), 1.0f);
 
-        shader.y = shaders[BLUR_RGB_11_Y];
-        glUseProgram(shader.y);
-        glUniform1fv(glGetUniformLocation(shader.y, "kernel"), 11, gaussian_big);
-        glUniform1f(glGetUniformLocation(shader.y, "magnitude"), 1.0f);
-        break;
-    case UNIFORM_RED_5:
-        shader.x = shaders[BLUR_RED_5_X];
-        glUseProgram(shader.x);
-        glUniform1fv(glGetUniformLocation(shader.x, "kernel"), 5, uniform);
-        glUniform1f(glGetUniformLocation(shader.x, "magnitude"), 5);
+            shader.y = shaders[BLUR_RGB_11_Y];
+            glUseProgram(shader.y);
+            glUniform1fv(glGetUniformLocation(shader.y, "kernel"), 11, gaussian_big);
+            glUniform1f(glGetUniformLocation(shader.y, "magnitude"), 1.0f);
+            break;
+        case UNIFORM_RED_5:
+            shader.x = shaders[BLUR_RED_5_X];
+            glUseProgram(shader.x);
+            glUniform1fv(glGetUniformLocation(shader.x, "kernel"), 5, uniform);
+            glUniform1f(glGetUniformLocation(shader.x, "magnitude"), 5);
 
-        shader.y = shaders[BLUR_RED_5_Y];
-        glUseProgram(shader.y);
-        glUniform1fv(glGetUniformLocation(shader.y, "kernel"), 5, uniform);
-        glUniform1f(glGetUniformLocation(shader.y, "magnitude"), 5);
-        break;
+            shader.y = shaders[BLUR_RED_5_Y];
+            glUseProgram(shader.y);
+            glUniform1fv(glGetUniformLocation(shader.y, "kernel"), 5, uniform);
+            glUniform1f(glGetUniformLocation(shader.y, "magnitude"), 5);
+            break;
     }
     return shader;
 }
@@ -521,7 +524,7 @@ void Renderer::filter_pass(GLuint source_tex, GLuint target_fbo)
 // --------------------------
 
 void Renderer::blur_red_texture(GLuint source_tex, GLuint fbo_tex,
-                                GLuint target_fbo, filter_type ft, int iterations)
+        GLuint target_fbo, filter_type ft, int iterations)
 {
     ping_pong_shader shader = upload_filter(ft);
 
@@ -541,7 +544,7 @@ void Renderer::blur_red_texture(GLuint source_tex, GLuint fbo_tex,
 // --------------------------
 
 void Renderer::blur_rgb_texture(GLuint source_tex, GLuint fbo_tex,
-                                GLuint target_fbo, filter_type ft, int iterations)
+        GLuint target_fbo, filter_type ft, int iterations)
 {
     ping_pong_shader shader = upload_filter(ft);
 
@@ -574,8 +577,8 @@ void Renderer::render_bounding_spheres()
 
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
-                           value_ptr(model->move_matrix * model->rot_matrix *
-                                     bounding_move * model->scale_matrix * bounding_scale));
+                value_ptr(model->move_matrix * model->rot_matrix *
+                    bounding_move * model->scale_matrix * bounding_scale));
 
         // DRAW
         glBindVertexArray(mesh->get_VAO());
@@ -586,12 +589,12 @@ void Renderer::render_bounding_spheres()
     for (auto model : Model::get_loaded_models()) {
         mat4 bounding_scale = scale(mat4(1.f), vec3(model->bounding_sphere_radius) / 1.5f);
         mat4 bounding_move = model->scale * translate(mat4(1.f), model->scale *
-                                                      model->get_center_point());
+                model->get_center_point());
 
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
-                           value_ptr(model->move_matrix * model->rot_matrix *
-                                     bounding_move * model->scale_matrix * bounding_scale));
+                value_ptr(model->move_matrix * model->rot_matrix *
+                    bounding_move * model->scale_matrix * bounding_scale));
 
         // DRAW
         glBindVertexArray(mesh->get_VAO());
@@ -621,6 +624,9 @@ void Renderer::geometry_pass()
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(model->m2w_matrix));
 
         for (auto mesh : model->get_meshes()) {
+            if (!mesh->draw_me) {
+                continue;
+            }
             glActiveTexture(GL_TEXTURE0);
             GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY], "diffuse_map");
             glUniform1i(diffuse_loc, 0);
@@ -644,7 +650,7 @@ void Renderer::geometry_pass()
             glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
         }
     }
-    
+
     for (auto terrain : Terrain::get_loaded_terrain()) {
         if (!terrain->draw_me) {
             continue;
@@ -653,6 +659,9 @@ void Renderer::geometry_pass()
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(terrain->m2w_matrix));
 
         for (auto mesh : terrain->get_meshes()) {
+            if (!mesh->draw_me) {
+                continue;
+            }
             glActiveTexture(GL_TEXTURE0);
             GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY], "diffuse_map");
             glUniform1i(diffuse_loc, 0);
@@ -863,9 +872,9 @@ void Renderer::init_ssao()
     /* Random rotations of the kernel */
     for (GLuint i = 0; i < 25; i++) {
         vec3 noise(
-            randomFloats(generator) * 2.0 - 1.0,
-            randomFloats(generator) * 2.0 - 1.0,
-            0.0f);
+                randomFloats(generator) * 2.0 - 1.0,
+                randomFloats(generator) * 2.0 - 1.0,
+                0.0f);
         ssao_noise.push_back(noise);
     }
 
@@ -892,7 +901,7 @@ void Renderer::init_ssao()
     glGenTextures(1, &ssao_tex);
     glBindTexture(GL_TEXTURE_2D, ssao_tex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH / _SSAO_SCALE_,
-                 SCREEN_HEIGHT / _SSAO_SCALE_, 0, GL_RGB, GL_FLOAT, NULL);
+            SCREEN_HEIGHT / _SSAO_SCALE_, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Use hardware linear interpolation.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -919,13 +928,13 @@ void Renderer::init_ping_pong_fbos()
     glGenTextures(1, &ping_pong_tex_red);
     glBindTexture(GL_TEXTURE_2D, ping_pong_tex_red);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCREEN_WIDTH / _SSAO_SCALE_,
-                 SCREEN_HEIGHT / _SSAO_SCALE_, 0, GL_RGB, GL_FLOAT, NULL);
+            SCREEN_HEIGHT / _SSAO_SCALE_, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                           GL_TEXTURE_2D, ping_pong_tex_red, 0);
+            GL_TEXTURE_2D, ping_pong_tex_red, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "Ping pong red framebuffer not complete!" << std::endl;
 
@@ -937,13 +946,13 @@ void Renderer::init_ping_pong_fbos()
     glGenTextures(1, &ping_pong_tex_rgb);
     glBindTexture(GL_TEXTURE_2D, ping_pong_tex_rgb);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT,
-                 0, GL_RGB, GL_FLOAT, NULL);
+            0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                           ping_pong_tex_rgb, 0);
+            ping_pong_tex_rgb, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "Ping pong rgb framebuffer not complete!" << std::endl;
 
@@ -971,7 +980,7 @@ void Renderer::init_quad()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat),
-                          (GLvoid*)(3 * sizeof(GLfloat)));
+            (GLvoid*)(3 * sizeof(GLfloat)));
 }
 
 // --------------------------
@@ -994,38 +1003,38 @@ void Renderer::init_g_buffer()
     glGenTextures(1, &g_position);
     glBindTexture(GL_TEXTURE_2D, g_position);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT,
-                 0, GL_RGB, GL_FLOAT, NULL);
+            0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                           g_position, 0);
+            g_position, 0);
 
     /* Normal buffer */
     glGenTextures(1, &g_normal_shininess);
     glBindTexture(GL_TEXTURE_2D, g_normal_shininess);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT,
-                 0, GL_RGBA, GL_FLOAT, NULL);
+            0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
-                           g_normal_shininess, 0);
+            g_normal_shininess, 0);
 
     /* Albedo and Specular buffer*/
     glGenTextures(1, &g_albedo_specular);
     glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT,
-                 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+            0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D,
-                           g_albedo_specular, 0);
+            g_albedo_specular, 0);
 
     /* Specify color attachments of the buffer */
     GLuint attachments[3] = {GL_COLOR_ATTACHMENT0,
-                             GL_COLOR_ATTACHMENT1,
-                             GL_COLOR_ATTACHMENT2};
+        GL_COLOR_ATTACHMENT1,
+        GL_COLOR_ATTACHMENT2};
     glDrawBuffers(3, attachments);
 
     /* Attach a depth buffer */
@@ -1033,9 +1042,9 @@ void Renderer::init_g_buffer()
     glGenRenderbuffers(1, &depth_buffer);
     glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32,
-                          SCREEN_WIDTH, SCREEN_HEIGHT);
+            SCREEN_WIDTH, SCREEN_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                              GL_RENDERBUFFER, depth_buffer);
+            GL_RENDERBUFFER, depth_buffer);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::ostringstream error_msg;
@@ -1058,26 +1067,26 @@ void Renderer::init_hdr_fbo()
     glGenTextures(1, &color_tex);
     glBindTexture(GL_TEXTURE_2D, color_tex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT,
-                 0, GL_RGB, GL_FLOAT, NULL);
+            0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                           GL_TEXTURE_2D, color_tex, 0);
+            GL_TEXTURE_2D, color_tex, 0);
 
 
     /* Bloom buffer */
     glGenTextures(1, &bright_tex);
     glBindTexture(GL_TEXTURE_2D, bright_tex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT,
-                 0, GL_RGB, GL_FLOAT, NULL);
+            0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
-                           GL_TEXTURE_2D, bright_tex, 0);
+            GL_TEXTURE_2D, bright_tex, 0);
 
 
     GLuint attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
@@ -1088,9 +1097,9 @@ void Renderer::init_hdr_fbo()
     glGenRenderbuffers(1, &depth_buffer);
     glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32,
-                          SCREEN_WIDTH, SCREEN_HEIGHT);
+            SCREEN_WIDTH, SCREEN_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                              GL_RENDERBUFFER, depth_buffer);
+            GL_RENDERBUFFER, depth_buffer);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::ostringstream error_msg;
@@ -1113,13 +1122,13 @@ void Renderer::init_post_proc_fbo()
     glGenTextures(1, &post_proc_tex);
     glBindTexture(GL_TEXTURE_2D, post_proc_tex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH,SCREEN_HEIGHT,
-                 0, GL_RGB, GL_FLOAT, NULL);
+            0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                           GL_TEXTURE_2D, post_proc_tex, 0);
+            GL_TEXTURE_2D, post_proc_tex, 0);
 
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
@@ -1207,46 +1216,46 @@ void Renderer::init_tweak_bar(Camera* camera)
     TwDefine(" emerald refresh=1 ");
 
     TwAddVarRO(tweak_bar, "FPS", TW_TYPE_DOUBLE, &fps,
-               " label='FPS' help='Frames per second' ");
+            " label='FPS' help='Frames per second' ");
     TwAddVarRW(tweak_bar, "Objects drawn", TW_TYPE_INT32,&objects_drawn,
-               " label='Objects drawn' help='Objects not removed by frustum culling.' ");
+            " label='Objects drawn' help='Objects not removed by frustum culling.' ");
     // SSAO stuff
     TwAddVarRW(tweak_bar, "SSAO ON", TW_TYPE_BOOL8, &ssao_on,
-               " label='SSAO ON' help='Status of SSAO' ");
+            " label='SSAO ON' help='Status of SSAO' ");
     TwAddVarRW(tweak_bar, "SSAO samples", TW_TYPE_INT32, &ssao_n_samples,
-               " label='SSAO samples' help='Defines the number of SSAO samples used.' ");
+            " label='SSAO samples' help='Defines the number of SSAO samples used.' ");
     TwAddVarRW(tweak_bar, "SSAO kernel radius", TW_TYPE_FLOAT, &kernel_radius,
-               " label='SSAO k-radius' help='Defines the radius of SSAO samples.' ");
+            " label='SSAO k-radius' help='Defines the radius of SSAO samples.' ");
     TwAddVarRW(tweak_bar, "SSAO smoothing", TW_TYPE_BOOL8, &smooth_ssao,
-               " label='SSAO smoothing' help='Blur filter for SSAO' ");
+            " label='SSAO smoothing' help='Blur filter for SSAO' ");
 
     // Camera position
     TwAddVarRW(tweak_bar, "cam-pos-x", TW_TYPE_FLOAT, &this->cam_pos.x,
-               "label=cam-pos-x help=current-camera-x-coord");
+            "label=cam-pos-x help=current-camera-x-coord");
     TwAddVarRW(tweak_bar, "cam-pos-y", TW_TYPE_FLOAT, &this->cam_pos.y,
-               "label=cam-pos-y help=current-camera-y-coord");
+            "label=cam-pos-y help=current-camera-y-coord");
     TwAddVarRW(tweak_bar, "cam-pos-z", TW_TYPE_FLOAT, &this->cam_pos.z,
-               "label=cam-pos-z help=current-camera-z-coord");
+            "label=cam-pos-z help=current-camera-z-coord");
 
     TwAddVarRW(tweak_bar, "look-spline", TW_TYPE_INT32, &this->cam_spline_look_id,
-               "label=look-spline help='cam look animation path id'");
+            "label=look-spline help='cam look animation path id'");
     TwAddVarRW(tweak_bar, "look-spline-para", TW_TYPE_FLOAT, &this->cam_spline_look_para,
-               "label=look-spline-para help='time parameter along look spline'");
+            "label=look-spline-para help='time parameter along look spline'");
     TwAddVarRW(tweak_bar, "follow-spline", TW_TYPE_INT32, &this->cam_spline_move_id ,
-               "label=folow-spline help='cam move animation path id'");
+            "label=folow-spline help='cam move animation path id'");
 
     TwAddVarRW(tweak_bar, "follow-spline-para", TW_TYPE_FLOAT, &this->cam_spline_move_para,
-               "label=follow-spline-para help='time parameter along move spline'");
+            "label=follow-spline-para help='time parameter along move spline'");
 
     this->n_lightsources = Light::get_num_lights();
     TwAddVarRW(tweak_bar, "Number of lights", TW_TYPE_INT32, &this->n_lightsources ,
-               "label='Number of lights' help='Total number of lights in scene'");
+            "label='Number of lights' help='Total number of lights in scene'");
     TwAddVarRW(tweak_bar, "Number of culled lights", TW_TYPE_INT32, &Light::culled_lights,
-               "label='Culled lights' help='Lights with bounding sphere outside frustum.'");
+            "label='Culled lights' help='Lights with bounding sphere outside frustum.'");
     TwAddVarRW(tweak_bar, "Normal vec interp", TW_TYPE_FLOAT, &this->up_interp,
-               "label='Normal vector interpolation' help='Valid range is [0,1]. 1 uses only up vector.'");
+            "label='Normal vector interpolation' help='Valid range is [0,1]. 1 uses only up vector.'");
     TwAddVarRW(tweak_bar, "Show normals", TW_TYPE_BOOL8, &show_normals,
-               "label='Show normals generated in geometry shader' help='Toggles the normal visualization pass'");
+            "label='Show normals generated in geometry shader' help='Toggles the normal visualization pass'");
 
 }
 

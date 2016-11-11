@@ -13,27 +13,44 @@ void cull_models()
 {
     Profiler::start_timer("Cull models");
     // TODO: Run in parallel
-    uint i = 0;
+    uint models_drawn = 0;
+    uint drawn_meshes = 0;
     for (auto model : Model::get_loaded_models()) {
-        bool draw_me = camera.sphere_in_frustum(model->get_center_point_world(), model->bounding_sphere_radius * model->scale);
+        bool draw_me = camera.sphere_in_frustum(model->get_center_point_world(), \
+                model->bounding_sphere_radius * model->scale);
         model->draw_me = draw_me;
-       if (draw_me)
-           i++;
+       
+       // If draw me - see if we can cull meshes
+       if (draw_me){
+           models_drawn++;
+           for (auto mesh : model->get_meshes()) {
+               bool draw_me = camera.sphere_in_frustum(mesh->get_center_point_world(model->m2w_matrix), \
+                       mesh->bounding_sphere_radius * model->scale);
+               mesh->draw_me = draw_me;
+               if (draw_me)
+                  drawn_meshes++; 
+           }
+       }
     }
+
+    // Flat models
     for (auto model : Model::get_loaded_flat_models()) {
         bool draw_me = camera.sphere_in_frustum(model->get_center_point_world(), model->bounding_sphere_radius * model->scale);
         model->draw_me = draw_me;
         if (draw_me)
-            i++;
+            models_drawn++;
     }
+
+    // Terrain
     for (auto terrain : Terrain::get_loaded_terrain()) {
         bool draw_me = camera.sphere_in_frustum(terrain->get_center_point_world(), terrain->bounding_sphere_radius);
         terrain->draw_me = draw_me;
         if (draw_me)
-            i++;
+            models_drawn++;
     }
 
-    renderer.objects_drawn = i;
+    renderer.objects_drawn = models_drawn;
+    renderer.meshes_drawn = drawn_meshes;
     Profiler::stop_timer("Cull models");
 }
 

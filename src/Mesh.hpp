@@ -53,6 +53,9 @@ public:
     std::vector<GLuint> indices;
     std::vector<GLfloat> vertices, normals, tex_coords, tangents;
     Texture *diffuse_map, *specular_map, *normal_map;
+    bool draw_me = true;
+    float bounding_sphere_radius = -1.f;
+    glm::vec3 bounding_sphere_center;
 
     Mesh() { };
     ~Mesh() { };
@@ -61,7 +64,9 @@ public:
     void upload_mesh_data();
     GLuint get_VAO();
     Texture* load_texture(const std::string filename, const std::string basepath, bool clamp);
-
+    void generate_bounding_sphere();
+    glm::vec3 get_center_point_world(glm::mat4 m2w_matrix);
+    glm::vec3 get_center_point();
 private:
     static std::vector<Texture*> loaded_textures;
     GLuint VAO, EBO;
