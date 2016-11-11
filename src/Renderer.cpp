@@ -1217,8 +1217,10 @@ void Renderer::init_tweak_bar(Camera* camera)
 
     TwAddVarRO(tweak_bar, "FPS", TW_TYPE_DOUBLE, &fps,
             " label='FPS' help='Frames per second' ");
-    TwAddVarRW(tweak_bar, "Objects drawn", TW_TYPE_INT32,&objects_drawn,
-            " label='Objects drawn' help='Objects not removed by frustum culling.' ");
+    TwAddVarRW(tweak_bar, "Models drawn", TW_TYPE_INT32,&objects_drawn,
+            " label='Models drawn' help='Objects not removed by frustum culling.' ");
+    TwAddVarRW(tweak_bar, "Meshes drawn", TW_TYPE_INT32,&meshes_drawn,
+            " label='Meshes drawn' help='Objects not removed by frustum culling.' ");
     // SSAO stuff
     TwAddVarRW(tweak_bar, "SSAO ON", TW_TYPE_BOOL8, &ssao_on,
             " label='SSAO ON' help='Status of SSAO' ");
