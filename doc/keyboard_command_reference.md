@@ -44,4 +44,6 @@
 | Decrease SSAO kernel radius | J |
 | Show bounding spheres | B |
 | Print camera position to terminal | P |
-
+| Visualize normals | V |
+| Increase normal alignment with up | I |
+| Decrease normal alignment with up | U |
