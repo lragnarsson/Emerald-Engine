@@ -31,6 +31,11 @@ vector<string> Loader::split_string(string input, char separator, char inv_char)
 
     while ((end = input.find(separator, start)) != string::npos) {
         string temp = input.substr(start, end - start);
+        for (int i = temp.size()-1; i >= 0; i--){
+            if (temp.at(i) == ' '){
+                temp.erase(temp.begin()+i);
+            }
+        }
         if (temp != "") tokens.push_back(temp);
         start = end + 1;
     }
