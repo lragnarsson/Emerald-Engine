@@ -32,12 +32,12 @@
 
 class Terrain {
 public:
-    Terrain() { };
-    Terrain(std::string heightmap_file);
-    ~Terrain() { };
+    Terrain();
+    Terrain(std::string directory, float plane_scale, float height_scale);
+    ~Terrain();
 
     const std::vector<Mesh*> get_meshes();
-    void load_heightmap(std::string heightmap_file);
+    void load_heightmap(std::string heightmap_file, float plane_scale, float height_scale);
     static const std::vector<Terrain*> get_loaded_terrain();
     glm::vec3 get_center_point_world();
     glm::vec3 get_center_point();

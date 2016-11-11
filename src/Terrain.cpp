@@ -6,22 +6,45 @@ using namespace glm;
 
 std::vector<Terrain*> Terrain::loaded_terrain;
 
+// --------------------
 
-Terrain::Terrain(std::string heightmap_file)
+Terrain::Terrain()
 {   this->rot_matrix = glm::mat4(1.f);
     this->scale = 1.f;
     this->scale_matrix = glm::mat4(1.f);
     this->world_coord = glm::vec3(0.f);
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
     this->m2w_matrix = move_matrix  * rot_matrix * scale_matrix;
-    this->clamp_textures = true;
+    this->clamp_textures = false;
     
-    load_heightmap(heightmap_file);
+    Terrain::loaded_terrain.push_back(this);
+}
+
+// --------------------
+
+Terrain::Terrain(std::string directory, float plane_scale, float height_scale)
+{   this->rot_matrix = glm::mat4(1.f);
+    this->scale = 1.f;
+    this->scale_matrix = glm::mat4(1.f);
+    this->world_coord = glm::vec3(0.f);
+    this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
+    this->m2w_matrix = move_matrix  * rot_matrix * scale_matrix;
+    this->clamp_textures = false;
+    
+    load_heightmap(directory, plane_scale, height_scale);
 
     Terrain::loaded_terrain.push_back(this);
 }
 
 // -------------------
+Terrain::~Terrain(){
+    for (auto mesh : meshes){
+        delete(mesh);
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------
+// PRIVATE FUNCTIONS
 
 int Terrain::get_pixel_index(int x, int z, SDL_Surface* image)
 {
@@ -43,16 +66,16 @@ float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
     //SDL_GetRGBA(pixel, image->format, &red, &green, &blue, &alpha);
     
     //std::cout << pixel << std::endl;
-    return pixel/5.0;
+    return pixel;
 }
 
 // -------------------
 
-void Terrain::load_heightmap(std::string heightmap_file) 
+void Terrain::load_heightmap(std::string directory, float plane_scale, float height_scale) 
 {
+    std::string heightmap_file = directory + "/heightmap.png";
     SDL_Surface* heightmap = IMG_Load(heightmap_file.c_str());
     Mesh* m = new Mesh();
-    std::string directory = heightmap_file.substr(0, heightmap_file.find_last_of('/'));
 
     if (heightmap == NULL){
         Error::throw_error(Error::cant_load_image, heightmap_file);
@@ -71,9 +94,9 @@ void Terrain::load_heightmap(std::string heightmap_file)
             float height = get_pixel_height(x, z, heightmap);
             
             // Create vertices (points in 3D space)
-            m->vertices.push_back(x);
-            m->vertices.push_back(height);
-            m->vertices.push_back(z);
+            m->vertices.push_back(x*plane_scale);
+            m->vertices.push_back(height*height_scale);
+            m->vertices.push_back(z*plane_scale);
 
             // Create a normal for each vertice
             vec3 normal = get_normal(x, z, heightmap);
@@ -109,25 +132,34 @@ void Terrain::load_heightmap(std::string heightmap_file)
     }
     // Same default shininess as in Model
     GLfloat shininess;
-    m->shininess = 86.f / 3.f; // Assimp multiplies shininess by 4 because reasons
+    m->shininess = 4.f; // Assimp multiplies shininess by 4 because reasons
 
     // Use default diffuse and specular maps
     Texture* diffuse_map;
-    diffuse_map = m->load_texture(DEFAULT_DIFFUSE, DEFAULT_PATH, clamp_textures);
+    diffuse_map = m->load_texture("albedo.jpg", directory, clamp_textures);
     diffuse_map->type = DIFFUSE;
-    diffuse_map->path = DEFAULT_PATH;
+    diffuse_map->path = directory;
     m->diffuse_map = diffuse_map;
-    m->specular_map = m->diffuse_map;
+    
+    
+    Texture* specular_map;
+    specular_map = m->load_texture("specular.jpg", directory, clamp_textures);
+    specular_map->type = SPECULAR;
+    specular_map->path = directory;
+    m->specular_map = specular_map;
     
     // Keep normals as normal map
     Texture* normal_map;
-    normal_map = m->load_texture(DEFAULT_NORMAL, DEFAULT_PATH, clamp_textures);
+    normal_map = m->load_texture("normal.jpg", directory, clamp_textures);
     normal_map->type = NORMAL;
-    normal_map->path = DEFAULT_PATH;
+    normal_map->path = directory;
     m->normal_map = normal_map;
     
-    // Load texture
-    //m->load_texture("texture.jpg", directory, clamp_textures);
+    // Translate terrain to the middle
+    this->world_coord = glm::vec3(-heightmap->w*2.f, 0, -heightmap->h*2.f);
+    this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
+    this->m2w_matrix = move_matrix  * rot_matrix * scale_matrix;
+    
 
     meshes.push_back(m);
     m->upload_mesh_data();
