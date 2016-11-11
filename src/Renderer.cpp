@@ -169,6 +169,22 @@ void Renderer::propagate_time(bool forward)
 }
 
 
+void Renderer::increaseUpInterp()
+{
+    if (this->upInterp >= 0.9f)
+        this->upInterp = 1.0f;
+    else
+        this->upInterp += 0.1f;
+}
+
+void Renderer::decreaseUpInterp()
+{
+    if (this->upInterp <= 0.1f)
+        this->upInterp = 0.0f;
+    else
+        this->upInterp -= 0.1f;
+}
+
 /* Private Renderer functions */
 
 // --------------------------
@@ -640,17 +656,18 @@ void Renderer::normal_visualization_pass()
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
     
     glUseProgram(shaders[GEOMETRY_NORMALS]);
+    glUniform1f(glGetUniformLocation(shaders[GEOMETRY_NORMALS], "upInterp"), this->upInterp);
 
     for (auto model : Model::get_loaded_models()) {
         if (!model->draw_me) {
             continue;
         }
-        GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY], "model");
+        GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY_NORMALS], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
 
         for (auto mesh : model->get_meshes()) {
             glActiveTexture(GL_TEXTURE0);
-            GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY], "diffuse_map");
+            GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY_NORMALS], "diffuse_map");
             glUniform1i(diffuse_loc, 0);
             glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
 
@@ -662,10 +679,10 @@ void Renderer::normal_visualization_pass()
     }
 
     glBindVertexArray(0);
-    
+
     glActiveTexture(GL_TEXTURE0 );
     glBindTexture(GL_TEXTURE_2D, 0);
-    
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(0);
 
@@ -1176,6 +1193,9 @@ void Renderer::init_tweak_bar(Camera* camera)
                "label='Number of lights' help='Total number of lights in scene'");
     TwAddVarRW(tweak_bar, "Number of culled lights", TW_TYPE_INT32, &Light::culled_lights,
                "label='Culled lights' help='Lights with bounding sphere outside frustum.'");
+    TwAddVarRW(tweak_bar, "Normal vec interp", TW_TYPE_FLOAT, &this->upInterp,
+               "label='Normal vector interpolation' help='Valid range is [0,1]. 1 uses only up vector.'");
+    
 }
 
 // ---------------

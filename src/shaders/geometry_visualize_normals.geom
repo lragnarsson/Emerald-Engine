@@ -16,8 +16,9 @@ out vec3 Normal;   // view space normal
 
 // for converting normals to clip space
 uniform mat4 projection;
+uniform float upInterp; // Interpolation between up-vector and vertex own normal vector
 
-const float MAGNITUDE = 0.4f;
+const float MAGNITUDE = 0.4f; // Length of generated lines
 
 void GenerateLine(int index)
 {
@@ -27,7 +28,10 @@ void GenerateLine(int index)
     Normal = gs_in[index].Normal;
     EmitVertex();
     vec4 clip_space_normal = projection * vec4(gs_in[index].Normal * MAGNITUDE, 0.0);
-    gl_Position = gl_in[index].gl_Position +  clip_space_normal;
+    vec4 clip_space_up = projection * vec4(0.0, MAGNITUDE, 0.0, 0.0);
+
+    vec4 outNormal = (1 - upInterp) * clip_space_normal + upInterp * clip_space_up;
+    gl_Position = gl_in[index].gl_Position + outNormal;
     TexCoord = gs_in[index].TexCoord; // should make the line have the color of the originating vertex
     FragPos = gs_in[index].FragPos + gs_in[index].Normal * MAGNITUDE;
     Normal = gs_in[index].Normal;

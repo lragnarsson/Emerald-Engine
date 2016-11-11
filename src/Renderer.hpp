@@ -70,7 +70,9 @@ public:
     void copy_tweak_bar_cam_values(const Camera& camera);
     float get_time_diff();
     void propagate_time(bool forward);
-
+    void increaseUpInterp();
+    void decreaseUpInterp();
+    
 private:
     enum shader {
       FORWARD,
@@ -125,6 +127,9 @@ private:
     float cam_spline_move_para, cam_spline_look_para;
     int cam_spline_move_id, cam_spline_look_id, n_lightsources;
     vec3 cam_pos;
+
+    // Interpolation between upvector and normal vector for normal visualization shader
+    float upInterp = 0.0; // between [0,1]
 
     void init_g_buffer();
     void init_hdr_fbo();
