@@ -43,6 +43,7 @@ float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
     //SDL_GetRGBA(pixel, image->format, &red, &green, &blue, &alpha);
     
     std::cout << pixel << std::endl;
+    return pixel;
 }
 
 // -------------------
