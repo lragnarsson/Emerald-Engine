@@ -25,7 +25,7 @@ Terrain::Terrain(std::string heightmap_file)
 
 int Terrain::get_pixel_index(int x, int z, SDL_Surface* image)
 {
-    return (image->w * z + x)*3; // 8*3=24-bit
+    return (image->w * z + x);
 }
 
 
@@ -34,21 +34,15 @@ int Terrain::get_pixel_index(int x, int z, SDL_Surface* image)
 
 float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
 {
-    Uint8 red,green,blue;
+    //Uint8 black;
     int index = get_pixel_index(x, z, image);
 
     Uint8 *all_pixels = (Uint8*) image->pixels; 
-    red = all_pixels[index]; 
-    green = all_pixels[index+1]; 
-    blue = all_pixels[index+2]; 
+    Uint8 pixel = all_pixels[index]; 
 
-    //SDL_GetRGB(pixel, image->format, &red, &green, &blue);
+    //SDL_GetRGBA(pixel, image->format, &red, &green, &blue, &alpha);
     
-    //if ( red != 0 or blue != 0 or green != 0){
-    //    std::cout << red << " " << green << " " << blue << std::endl;
-    //}
-
-    return (red+green+blue)/(3.f*20.f);
+    std::cout << pixel << std::endl;
 }
 
 // -------------------
@@ -63,8 +57,8 @@ void Terrain::load_heightmap(std::string heightmap_file)
         Error::throw_error(Error::cant_load_image, heightmap_file);
     }
 
-    if (heightmap->format->BitsPerPixel != 24){
-        Error::throw_error(Error::cant_load_image, "Need 24-bit per pixel images for heightmap, this image is " + std::to_string(heightmap->format->BitsPerPixel) + "-bit!");
+    if (heightmap->format->BitsPerPixel != 8){
+        Error::throw_error(Error::cant_load_image, "Need 8-bit per pixel images for heightmap, this image is " + std::to_string(heightmap->format->BitsPerPixel) + "-bit!");
     }
 
     m->index_count = 3*(heightmap->w * heightmap->h);
@@ -145,17 +139,17 @@ vec3 Terrain::get_normal(int x, int z, SDL_Surface* image){
     if ( x < image->w-1 and x > 0 and z < image->h-1 and z > 0){
         vec3 base1 = vec3(x, get_pixel_height(x, z, image), z) - vec3(x-1, get_pixel_height(x-1, z, image), z);
         vec3 base2 = vec3(x, get_pixel_height(x, z+1, image), z+1) - vec3(x-1, get_pixel_height(x-1, z, image), z);
-        vec3 normal1 = cross(base1, base2);
+        vec3 normal1 = normalize(cross(base1, base2));
         normal1.y = (normal1.y > 0) ? normal1.y : -normal1.y;
 
         base1 = vec3(x+1, get_pixel_height(x+1, z, image), z) - vec3(x, get_pixel_height(x, z, image), z);
         base2 = vec3(x+1, get_pixel_height(x+1, z+1, image), z+1) - vec3(x, get_pixel_height(x, z, image), z);
-        vec3 normal2 = cross(base1, base2);
+        vec3 normal2 = normalize(cross(base1, base2));
         normal2.y = (normal2.y > 0) ? normal2.y : -normal2.y;
 
         base1 = vec3(x, get_pixel_height(x, z-1, image), z-1) - vec3(x-1, get_pixel_height(x-1, z-1, image), z-1);
         base2 = vec3(x, get_pixel_height(x, z, image), z) - vec3(x-1, get_pixel_height(x-1, z-1, image), z-1);
-        vec3 normal3 = cross(base1, base2);
+        vec3 normal3 = normalize(cross(base1, base2));
         normal3.y = (normal3.y > 0) ? normal3.y : -normal3.y;
 
         return normalize(normal1 + normal2 + normal3);
