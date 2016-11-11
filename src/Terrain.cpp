@@ -10,11 +10,9 @@ std::vector<Terrain*> Terrain::loaded_terrain;
 
 Terrain::Terrain()
 {   this->rot_matrix = glm::mat4(1.f);
-    this->scale = 1.f;
-    this->scale_matrix = glm::mat4(1.f);
     this->world_coord = glm::vec3(0.f);
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
-    this->m2w_matrix = move_matrix  * rot_matrix * scale_matrix;
+    this->m2w_matrix = move_matrix  * rot_matrix;
     this->clamp_textures = false;
     
     Terrain::loaded_terrain.push_back(this);
@@ -24,11 +22,9 @@ Terrain::Terrain()
 
 Terrain::Terrain(std::string directory, float plane_scale, float height_scale)
 {   this->rot_matrix = glm::mat4(1.f);
-    this->scale = 1.f;
-    this->scale_matrix = glm::mat4(1.f);
     this->world_coord = glm::vec3(0.f);
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
-    this->m2w_matrix = move_matrix  * rot_matrix * scale_matrix;
+    this->m2w_matrix = move_matrix  * rot_matrix;
     this->clamp_textures = false;
     
     load_heightmap(directory, plane_scale, height_scale);
@@ -156,12 +152,16 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
     m->normal_map = normal_map;
     
     // Translate terrain to the middle
+    this->scale = plane_scale;
     this->world_coord = glm::vec3(-heightmap->w*plane_scale/2.f, 0, -heightmap->h*plane_scale/2.f);
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
-    this->m2w_matrix = move_matrix  * rot_matrix * scale_matrix;
+    this->m2w_matrix = move_matrix  * rot_matrix;
     
-
+    // Save mesh
     meshes.push_back(m);
+    // Generate bounding sphere
+    this->generate_bounding_sphere();
+    
     m->upload_mesh_data();
 }
 
@@ -230,4 +230,58 @@ vec3 Terrain::get_tangent(int x, int z, SDL_Surface* image){
     }
 }
 
+// -----------------
+// Culling
+
+void Terrain::generate_bounding_sphere()
+{
+    GLfloat v = this->meshes[0]->vertices[0];
+    GLfloat x_max = v, y_max = v, z_max = v, x_min = v, y_min = v, z_min = v;
+
+    for (auto mesh : this->meshes) {
+        for (int i=0; i < mesh->vertices.size() - 2; i+=3) {
+            if (mesh->vertices[i] > x_max){
+                x_max = mesh->vertices[i];
+            }
+
+            if (mesh->vertices[i + 1] > y_max){
+                y_max = mesh->vertices[i + 1];
+            }
+
+            if (mesh->vertices[i + 2] > z_max){
+                z_max = mesh->vertices[i + 2];
+            }
+
+            if (mesh->vertices[i] < x_min){
+                x_min = mesh->vertices[i];
+            }
+
+            if (mesh->vertices[i + 1] < y_min){
+                y_min = mesh->vertices[i + 1];
+            }
+
+            if (mesh->vertices[i + 2] < z_min){
+                z_min = mesh->vertices[i + 2];
+            }
+        }
+    }
+    glm::vec3 max_corner = glm::vec3(x_max, y_max, z_max);
+    glm::vec3 min_corner = glm::vec3(x_min, y_min, z_min);
+
+    glm::vec3 r_vector = 0.5f * (max_corner - min_corner);
+    this->bounding_sphere_radius = glm::length(r_vector);
+    this->bounding_sphere_center = min_corner + r_vector;
+}
+
+// -----------
+
+glm::vec3 Terrain::get_center_point_world()
+{
+    return glm::vec3(this->m2w_matrix * glm::vec4(this->bounding_sphere_center, 1.f));
+}
+
+glm::vec3 Terrain::get_center_point()
+{
+    return this->bounding_sphere_center;
+}
 

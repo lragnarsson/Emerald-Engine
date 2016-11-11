@@ -26,6 +26,13 @@ void cull_models()
         if (draw_me)
             i++;
     }
+    for (auto terrain : Terrain::get_loaded_terrain()) {
+        bool draw_me = camera.sphere_in_frustum(terrain->get_center_point_world(), terrain->bounding_sphere_radius);
+        terrain->draw_me = draw_me;
+        if (draw_me)
+            i++;
+    }
+
     renderer.objects_drawn = i;
     Profiler::stop_timer("Cull models");
 }
