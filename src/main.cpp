@@ -157,7 +157,6 @@ void init(int argc, char *argv[])
 
     Loader::load_scene(Parser::get_scene_file_from_command_line(argc, argv), &camera);
     renderer.init_tweak_bar(&camera);
-    Terrain* test_terrain = new Terrain("res/models/terrain", 4, 0.2f);
 
     Light::init();
 }

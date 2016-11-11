@@ -10,6 +10,7 @@ const char _SEPARATOR_ = ' ';
 const char _INVISIBLE_CHAR_ = '|';
 const unsigned int _MINIMUM_ALLOWED_LINE_LENGTH_ = 6;
 
+const string _TERRAIN_ = "[terrain]";
 const string _MODELS_ = "[models]";
 const string _LIGHTS_ = "[lights]";
 const string _FLAT_ = "[flat]";
@@ -18,13 +19,13 @@ const string _CAMERA_ANIMATION_ = "[camera_animation]";
 
 // ------------------
 
-vector<string> Loader::split_string(string input, char separator)
+vector<string> Loader::split_string(string input, char separator, char inv_char)
 {
     vector<string> tokens;
     size_t start = 0, end = 0;
 
     // Remove all occurences of the "invisible char"
-    input.erase(remove(input.begin(), input.end(), _INVISIBLE_CHAR_), input.end());
+    input.erase(remove(input.begin(), input.end(), inv_char), input.end());
     // If double spaces, make them into one
     input = regex_replace(input, regex("  "), " ");
 
@@ -99,6 +100,21 @@ void Loader::load_animation(vector<string> animation_line){
     }
 }
 
+// -----------------
+
+void Loader::load_terrain(vector<string> terrain_line){
+#ifdef _DEBUG_LOADER_
+    for (int i = 0; i < terrain_line.size(); i++){
+        cout << terrain_line.at(i) << " ";
+    }
+    cout << endl;
+#endif
+    string directory = terrain_line.at(0);
+    float planar_scale = stof(terrain_line.at(1));
+    float height_scale = stof(terrain_line.at(2));
+    new Terrain(directory, planar_scale, height_scale);
+}
+
 // ------------------
 
 Light *Loader::load_light(vector<string> light_line)
@@ -163,7 +179,7 @@ void Loader::load_model(ifstream* read_file, int* current_line, vector<string>& 
             cout << "Light source attached to model: " << light_line << endl;
             #endif
 
-            attach_light = load_light(split_string(light_line, _SEPARATOR_) );
+            attach_light = load_light(split_string(light_line, _SEPARATOR_, _INVISIBLE_CHAR_) );
             this_model->attach_light(attach_light,
                                      attach_light->position);
         }
@@ -205,7 +221,7 @@ void Loader::load_scene(string filepath, Camera* camera)
         }
 
         // Split string on single space
-        split_line = split_string(line, _SEPARATOR_);
+        split_line = split_string(line, _SEPARATOR_, _INVISIBLE_CHAR_);
         first_char = split_line.at(0).at(0);
 
         // Check for comment
@@ -221,7 +237,13 @@ void Loader::load_scene(string filepath, Camera* camera)
             #ifdef _DEBUG_LOADER_
             cout << "Line " << current_line << " starts with [" << endl;
             #endif
-            if (split_line.at(0) == _MODELS_){
+            if (split_line.at(0) == _TERRAIN_){
+                #ifdef _DEBUG_LOADER_
+                cout << "Line " << current_line << " starts a terrain section " << endl;
+                #endif
+                current_section = _TERRAIN_;
+            }
+            else if (split_line.at(0) == _MODELS_){
                 #ifdef _DEBUG_LOADER_
                 cout << "Line " << current_line << " starts a model section " << endl;
                 #endif
@@ -258,7 +280,15 @@ void Loader::load_scene(string filepath, Camera* camera)
         }
 
         // Load the type that is needed
-        if (current_section == _MODELS_) {
+        if (current_section == _TERRAIN_){
+            #ifdef _DEBUG_LOADER_
+            cout << "Loading terrain!" << endl;
+            cout << line << endl;
+            #endif
+            load_terrain(split_line);
+            continue;
+        }
+        else if (current_section == _MODELS_) {
             #ifdef _DEBUG_LOADER_
             cout << "Loading model!" << endl;
             cout << line << endl;
