@@ -20,6 +20,7 @@ CCFLAGS = -std=c++11 -DGL_GLEXT_PROTOTYPES -DGLEW_STATIC -DGLM_FORCE_RADIANS -D_
 INC =
 LDFLAGS = -lSDL2 -lSDL2_image -lassimp
 FRAGMENT_SHADER_PRECOMPILE= $(MAX_LIGHTS) $(FRUSTUM_NEAR) $(FRUSTUM_FAR) $(SCREEN_WIDTH) $(SCREEN_HEIGHT) $(SSAO_N_SAMPLES) $(ATT_QUAD) $(ATT_LIN) $(ATT_CON)
+GEOMETRY_SHADER_PRECOMPILE=	# Empty right now
 VERTEX_SHADER_PRECOMPILE= $(MAX_LIGHTS)
 
 ifeq ($(UNAME_S),Linux)
@@ -42,8 +43,9 @@ H_FILES = $(wildcard src/*.hpp)
 OBJS_TMP = $(notdir $(SRC_FILES:.cpp=.o))
 OBJS = $(addprefix $(OBJS_DIR),$(OBJS_TMP))
 
-SHADER_FILES=$(wildcard src/shaders/*.vert) $(wildcard src/shaders/*.frag)
+SHADER_FILES=$(wildcard src/shaders/*.vert) $(wildcard src/shaders/*.geom) $(wildcard src/shaders/*.frag)
 FRAG_SETUP_SCRIPT="$(shell pwd)/src/setup_fragment_shader.bash"
+GEOM_SETUP_SCRIPT="$(shell pwd)/src/setup_geometry_shader.bash"
 VERT_SETUP_SCRIPT="$(shell pwd)/src/setup_vertex_shader.bash"
 
 # ------------------------
@@ -55,6 +57,7 @@ $(EXEC): $(OBJS)
 
 shaders: $(SHADER_FILES)
 	$(FRAG_SETUP_SCRIPT) "$(FRAGMENT_SHADER_PRECOMPILE)"
+	$(GEOM_SETUP_SCRIPT) "$(GEOMETRY_SHADER_PRECOMPILE)"
 	$(VERT_SETUP_SCRIPT) "$(VERTEX_SHADER_PRECOMPILE)"
 
 $(OBJS_DIR):

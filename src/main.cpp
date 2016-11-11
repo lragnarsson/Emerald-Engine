@@ -4,6 +4,7 @@
 void free_resources()
 {
     sdl_quit(main_window, main_context);
+
 }
 
 // --------------------------
@@ -89,10 +90,10 @@ void update_camera()
     if (!camera.can_look_free()) {
         camera.move_look_point_along_path(0.1f);
     }
-    
+
     camera.update_culling_frustum();
     camera.update_view_matrix();
-    
+
     renderer.copy_tweak_bar_cam_values(camera);
     Profiler::stop_timer("Camera");
 }

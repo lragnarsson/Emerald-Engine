@@ -5,6 +5,9 @@ void Renderer::init()
 {
     shaders[FORWARD] = load_shaders("build/shaders/forward.vert", "build/shaders/forward.frag");
     shaders[GEOMETRY] = load_shaders("build/shaders/geometry.vert", "build/shaders/geometry.frag");
+    shaders[GEOMETRY_NORMALS] = load_shaders("build/shaders/geometry_visualize_normals.vert",
+                                             "build/shaders/geometry_visualize_normals.geom",
+                                             "build/shaders/geometry_visualize_normals.frag");
     shaders[DEFERRED] = load_shaders("build/shaders/deferred.vert", "build/shaders/deferred.frag");
     shaders[FLAT] = load_shaders("build/shaders/flat.vert", "build/shaders/flat.frag");
     shaders[FLAT_TEXTURE] = load_shaders("build/shaders/flat_texture.vert", "build/shaders/flat_texture.frag");
@@ -166,6 +169,27 @@ void Renderer::propagate_time(bool forward)
 }
 
 
+void Renderer::increase_up_interp()
+{
+    if (this->up_interp >= 0.9f)
+        this->up_interp = 1.0f;
+    else
+        this->up_interp += 0.1f;
+}
+
+void Renderer::decrease_up_interp()
+{
+    if (this->up_interp <= 0.1f)
+        this->up_interp = 0.0f;
+    else
+        this->up_interp -= 0.1f;
+}
+
+void Renderer::toggle_show_normals()
+{
+    this->show_normals = !this->show_normals;
+}
+
 /* Private Renderer functions */
 
 // --------------------------
@@ -174,6 +198,11 @@ void Renderer::render_deferred(const Camera &camera)
 {
     /* GEOMETRY PASS */
     geometry_pass();
+
+    /* VISUALIZE NORMALS: EXPERIMENTAL STUFF */
+    if (this->show_normals) {
+        normal_visualization_pass();
+    }
 
     // SSAO PASS
     if (this->ssao_on) {
@@ -326,7 +355,7 @@ void Renderer::post_processing()
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, post_proc_tex);
 
-    glUniform1f(glGetUniformLocation(shaders[HDR_BLOOM], "exposure"), 0.5f);
+    glUniform1f(glGetUniformLocation(shaders[HDR_BLOOM], "exposure"), 0.7f);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -626,11 +655,55 @@ void Renderer::geometry_pass()
     Profiler::stop_timer("Geometry pass");
 }
 
+
+// --------------------------
+void Renderer::normal_visualization_pass()
+{
+    Profiler::start_timer("Normal visualization pass");
+    glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
+
+    glUseProgram(shaders[GEOMETRY_NORMALS]);
+    glUniform1f(glGetUniformLocation(shaders[GEOMETRY_NORMALS], "upInterp"), this->up_interp);
+
+    for (auto model : Model::get_loaded_models()) {
+        if (!model->draw_me) {
+            continue;
+        }
+        GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY_NORMALS], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
+
+        for (auto mesh : model->get_meshes()) {
+            glActiveTexture(GL_TEXTURE0);
+            GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY_NORMALS], "diffuse_map");
+            glUniform1i(diffuse_loc, 0);
+            glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
+
+            glBindVertexArray(mesh->get_VAO());
+
+            /* DRAW GEOMETRY */
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        }
+    }
+
+    glBindVertexArray(0);
+
+    glActiveTexture(GL_TEXTURE0 );
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glUseProgram(0);
+
+    Profiler::stop_timer("Normal visualization pass");
+}
 // --------------------------
 
 void Renderer::render_g_position()
 {
     geometry_pass();
+
+    if (this->show_normals) {
+        normal_visualization_pass();
+    }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
@@ -651,6 +724,10 @@ void Renderer::render_g_normal()
 {
     geometry_pass();
 
+    if (this->show_normals) {
+        normal_visualization_pass();
+    }
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
     glActiveTexture(GL_TEXTURE0);
@@ -669,6 +746,10 @@ void Renderer::render_g_normal()
 void Renderer::render_g_albedo()
 {
     geometry_pass();
+
+    if (this->show_normals) {
+        normal_visualization_pass();
+    }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
@@ -689,6 +770,10 @@ void Renderer::render_g_specular()
 {
     geometry_pass();
 
+    if (this->show_normals) {
+        normal_visualization_pass();
+    }
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_ALPHA_COMPONENT]);
     glActiveTexture(GL_TEXTURE0);
@@ -707,6 +792,10 @@ void Renderer::render_g_specular()
 void Renderer::render_ssao()
 {
     geometry_pass();
+
+    if (this->show_normals) {
+        normal_visualization_pass();
+    }
 
     ssao_pass();
 
@@ -1121,6 +1210,11 @@ void Renderer::init_tweak_bar(Camera* camera)
                "label='Number of lights' help='Total number of lights in scene'");
     TwAddVarRW(tweak_bar, "Number of culled lights", TW_TYPE_INT32, &Light::culled_lights,
                "label='Culled lights' help='Lights with bounding sphere outside frustum.'");
+    TwAddVarRW(tweak_bar, "Normal vec interp", TW_TYPE_FLOAT, &this->up_interp,
+               "label='Normal vector interpolation' help='Valid range is [0,1]. 1 uses only up vector.'");
+    TwAddVarRW(tweak_bar, "Show normals", TW_TYPE_BOOL8, &show_normals,
+               "label='Show normals generated in geometry shader' help='Toggles the normal visualization pass'");
+
 }
 
 // ---------------

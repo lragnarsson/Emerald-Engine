@@ -70,11 +70,15 @@ public:
     void copy_tweak_bar_cam_values(const Camera& camera);
     float get_time_diff();
     void propagate_time(bool forward);
-
+    void increase_up_interp();
+    void decrease_up_interp();
+    void toggle_show_normals();
+    
 private:
     enum shader {
       FORWARD,
       GEOMETRY,
+      GEOMETRY_NORMALS,
       DEFERRED,
       FLAT,
       FLAT_TEXTURE,
@@ -90,7 +94,7 @@ private:
     };
 
     render_mode mode;
-    GLuint shaders[14];
+    GLuint shaders[15];
     // Frame buffers
     GLuint g_buffer, ssao_fbo, hdr_fbo, post_proc_fbo, ping_pong_fbo_red, ping_pong_fbo_rgb;
     // Textures
@@ -125,6 +129,10 @@ private:
     int cam_spline_move_id, cam_spline_look_id, n_lightsources;
     vec3 cam_pos;
 
+    // Normal visualization settings
+    bool show_normals = false;
+    float up_interp = 0.0; // between [0,1]
+
     void init_g_buffer();
     void init_hdr_fbo();
     void init_post_proc_fbo();
@@ -157,6 +165,7 @@ private:
     void blur_rgb_texture(GLuint source_tex, GLuint fbo_tex, GLuint target_fbo, filter_type ft, int iterations);
 
     void geometry_pass();
+    void normal_visualization_pass();
     void render_g_position();
     void render_g_normal();
     void render_g_albedo();

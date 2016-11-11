@@ -32,7 +32,14 @@ void sdl_check_error(const int line);
 /* Print OpenGL major and minor versions */
 void sdl_print_attributes();
 
-/* Loads, compiles and activates vertex and fragment shaders */
+/* Loads, compiles and activates vertex, geometry and fragment shaders */
 GLuint load_shaders(const GLchar* vertex_file_path, const GLchar* fragment_file_path);
+
+GLuint load_shaders(const GLchar* vertex_file_path, const GLchar* geometry_file_path,
+                    const GLchar* fragment_file_path);
+
+std::string read_shader_file(const char *file_path);
+
+GLuint compile_shader(const GLchar *shader_source, GLenum shader_type, const char *file_path);
 
 #endif // UTILS_H
