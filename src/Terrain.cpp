@@ -42,8 +42,8 @@ float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
 
     //SDL_GetRGBA(pixel, image->format, &red, &green, &blue, &alpha);
     
-    std::cout << pixel << std::endl;
-    return pixel;
+    //std::cout << pixel << std::endl;
+    return pixel/5.0;
 }
 
 // -------------------
@@ -61,8 +61,9 @@ void Terrain::load_heightmap(std::string heightmap_file)
     if (heightmap->format->BitsPerPixel != 8){
         Error::throw_error(Error::cant_load_image, "Need 8-bit per pixel images for heightmap, this image is " + std::to_string(heightmap->format->BitsPerPixel) + "-bit!");
     }
-
-    m->index_count = 3*(heightmap->w * heightmap->h);
+    
+    // Specify triangle to vertice numbers
+    m->index_count = 3*2*((heightmap->w-1) * (heightmap->h-1));
     m->vertex_count = heightmap->w * heightmap->h;
     
     for (int z = 0; z < heightmap->h; z++){
@@ -84,13 +85,28 @@ void Terrain::load_heightmap(std::string heightmap_file)
             m->tex_coords.push_back(x);
             m->tex_coords.push_back(z);
 
-            // No bitangents
-            m->tangents.push_back(0.f);
-            m->tangents.push_back(0.f);
-            m->tangents.push_back(0.f);
+            // Need tangents beacause of transform in geometry.vert
+            vec3 tangent = get_tangent(x, z, heightmap);
+            m->tangents.push_back(tangent.x);
+            m->tangents.push_back(tangent.y);
+            m->tangents.push_back(tangent.z);
+            
         }
     }
-
+    
+    // Generate vertice to triangle mapping
+    for(int z = 0; z < heightmap->h-1; z++){
+        for (int x = 0; x < heightmap->w-1; x++){
+            // Down right of quad
+            m->indices.push_back(x + z*heightmap->w);
+            m->indices.push_back((x+1) + z*heightmap->w);
+            m->indices.push_back((x+1) + (z+1)*heightmap->w);
+            // Upper left of quad
+            m->indices.push_back(x + z*heightmap->w);
+            m->indices.push_back((x+1) + (z+1)*heightmap->w);
+            m->indices.push_back(x + (z+1)*heightmap->w);
+        }
+    }
     // Same default shininess as in Model
     GLfloat shininess;
     m->shininess = 86.f / 3.f; // Assimp multiplies shininess by 4 because reasons
@@ -161,5 +177,19 @@ vec3 Terrain::get_normal(int x, int z, SDL_Surface* image){
     }
 }
 
+// ----------------------
+
+vec3 Terrain::get_tangent(int x, int z, SDL_Surface* image){
+    // If not along edges
+    if ( x < image->w-1 and x > 0 and z < image->h-1 and z > 0){
+        vec3 tangent = normalize(vec3(x+1, get_pixel_height(x+1, z, image), z) - vec3(x, get_pixel_height(x, z, image), z));
+        
+        return tangent;
+    }
+    else { // Along edges just return upVector for now
+        // TODO: Return normal for slopes
+        return vec3(1, 0, 0);
+    }
+}
 
 

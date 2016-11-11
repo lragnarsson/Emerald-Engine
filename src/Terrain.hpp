@@ -56,6 +56,7 @@ private:
     float get_pixel_height(int x, int y, SDL_Surface* image);
     int get_pixel_index(int x, int y, SDL_Surface* image);
     glm::vec3 get_normal(int x, int z, SDL_Surface* image);
+    glm::vec3 get_tangent(int x, int z, SDL_Surface* image);
 };
 
 
