@@ -33,18 +33,19 @@
 class Terrain {
 public:
     Terrain();
-    Terrain(std::string directory, float plane_scale, float height_scale);
+    Terrain(std::string directory, float plane_scale, float height_scale, unsigned chunk_size);
     ~Terrain();
 
+    bool draw_me = true, clamp_textures = false;
+    glm::vec3 world_coord;
+    glm::mat4 m2w_matrix, move_matrix, rot_matrix;
+    float bounding_sphere_radius = -1.f, scale = 1.f;
+    
     const std::vector<Mesh*> get_meshes();
-    void load_heightmap(std::string heightmap_file, float plane_scale, float height_scale);
+    void load_heightmap(std::string heightmap_file, float plane_scale, float height_scale, unsigned chunk_size);
     static const std::vector<Terrain*> get_loaded_terrain();
     glm::vec3 get_center_point_world();
     glm::vec3 get_center_point();
-    bool draw_me = true, clamp_textures = false;
-    glm::mat4 m2w_matrix, move_matrix, rot_matrix;
-    glm::vec3 world_coord;
-    float bounding_sphere_radius = -1.f, scale = 1.f;
 
 private:
     static std::vector<Terrain*> loaded_terrain;

@@ -20,14 +20,14 @@ Terrain::Terrain()
 
 // --------------------
 
-Terrain::Terrain(std::string directory, float plane_scale, float height_scale)
+Terrain::Terrain(std::string directory, float plane_scale, float height_scale, unsigned chunk_size)
 {   this->rot_matrix = glm::mat4(1.f);
     this->world_coord = glm::vec3(0.f);
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
     this->m2w_matrix = move_matrix  * rot_matrix;
     this->clamp_textures = false;
     
-    load_heightmap(directory, plane_scale, height_scale);
+    load_heightmap(directory, plane_scale, height_scale, chunk_size);
 
     Terrain::loaded_terrain.push_back(this);
 }
@@ -67,7 +67,7 @@ float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
 
 // -------------------
 
-void Terrain::load_heightmap(std::string directory, float plane_scale, float height_scale) 
+void Terrain::load_heightmap(std::string directory, float plane_scale, float height_scale, unsigned chunk_size) 
 {
     std::string heightmap_file = directory + "/" + "heightmap.png";
     SDL_Surface* heightmap = IMG_Load(heightmap_file.c_str());
@@ -80,7 +80,6 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
         Error::throw_error(Error::cant_load_image, "Need 8-bit per pixel images for heightmap, this image is " + std::to_string(heightmap->format->BitsPerPixel) + "-bit!");
     }
     
-    uint chunk_size = 100;
     for (int z_total = 0; z_total < heightmap->h; z_total += chunk_size){
         for (int x_total = 0; x_total < heightmap->w; x_total += chunk_size){
 
@@ -88,9 +87,11 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
             // Specify triangle to vertice numbers
             m->index_count = 3*2*((chunk_size-1+1) * (chunk_size-1+1));
             m->vertex_count = (chunk_size+1) * (chunk_size+1);
-
+            
+            // Overlap so we don't get visible divisors between chunks
             for (int z = z_total; z < z_total+chunk_size+1; z++){
                 for (int x = x_total; x < x_total+chunk_size+1; x++){
+
                     float height = get_pixel_height(x, z, heightmap);
 
                     // Create vertices (points in 3D space)

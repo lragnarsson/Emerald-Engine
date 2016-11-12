@@ -117,7 +117,8 @@ void Loader::load_terrain(vector<string> terrain_line){
     string directory = terrain_line.at(0);
     float planar_scale = stof(terrain_line.at(1));
     float height_scale = stof(terrain_line.at(2));
-    new Terrain(directory, planar_scale, height_scale);
+    unsigned chunk_size = stoi(terrain_line.at(3));
+    new Terrain(directory, planar_scale, height_scale, chunk_size);
 }
 
 // ------------------
