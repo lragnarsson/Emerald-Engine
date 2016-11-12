@@ -27,6 +27,7 @@
 #include <algorithm>
 
 #include "Error.hpp"
+#include "Camera.hpp"
 #include "Mesh.hpp"
 
 
@@ -46,6 +47,7 @@ public:
     static const std::vector<Terrain*> get_loaded_terrain();
     glm::vec3 get_center_point_world();
     glm::vec3 get_center_point();
+    unsigned cull_me(Camera* camera);
 
 private:
     static std::vector<Terrain*> loaded_terrain;

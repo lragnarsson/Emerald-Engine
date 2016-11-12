@@ -30,6 +30,7 @@
 #include "Error.hpp"
 #include "Animation_Path.hpp"
 #include "Mesh.hpp"
+#include "Camera.hpp"
 
 
 class Model {
@@ -62,6 +63,7 @@ public:
     void attach_animation_path(int animation_id, float start_parameter);
     bool has_animation_path() {return has_animation;}
     void move_along_path(float elapsed_time);
+    unsigned cull_me(Camera* camera);
 
 private:
     struct light_container {

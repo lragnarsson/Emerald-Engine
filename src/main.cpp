@@ -15,46 +15,31 @@ void cull_models()
     // TODO: Run in parallel
     uint models_drawn = 0;
     uint drawn_meshes = 0;
+    
+    // Cull models
     for (auto model : Model::get_loaded_models()) {
-        bool draw_me = camera.sphere_in_frustum(model->get_center_point_world(), \
-                model->bounding_sphere_radius * model->scale);
-        model->draw_me = draw_me;
-       
-       // If draw me - see if we can cull meshes
-       if (draw_me){
-           models_drawn++;
-           for (auto mesh : model->get_meshes()) {
-               bool draw_me = camera.sphere_in_frustum(mesh->get_center_point_world(model->m2w_matrix), \
-                       mesh->bounding_sphere_radius * model->scale);
-               mesh->draw_me = draw_me;
-               if (draw_me)
-                  drawn_meshes++; 
-           }
-       }
+        unsigned meshes = model->cull_me(&camera);
+        if (meshes > 0){
+            drawn_meshes += meshes;
+            models_drawn++;
+        }
     }
 
     // Flat models
     for (auto model : Model::get_loaded_flat_models()) {
-        bool draw_me = camera.sphere_in_frustum(model->get_center_point_world(), model->bounding_sphere_radius * model->scale);
-        model->draw_me = draw_me;
-        if (draw_me)
+        unsigned meshes = model->cull_me(&camera);
+        if (meshes > 0){
+            drawn_meshes += meshes;
             models_drawn++;
+        }
     }
 
     // Terrain
     for (auto terrain : Terrain::get_loaded_terrain()) {
-        bool draw_me = camera.sphere_in_frustum(terrain->get_center_point_world(), terrain->bounding_sphere_radius);
-        terrain->draw_me = draw_me;
-        // If draw me - see if we can cull meshes
-        if (draw_me){
+        unsigned meshes = terrain->cull_me(&camera);
+        if (meshes > 0){
+            drawn_meshes += meshes;
             models_drawn++;
-            for (auto mesh : terrain->get_meshes()) {
-                bool draw_me = camera.sphere_in_frustum(mesh->get_center_point_world(terrain->m2w_matrix), \
-                        mesh->bounding_sphere_radius);
-                mesh->draw_me = draw_me;
-                if (draw_me)
-                    drawn_meshes++; 
-            }
         }
     }
 

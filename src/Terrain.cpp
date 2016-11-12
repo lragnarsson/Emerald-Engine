@@ -321,3 +321,24 @@ glm::vec3 Terrain::get_center_point()
     return this->bounding_sphere_center;
 }
 
+// -------------
+//
+
+unsigned Terrain::cull_me(Camera* camera){
+    unsigned drawn_meshes = 0;
+    bool draw_me = camera->sphere_in_frustum(this->get_center_point_world(), this->bounding_sphere_radius);
+
+    this->draw_me = draw_me;
+    // If draw me - see if we can cull meshes
+    if (draw_me){
+        for (auto mesh : this->get_meshes()) {
+            bool draw_me = camera->sphere_in_frustum(mesh->get_center_point_world(this->m2w_matrix), \
+                    mesh->bounding_sphere_radius);
+            mesh->draw_me = draw_me;
+            if (draw_me)
+                drawn_meshes++; 
+        }
+    }
+
+    return drawn_meshes;
+}

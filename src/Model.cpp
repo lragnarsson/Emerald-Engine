@@ -147,6 +147,8 @@ void Model::load(std::string path) {
 }
 
 
+
+// --------------------------------------------------------------------------
 /* Private Model functions */
 void Model::unfold_assimp_node(aiNode* node, const aiScene* scene) {
     for(GLuint i = 0; i < node->mNumMeshes; i++) {
@@ -349,4 +351,28 @@ const std::vector<Model*> Model::get_loaded_flat_models()
 const std::vector<Mesh*> Model::get_meshes()
 {
     return meshes;
+}
+
+
+// ------------
+//
+
+unsigned Model::cull_me(Camera* camera){
+    unsigned drawn_meshes = 0;
+    bool draw_me = camera->sphere_in_frustum(this->get_center_point_world(), \
+            this->bounding_sphere_radius * this->scale);
+    this->draw_me = draw_me;
+
+    // If draw me - see if we can cull meshes
+    if (draw_me){
+        for (auto mesh : this->get_meshes()) {
+            bool draw_me = camera->sphere_in_frustum(mesh->get_center_point_world(this->m2w_matrix), \
+                    mesh->bounding_sphere_radius * this->scale);
+            mesh->draw_me = draw_me;
+            if (draw_me)
+                drawn_meshes++; 
+        }
+    }
+
+    return drawn_meshes;
 }
