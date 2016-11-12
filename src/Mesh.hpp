@@ -62,6 +62,7 @@ public:
 
     /* Upload vertices, normals etc to the GPU */
     void upload_mesh_data();
+    void free_CPU_memory();
     GLuint get_VAO();
     Texture* load_texture(const std::string filename, const std::string basepath, bool clamp);
     void generate_bounding_sphere();

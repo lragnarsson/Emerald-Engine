@@ -47,6 +47,18 @@ void Mesh::upload_mesh_data()
 
     /* Unbind VAO */
     glBindVertexArray(0);
+
+}
+
+// --------------------------
+
+void Mesh::free_CPU_memory(){
+    // Clean CPU memory from mesh
+    this->indices.clear();
+    this->vertices.clear();
+    this->normals.clear();
+    this->tex_coords.clear();
+    this->tangents.clear();
 }
 
 // --------------------

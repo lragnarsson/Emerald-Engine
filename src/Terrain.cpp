@@ -168,6 +168,11 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
     this->m2w_matrix = move_matrix  * rot_matrix;
     // Generate bounding spheres
     this->generate_bounding_sphere();
+
+    // No need to store meshes on CPU any more
+    for (auto mesh : this->get_meshes()){
+        mesh->free_CPU_memory();
+    }
 }
 
 // ------------------

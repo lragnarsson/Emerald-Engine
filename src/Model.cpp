@@ -16,6 +16,10 @@ Model::Model(const std::string path)
 
     load(path);
     generate_bounding_sphere();
+    // No need to store meshes on CPU any more
+    for (auto mesh : this->get_meshes()){
+        mesh->free_CPU_memory();
+    }
 }
 
 
@@ -38,6 +42,10 @@ Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3
         Model::loaded_flat_models.push_back(this);
     }
 
+    // No need to store meshes on CPU any more
+    for (auto mesh : this->get_meshes()){
+        mesh->free_CPU_memory();
+    }
     has_animation = false;
 }
 
