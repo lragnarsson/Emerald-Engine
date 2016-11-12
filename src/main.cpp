@@ -14,37 +14,38 @@ void cull_models()
     Profiler::start_timer("Cull models");
     // TODO: Run in parallel
     uint models_drawn = 0;
-    uint drawn_meshes = 0;
+    uint meshes_drawn = 0;
+    unsigned meshes = 0;
     
     // Cull models
     for (auto model : Model::get_loaded_models()) {
-        unsigned meshes = model->cull_me(&camera);
+        meshes = model->cull_me(&camera);
+        meshes_drawn += meshes;
         if (meshes > 0){
-            drawn_meshes += meshes;
             models_drawn++;
         }
     }
 
     // Flat models
     for (auto model : Model::get_loaded_flat_models()) {
-        unsigned meshes = model->cull_me(&camera);
+        meshes = model->cull_me(&camera);
         if (meshes > 0){
-            drawn_meshes += meshes;
+            meshes_drawn += meshes;
             models_drawn++;
         }
     }
 
     // Terrain
     for (auto terrain : Terrain::get_loaded_terrain()) {
-        unsigned meshes = terrain->cull_me(&camera);
+        meshes = terrain->cull_me(&camera);
+        meshes_drawn += meshes;
         if (meshes > 0){
-            drawn_meshes += meshes;
             models_drawn++;
         }
     }
 
     renderer.objects_drawn = models_drawn;
-    renderer.meshes_drawn = drawn_meshes;
+    renderer.meshes_drawn = meshes_drawn;
     Profiler::stop_timer("Cull models");
 }
 
