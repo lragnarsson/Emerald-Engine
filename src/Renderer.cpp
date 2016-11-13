@@ -288,6 +288,41 @@ void Renderer::render_forward()
             glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
         }
     }
+
+    for (auto terrain : Terrain::get_loaded_terrain()) {
+        if (!terrain->draw_me) {
+            continue;
+        }
+        GLuint m2w_location = glGetUniformLocation(shaders[FORWARD], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(terrain->m2w_matrix));
+
+        for (auto mesh : terrain->get_meshes()) {
+            if (!mesh->draw_me) {
+                continue;
+            }
+            glActiveTexture(GL_TEXTURE0);
+            GLuint diffuse_loc = glGetUniformLocation(shaders[FORWARD], "diffuse_map");
+            glUniform1i(diffuse_loc, 0);
+            glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
+
+            glActiveTexture(GL_TEXTURE1);
+            GLuint specular_loc = glGetUniformLocation(shaders[FORWARD], "specular_map");
+            glUniform1i(specular_loc, 1);
+            glBindTexture(GL_TEXTURE_2D, mesh->specular_map->id);
+
+            glActiveTexture(GL_TEXTURE2);
+            GLuint normal_loc = glGetUniformLocation(shaders[FORWARD], "normal_map");
+            glUniform1i(normal_loc, 2);
+            glBindTexture(GL_TEXTURE_2D, mesh->normal_map->id);
+
+            glUniform1f(glGetUniformLocation(shaders[FORWARD], "shininess"), mesh->shininess);
+
+            /* DRAW */
+            glBindVertexArray(mesh->get_VAO());
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        }
+    }
+
     glBindVertexArray(0);
     for (GLuint i = 0; i < 3; i++) {
         glActiveTexture(GL_TEXTURE0 + i);
