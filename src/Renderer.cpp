@@ -762,6 +762,30 @@ void Renderer::normal_visualization_pass()
         }
     }
 
+    for (auto terrain : Terrain::get_loaded_terrain()) {
+        if (!terrain->draw_me) {
+            continue;
+        }
+        GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY_NORMALS], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(terrain->m2w_matrix));
+
+        for (auto mesh : terrain->get_meshes()) {
+            if (!mesh->draw_me) {
+                continue;
+            }
+            glActiveTexture(GL_TEXTURE0);
+            GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY_NORMALS], "diffuse_map");
+            glUniform1i(diffuse_loc, 0);
+            glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
+
+            glBindVertexArray(mesh->get_VAO());
+
+            /* DRAW GEOMETRY */
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        }
+    }
+    
+
     glBindVertexArray(0);
 
     glActiveTexture(GL_TEXTURE0 );
