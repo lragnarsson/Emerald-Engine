@@ -24,6 +24,9 @@ void Renderer::init()
                                       "build/shaders/show_red_component.frag");
     shaders[HDR_BLOOM] = load_shaders("build/shaders/identity.vert",
                                       "build/shaders/hdr_bloom.frag");
+    shaders[GRASS_LOD1] = load_shaders("build/shaders/grass_lod1.vert",
+                                       "build/shaders/grass_lod1.geom",
+                                       "build/shaders/grass_lod1.frag");
 
 
     init_g_buffer();
@@ -199,6 +202,7 @@ void Renderer::render_deferred(const Camera &camera)
     /* GEOMETRY PASS */
     geometry_pass();
 
+    grass_generation_pass();
     /* VISUALIZE NORMALS: EXPERIMENTAL STUFF */
     if (this->show_normals) {
         normal_visualization_pass();
@@ -393,7 +397,7 @@ void Renderer::post_processing()
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, post_proc_tex);
 
-    glUniform1f(glGetUniformLocation(shaders[HDR_BLOOM], "exposure"), 0.7f);
+    glUniform1f(glGetUniformLocation(shaders[HDR_BLOOM], "exposure"), 1.f);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -734,6 +738,7 @@ void Renderer::geometry_pass()
 
 
 // --------------------------
+
 void Renderer::normal_visualization_pass()
 {
     Profiler::start_timer("Normal visualization pass");
@@ -784,7 +789,7 @@ void Renderer::normal_visualization_pass()
             glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
         }
     }
-    
+
 
     glBindVertexArray(0);
 
@@ -796,12 +801,58 @@ void Renderer::normal_visualization_pass()
 
     Profiler::stop_timer("Normal visualization pass");
 }
+
 // --------------------------
+
+void Renderer::grass_generation_pass()
+{
+    Profiler::start_timer("Grass generation pass");
+    glDisable(GL_CULL_FACE);
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
+
+    glUseProgram(shaders[GRASS_LOD1]);
+    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "upInterp"), this->up_interp);
+
+    for (auto terrain : Terrain::get_loaded_terrain()) {
+        if (!terrain->draw_me) {
+            continue;
+        }
+        GLuint m2w_location = glGetUniformLocation(shaders[GRASS_LOD1], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(terrain->m2w_matrix));
+
+        for (auto mesh : terrain->get_meshes()) {
+            glActiveTexture(GL_TEXTURE0);
+            GLuint diffuse_loc = glGetUniformLocation(shaders[GRASS_LOD1], "diffuse_map");
+            glUniform1i(diffuse_loc, 0);
+            glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
+
+            glBindVertexArray(mesh->get_VAO());
+
+            /* DRAW GEOMETRY */
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        }
+    }
+
+    glBindVertexArray(0);
+    glActiveTexture(GL_TEXTURE0 );
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glUseProgram(0);
+
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
+    glEnable(GL_CULL_FACE);
+
+    Profiler::stop_timer("Grass generation pass");
+}
+
 
 void Renderer::render_g_position()
 {
     geometry_pass();
 
+    grass_generation_pass();
     if (this->show_normals) {
         normal_visualization_pass();
     }
@@ -825,6 +876,7 @@ void Renderer::render_g_normal()
 {
     geometry_pass();
 
+    grass_generation_pass();
     if (this->show_normals) {
         normal_visualization_pass();
     }
@@ -847,7 +899,7 @@ void Renderer::render_g_normal()
 void Renderer::render_g_albedo()
 {
     geometry_pass();
-
+    grass_generation_pass();
     if (this->show_normals) {
         normal_visualization_pass();
     }
@@ -870,7 +922,7 @@ void Renderer::render_g_albedo()
 void Renderer::render_g_specular()
 {
     geometry_pass();
-
+    grass_generation_pass();
     if (this->show_normals) {
         normal_visualization_pass();
     }
@@ -893,7 +945,7 @@ void Renderer::render_g_specular()
 void Renderer::render_ssao()
 {
     geometry_pass();
-
+    grass_generation_pass();
     if (this->show_normals) {
         normal_visualization_pass();
     }

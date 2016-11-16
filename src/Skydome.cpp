@@ -32,6 +32,7 @@ void Skydome::init()
 
 void Skydome::draw(const Camera &camera)
 {
+    glCullFace(GL_FRONT);
     calculate_sky();
     glDepthRange(0.9999f, 1.f);
 
@@ -61,6 +62,7 @@ void Skydome::draw(const Camera &camera)
 
     glDepthRange(0.f, 1.f);
     glUseProgram(0);
+    glCullFace(GL_BACK);
 }
 
 

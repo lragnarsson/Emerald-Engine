@@ -14,7 +14,7 @@ Terrain::Terrain()
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
     this->m2w_matrix = move_matrix  * rot_matrix;
     this->clamp_textures = false;
-    
+
     Terrain::loaded_terrain.push_back(this);
 }
 
@@ -26,7 +26,7 @@ Terrain::Terrain(std::string directory, float plane_scale, float height_scale, u
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
     this->m2w_matrix = move_matrix  * rot_matrix;
     this->clamp_textures = false;
-    
+
     load_heightmap(directory, plane_scale, height_scale, chunk_size);
 
     Terrain::loaded_terrain.push_back(this);
@@ -56,18 +56,18 @@ float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
     //Uint8 black;
     int index = get_pixel_index(x, z, image);
 
-    Uint8 *all_pixels = (Uint8*) image->pixels; 
-    Uint8 pixel = all_pixels[index]; 
+    Uint8 *all_pixels = (Uint8*) image->pixels;
+    Uint8 pixel = all_pixels[index];
 
     //SDL_GetRGBA(pixel, image->format, &red, &green, &blue, &alpha);
-    
+
     //std::cout << pixel << std::endl;
     return pixel;
 }
 
 // -------------------
 
-void Terrain::load_heightmap(std::string directory, float plane_scale, float height_scale, unsigned chunk_size) 
+void Terrain::load_heightmap(std::string directory, float plane_scale, float height_scale, unsigned chunk_size)
 {
     std::string heightmap_file = directory + "/" + "heightmap.png";
     SDL_Surface* heightmap = IMG_Load(heightmap_file.c_str());
@@ -79,15 +79,15 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
     if (heightmap->format->BitsPerPixel != 8){
         Error::throw_error(Error::cant_load_image, "Need 8-bit per pixel images for heightmap, this image is " + std::to_string(heightmap->format->BitsPerPixel) + "-bit!");
     }
-    
+
     for (int z_total = 0; z_total < heightmap->h; z_total += chunk_size){
         for (int x_total = 0; x_total < heightmap->w; x_total += chunk_size){
 
             Mesh* m = new Mesh();
-            // Specify triangle to vertice numbers
+            // Specify triangle to vertex numbers
             m->index_count = 3*2*((chunk_size-1+1) * (chunk_size-1+1));
             m->vertex_count = (chunk_size+1) * (chunk_size+1);
-            
+
             // Overlap so we don't get visible divisors between chunks
             for (int z = z_total; z < z_total+chunk_size+1; z++){
                 for (int x = x_total; x < x_total+chunk_size+1; x++){
@@ -99,7 +99,7 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
                     m->vertices.push_back(height*height_scale);
                     m->vertices.push_back(z*plane_scale);
 
-                    // Create a normal for each vertice
+                    // Create a normal for each vertex
                     vec3 normal = get_normal(x, z, heightmap);
                     m->normals.push_back(normal.x);
                     m->normals.push_back(normal.y);
@@ -118,17 +118,17 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
                 }
             }
 
-            // Generate vertice to triangle mapping
+            // Generate vertex to triangle mapping
             for(int z = 0; z < chunk_size-1+1; z++){
                 for (int x = 0; x < chunk_size-1+1; x++){
                     // Down right of quad
                     m->indices.push_back(x + z*(chunk_size+1));
-                    m->indices.push_back((x+1) + z*(chunk_size+1));
                     m->indices.push_back((x+1) + (z+1)*(chunk_size+1));
+                    m->indices.push_back((x+1) + z*(chunk_size+1));
                     // Upper left of quad
                     m->indices.push_back(x + z*(chunk_size+1));
-                    m->indices.push_back((x+1) + (z+1)*(chunk_size+1));
                     m->indices.push_back(x + (z+1)*(chunk_size+1));
+                    m->indices.push_back((x+1) + (z+1)*(chunk_size+1));
                 }
             }
             m->shininess = 4.f; // Some arbitrary default
@@ -338,7 +338,7 @@ unsigned Terrain::cull_me(Camera* camera){
                     mesh->bounding_sphere_radius);
             mesh->draw_me = draw_me;
             if (draw_me)
-                drawn_meshes++; 
+                drawn_meshes++;
         }
     }
 

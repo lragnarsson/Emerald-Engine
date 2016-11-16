@@ -16,7 +16,7 @@ void cull_models()
     uint models_drawn = 0;
     uint meshes_drawn = 0;
     unsigned meshes = 0;
-    
+
     // Cull models
     for (auto model : Model::get_loaded_models()) {
         meshes = model->cull_me(&camera);
@@ -138,6 +138,7 @@ void run()
         Profiler::start_timer("Swap");
         SDL_GL_SwapWindow(main_window);
         Profiler::stop_timer("Swap");
+        SDL_Delay(45);
         Profiler::stop_timer("-> Frame time");
     }
 }

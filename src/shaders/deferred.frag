@@ -45,14 +45,17 @@ void main()
     vec3 view_direction = normalize(- position);
 
     // Ambient
-    vec3 light = 0.03 * occlusion * albedo;
+    vec3 light = 0.1 * occlusion * albedo;
 
     // Point lights:
     for(int i=0; i < num_lights; i++) {
+        vec3 light_dir = normalize(lights[i].position - position);
+        if (dot(normal, light_dir) <= 0) {
+            continue;
+        }
+
         float distance = length(lights[i].position - position);
         float attenuation = 1.0 / (_ATT_CON_ + _ATT_LIN_ * distance + _ATT_QUAD_ * distance * distance);
-        vec3 light_dir = normalize(lights[i].position - position);
-
         // Diffuse
         float d = max(dot(normalize(normal), light_dir), 0.0);
         vec3 diffuse_light = occlusion * d * lights[i].color * albedo;

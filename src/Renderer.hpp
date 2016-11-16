@@ -74,7 +74,7 @@ public:
     void increase_up_interp();
     void decrease_up_interp();
     void toggle_show_normals();
-    
+
 private:
     enum shader {
       FORWARD,
@@ -91,11 +91,12 @@ private:
       SHOW_RGB_COMPONENT,
       SHOW_ALPHA_COMPONENT,
       SHOW_SSAO,
-      HDR_BLOOM
+      HDR_BLOOM,
+      GRASS_LOD1
     };
 
     render_mode mode;
-    GLuint shaders[15];
+    GLuint shaders[16];
     // Frame buffers
     GLuint g_buffer, ssao_fbo, hdr_fbo, post_proc_fbo, ping_pong_fbo_red, ping_pong_fbo_rgb;
     // Textures
@@ -167,6 +168,7 @@ private:
 
     void geometry_pass();
     void normal_visualization_pass();
+    void grass_generation_pass();
     void render_g_position();
     void render_g_normal();
     void render_g_albedo();
