@@ -47,10 +47,15 @@ public:
     static const std::vector<Terrain*> get_loaded_terrain();
     glm::vec3 get_center_point_world();
     glm::vec3 get_center_point();
+    bool point_in_terrain(float x_world, float z_world);
     unsigned cull_me(Camera* camera);
+    float get_height(float x_world, float z_world);
 
 private:
     static std::vector<Terrain*> loaded_terrain;
+    int chunk_size,total_x,total_z;
+    glm::vec3 last_indice,last_normal;
+    glm::vec3 get_vertice(int x, int z);
 
     GLuint VAO, EBO;
     GLuint VBO[4]; // Vertices, normals, texCoords, tangents

@@ -109,6 +109,15 @@ void update_camera()
     if (!camera.can_look_free()) {
         camera.move_look_point_along_path(0.1f);
     }
+    if (camera.get_height_lock()){
+        glm::vec3 pos = camera.get_pos();
+
+        for ( auto terrain : Terrain::get_loaded_terrain() ){
+            if (terrain->point_in_terrain(pos.x, pos.z)) {
+                camera.set_height(terrain->get_height(pos.x, pos.z));
+            }
+        }
+    }
 
     camera.update_culling_frustum();
     camera.update_view_matrix();
