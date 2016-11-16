@@ -20,6 +20,7 @@
 #include "Utils.hpp"
 #include "Error.hpp"
 #include "Profiler.hpp"
+#include "Terrain.hpp"
 
 
 #define MAX_SSAO_SAMPLES 256
@@ -52,7 +53,7 @@ public:
     bool running = false;
     bool wireframe_mode = false; // unused
     bool draw_bounding_spheres = false;
-    uint objects_drawn;
+    uint objects_drawn,meshes_drawn;
 
     Renderer() {}
 

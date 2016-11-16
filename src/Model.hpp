@@ -29,44 +29,8 @@
 #include "Light.hpp"
 #include "Error.hpp"
 #include "Animation_Path.hpp"
-
-const std::string DEFAULT_PATH = "res/models/default";
-const std::string DEFAULT_DIFFUSE = "default_diffuse.jpg";
-const std::string DEFAULT_NORMAL = "default_normal.jpg";
-
-
-enum texture_type {
-    DIFFUSE,
-    SPECULAR,
-    NORMAL
-};
-
-struct Texture {
-    GLuint id;
-    texture_type type;
-    aiString path;
-};
-
-
-class Mesh {
-public:
-    GLuint index_count, vertex_count;
-    GLfloat shininess = 80;
-    std::vector<GLuint> indices;
-    std::vector<GLfloat> vertices, normals, tex_coords, tangents;
-    Texture *diffuse_map, *specular_map, *normal_map;
-
-    Mesh() { };
-    ~Mesh() { };
-
-    /* Upload vertices, normals etc to the GPU */
-    void upload_mesh_data();
-    GLuint get_VAO();
-
-private:
-    GLuint VAO, EBO;
-    GLuint VBO[4]; // Vertices, normals, texCoords, tangents
-};
+#include "Mesh.hpp"
+#include "Camera.hpp"
 
 
 class Model {
@@ -99,6 +63,7 @@ public:
     void attach_animation_path(int animation_id, float start_parameter);
     bool has_animation_path() {return has_animation;}
     void move_along_path(float elapsed_time);
+    unsigned cull_me(Camera* camera);
 
 private:
     struct light_container {
@@ -107,7 +72,6 @@ private:
     };
 
     static std::vector<Model*> loaded_models, loaded_flat_models;
-    static std::vector<Texture*> loaded_textures;
     std::vector<light_container> attached_lights;
     std::vector<Mesh*> meshes;
     std::string directory;
@@ -119,7 +83,6 @@ private:
 
     void unfold_assimp_node(aiNode* node, const aiScene* scene);
     Mesh* load_mesh(aiMesh* mesh, const aiScene* scene);
-    Texture* load_texture(const std::string filename, const std::string basepath, bool clamp);
     void generate_bounding_sphere();
 };
 

@@ -1,62 +1,7 @@
 #include "Model.hpp"
 
-/* --- MESH --- */
-/* Public Mesh functions */
-
-void Mesh::upload_mesh_data()
-{
-    glGenVertexArrays(1, &this->VAO);
-    glBindVertexArray(this->VAO);
-    glGenBuffers(1, &this->EBO);
-    glGenBuffers(4, this->VBO);
-
-    GLuint* indices = &this->indices[0];
-    GLfloat* vertices = &this->vertices[0];
-    GLfloat* normals = &this->normals[0];
-    GLfloat* tex_coords = &this->tex_coords[0];
-    GLfloat* tangents = &this->tangents[0];
-
-    /* Element array buffer */
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(GLuint), indices, GL_STATIC_DRAW);
-
-    /* Vertex coordinates */
-    glBindBuffer(GL_ARRAY_BUFFER, this->VBO[0]);
-    glBufferData(GL_ARRAY_BUFFER, 3 * vertex_count * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(0);
-
-    /* Normal vectors */
-    glBindBuffer(GL_ARRAY_BUFFER, this->VBO[1]);
-    glBufferData(GL_ARRAY_BUFFER, 3 * vertex_count * sizeof(GLfloat), normals, GL_STATIC_DRAW);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(1);
-
-    /* Texture coordinates */
-    glBindBuffer(GL_ARRAY_BUFFER, this->VBO[2]);
-    glBufferData(GL_ARRAY_BUFFER, 2 * vertex_count * sizeof(GLfloat), tex_coords, GL_STATIC_DRAW);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(2);
-
-    /* Tangent vectors */
-    glBindBuffer(GL_ARRAY_BUFFER, this->VBO[3]);
-    glBufferData(GL_ARRAY_BUFFER, 3 * vertex_count * sizeof(GLfloat), tangents, GL_STATIC_DRAW);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(3);
-
-    /* Unbind VAO */
-    glBindVertexArray(0);
-}
-
-GLuint Mesh::get_VAO()
-{
-    return VAO;
-}
-
-
 /* --- MODEL ---*/
 std::vector<Model*> Model::loaded_models, Model::loaded_flat_models;
-std::vector<Texture*> Model::loaded_textures;
 
 Model::Model(const std::string path)
 {
@@ -202,6 +147,8 @@ void Model::load(std::string path) {
 }
 
 
+
+// --------------------------------------------------------------------------
 /* Private Model functions */
 void Model::unfold_assimp_node(aiNode* node, const aiScene* scene) {
     for(GLuint i = 0; i < node->mNumMeshes; i++) {
@@ -267,13 +214,13 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         aiString filepath;
         material->GetTexture(aiTextureType_DIFFUSE, 0, &filepath);
         Texture* texture;
-        texture = load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
+        texture = m->load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
         texture->type = DIFFUSE;
         texture->path = filepath;
         m->diffuse_map = texture;
     } else {
         Texture* texture;
-        texture = load_texture(DEFAULT_DIFFUSE, DEFAULT_PATH, clamp_textures);
+        texture = m->load_texture(DEFAULT_DIFFUSE, DEFAULT_PATH, clamp_textures);
         texture->type = DIFFUSE;
         texture->path = DEFAULT_PATH;
         m->diffuse_map = texture;
@@ -283,7 +230,7 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         aiString filepath;
         material->GetTexture(aiTextureType_SPECULAR, 0, &filepath);
         Texture* texture;
-        texture = load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
+        texture = m->load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
         texture->type = SPECULAR;
         texture->path = filepath;
         m->specular_map = texture;
@@ -295,13 +242,13 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         aiString filepath;
         material->GetTexture(aiTextureType_HEIGHT, 0, &filepath);
         Texture* texture;
-        texture = load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
+        texture = m->load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
         texture->type = NORMAL;
         texture->path = filepath;
         m->normal_map = texture;
     } else { // Default normal map keeps the geometry defined normals
         Texture* texture;
-        texture = load_texture(DEFAULT_NORMAL, DEFAULT_PATH, clamp_textures);
+        texture = m->load_texture(DEFAULT_NORMAL, DEFAULT_PATH, clamp_textures);
         texture->type = NORMAL;
         texture->path = DEFAULT_PATH;
         m->normal_map = texture;
@@ -312,51 +259,8 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
     return m;
 }
 
-
-Texture* Model::load_texture(const std::string filename, const std::string basepath, bool clamp)
-{
-    std::string filepath = basepath + "/" + filename;
-    for (uint i = 0; i < Model::loaded_textures.size(); i++) {
-        if (!filename.compare(std::string(Model::loaded_textures[i]->path.C_Str()))) {
-            return Model::loaded_textures[i];
-        }
-    }
-
-    SDL_Surface* surface = IMG_Load(filepath.c_str());
-    if (surface == NULL) {
-        Error::throw_error(Error::cant_load_image, SDL_GetError());
-    }
-
-    /* Upload texture */
-    Texture* texture = new Texture();
-    glGenTextures(1, &texture->id);
-    glBindTexture(GL_TEXTURE_2D, texture->id);
-
-    if (clamp) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    } else {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    }
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    if (surface->format->BytesPerPixel == 4) {
-        GLenum color_format = surface->format->Rmask == 255 ? GL_RGBA : GL_BGRA;
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, color_format, GL_UNSIGNED_BYTE, surface->pixels);
-    } else {
-        GLenum color_format = surface->format->Rmask == 255 ? GL_RGB : GL_BGR;
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, color_format, GL_UNSIGNED_BYTE, surface->pixels);
-    }
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    Model::loaded_textures.push_back(texture);
-
-    return texture;
-}
-
+// -----------------
+// Culling
 
 void Model::generate_bounding_sphere()
 {
@@ -364,39 +268,71 @@ void Model::generate_bounding_sphere()
     GLfloat x_max = v, y_max = v, z_max = v, x_min = v, y_min = v, z_min = v;
 
     for (auto mesh : this->meshes) {
+        GLfloat v_local = mesh->vertices[0];
+        GLfloat x_local_max = v_local, y_local_max = v_local, z_local_max = v_local, x_local_min = v_local, y_local_min = v_local, z_local_min = v_local;
         for (int i=0; i < mesh->vertices.size() - 2; i+=3) {
+            // Maxes
             if (mesh->vertices[i] > x_max){
                 x_max = mesh->vertices[i];
+            }
+            if(mesh->vertices[i] > x_local_max){
+                x_local_max = mesh->vertices[i];
             }
 
             if (mesh->vertices[i + 1] > y_max){
                 y_max = mesh->vertices[i + 1];
             }
+            if(mesh->vertices[i + 1] > y_local_max){
+                y_local_max = mesh->vertices[i + 1];
+            }
 
             if (mesh->vertices[i + 2] > z_max){
                 z_max = mesh->vertices[i + 2];
             }
-
+            if(mesh->vertices[i + 2] > z_local_max){
+                z_local_max = mesh->vertices[i + 2];
+            }
+            
+            // Mins
             if (mesh->vertices[i] < x_min){
                 x_min = mesh->vertices[i];
+            }
+            if (mesh->vertices[i] < x_local_min){
+                x_local_min = mesh->vertices[i];
             }
 
             if (mesh->vertices[i + 1] < y_min){
                 y_min = mesh->vertices[i + 1];
             }
+            if (mesh->vertices[i + 1] < y_local_min){
+                y_local_min = mesh->vertices[i + 1];
+            }
 
             if (mesh->vertices[i + 2] < z_min){
                 z_min = mesh->vertices[i + 2];
             }
+            if (mesh->vertices[i + 2] < z_local_min){
+                z_local_min = mesh->vertices[i + 2];
+            }
         }
+        // Make sure meshes has bounding spheres
+        glm::vec3 max_corner = glm::vec3(x_local_max, y_local_max, z_local_max);
+        glm::vec3 min_corner = glm::vec3(x_local_min, y_local_min, z_local_min);
+
+        glm::vec3 r_vector = 0.5f * (max_corner - min_corner);
+        mesh->bounding_sphere_radius = glm::length(r_vector);
+        mesh->bounding_sphere_center = min_corner + r_vector;
     }
+    // Make sure entire model has bounding sphere
     glm::vec3 max_corner = glm::vec3(x_max, y_max, z_max);
     glm::vec3 min_corner = glm::vec3(x_min, y_min, z_min);
 
     glm::vec3 r_vector = 0.5f * (max_corner - min_corner);
     this->bounding_sphere_radius = glm::length(r_vector);
     this->bounding_sphere_center = min_corner + r_vector;
+
 }
+
 
 // -----------
 
@@ -415,4 +351,28 @@ const std::vector<Model*> Model::get_loaded_flat_models()
 const std::vector<Mesh*> Model::get_meshes()
 {
     return meshes;
+}
+
+
+// ------------
+//
+
+unsigned Model::cull_me(Camera* camera){
+    unsigned drawn_meshes = 0;
+    bool draw_me = camera->sphere_in_frustum(this->get_center_point_world(), \
+            this->bounding_sphere_radius * this->scale);
+    this->draw_me = draw_me;
+
+    // If draw me - see if we can cull meshes
+    if (draw_me){
+        for (auto mesh : this->get_meshes()) {
+            bool draw_me = camera->sphere_in_frustum(mesh->get_center_point_world(this->m2w_matrix), \
+                    mesh->bounding_sphere_radius * this->scale);
+            mesh->draw_me = draw_me;
+            if (draw_me)
+                drawn_meshes++; 
+        }
+    }
+
+    return drawn_meshes;
 }
