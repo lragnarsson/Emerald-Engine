@@ -808,13 +808,12 @@ void Renderer::grass_generation_pass()
 {
     Profiler::start_timer("Grass generation pass");
     glDisable(GL_CULL_FACE);
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
 
     glUseProgram(shaders[GRASS_LOD1]);
     glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "upInterp"), this->up_interp);
-
+    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "shininess"), 50);
     for (auto terrain : Terrain::get_loaded_terrain()) {
         if (!terrain->draw_me) {
             continue;
@@ -841,7 +840,6 @@ void Renderer::grass_generation_pass()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(0);
 
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
     glEnable(GL_CULL_FACE);
 
     Profiler::stop_timer("Grass generation pass");

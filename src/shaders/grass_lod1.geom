@@ -26,7 +26,10 @@ void GenerateTallGrass(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal,
 {
     vec3 diff = 0.1 * base_1 + 0.1 * base_2;
 
-    vec3 grass_normal = vec3(view * vec4(0, 1, 0, 0)); //normalize(cross(diff, inNormal));
+    vec3 grass_normal = normalize(cross(diff, inNormal));
+    if (grass_normal.z < 0) {
+        grass_normal = -grass_normal;
+    }
 
     gl_Position = clipPos + projection * vec4(diff, 0);
     FragPos = fragPos + diff;
