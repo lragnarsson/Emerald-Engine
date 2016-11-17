@@ -73,11 +73,13 @@ float Terrain::get_height(float x_world, float z_world){
         normal = cross(vertices[1]-vertices[0], vertices[2] - vertices[0]);
     }
 
-    std::cout << normal.x << "," << normal.y << "," << normal.z << std::endl;
+    //std::cout << normal.x << "," << normal.y << "," << normal.z << std::endl;
 
     // Plane equation
     float D = dot(vertices[0], normal);
-    return this->height_scale * (normal.x * x - normal.z * z) / normal.y;
+    float height = 5.f+(D - normal.x * x * this->scale - normal.z * z * this->scale) / normal.y;
+    std::cout << height << ", " << normal.y << std::endl;
+    return height;
 }
 
 // ------------------
@@ -97,9 +99,9 @@ bool Terrain::point_in_terrain(float x_world, float z_world){
 // PRIVATE FUNCTIONS
 
 vec3 Terrain::get_vertice(int x, int z){
-    int mesh_index = floor(x / (float)this->chunk_size) +
+    unsigned mesh_index = floor(x / (float)this->chunk_size) +
                     floor(z / (float)this->chunk_size) * (this->total_x / (float)this->chunk_size);
-    int pixel_index = 3 * ((x % this->chunk_size) + (z % this->chunk_size) * this->chunk_size);
+    unsigned pixel_index = 3 * ((x % this->chunk_size) + (z % this->chunk_size) * this->chunk_size);
 
     //std::cout << "Mesh index: " << mesh_index << std::endl;
     //std::cout << "Pixel index: " << pixel_index << std::endl;
@@ -109,7 +111,7 @@ vec3 Terrain::get_vertice(int x, int z){
         Mesh* mesh = this->meshes.at(mesh_index);
         vec3 indice = vec3(
                 mesh->vertices[pixel_index+0],
-                mesh->vertices[pixel_index+1] / this->height_scale,
+                mesh->vertices[pixel_index+1],
                 mesh->vertices[pixel_index+2]
                 );
 
