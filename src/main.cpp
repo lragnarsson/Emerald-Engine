@@ -115,6 +115,7 @@ void update_camera()
         for ( auto terrain : Terrain::get_loaded_terrain() ){
             if (terrain->point_in_terrain(pos.x, pos.z)) {
                 camera.set_height(terrain->get_height(pos.x, pos.z));
+                break;
             }
         }
     }
@@ -163,6 +164,7 @@ void print_welcome()
     welcome += std::string("Numbers 1-7 = Display different buffers\n");
     welcome += std::string("F           = Follow path with camera\n");
     welcome += std::string("T           = Toggle tweakbar display\n");
+    welcome += std::string("Y           = Toggle follow terrain.\n");
     welcome += std::string("X,Z         = Interact with lights\n");
     welcome += std::string("P           = Print profiling numbers\n");
     welcome += std::string("\nA complete description of all keyboard commands can be found in doc/keyboard_command_reference.md\n");

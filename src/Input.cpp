@@ -102,17 +102,19 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     printf("Camera position x,y,z: %f %f %f\n", pos.x, pos.y, pos.z);
                     Profiler::print_results();
                     break;
-                case SDLK_f:
+                case SDLK_y:
                     camera.toggle_height_lock();
-                    //if (camera.has_move_path()) {
-                    //    camera.toggle_free_move();
-                    //    if (camera.has_look_path() &&
-                    //        camera.can_look_free() != camera.can_move_free()) {
-                    //        camera.toggle_free_look();
-                    //    }
-                    //} else if (camera.has_look_path()) {
-                    //    camera.toggle_free_look();
-                    //}
+                    break;
+                case SDLK_f:
+                    if (camera.has_move_path()) {
+                        camera.toggle_free_move();
+                        if (camera.has_look_path() &&
+                            camera.can_look_free() != camera.can_move_free()) {
+                            camera.toggle_free_look();
+                        }
+                    } else if (camera.has_look_path()) {
+                        camera.toggle_free_look();
+                    }
                     break;
                 case SDLK_PERIOD:
                     camera.cycle_move_anim_path(para);

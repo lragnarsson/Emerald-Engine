@@ -99,7 +99,7 @@ float Terrain::get_height(float x_world, float z_world){
 
     // Plane equation
     float D = dot(vertices[0], normal);
-    return 5.f+(D - normal.x * x * this->scale - normal.z * z * this->scale) / normal.y;
+    return 5.f+(D - normal.x * x_model - normal.z * z_model) / normal.y;
 }
 
 // ------------------
@@ -108,7 +108,7 @@ bool Terrain::point_in_terrain(float x_world, float z_world){
     float x = x_world + this->scale*this->total_x/2.f;
     float z = z_world + this->scale*this->total_z/2.f;
 
-    if ( x > this->total_x*this->scale or z > this->total_z*this->scale){
+    if ( x > this->total_x*this->scale or z > this->total_z*this->scale or x < 0 or z < 0){
         return false;
     }
 
