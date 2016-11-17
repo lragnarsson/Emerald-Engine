@@ -56,11 +56,11 @@ private:
     static std::vector<Terrain*> loaded_terrain;
     int chunk_size,total_x,total_z;
     glm::vec3 last_indice,last_normal;
-    glm::vec3 get_vertice(int x, int z);
 
     GLuint VAO, EBO;
     GLuint VBO[4]; // Vertices, normals, texCoords, tangents
     std::vector<Mesh*> meshes;
+    SDL_Surface* heightmap;
     glm::vec3 bounding_sphere_center;
 
 

@@ -45,7 +45,10 @@ float Terrain::get_height(float x_world, float z_world){
 
     //std::cout << "World coord: " << x_world << "," << z_world << std::endl;
 
-    // Translate coordinates from world to model space
+    // Translate coordinates from world to model coordinates
+    float x_model = (x_world + this->scale * (float)this->total_x / 2.f);
+    float z_model = (z_world + this->scale * (float)this->total_z / 2.f);
+    // Translate coordinates from world to index values for the heightmap
     float x = (x_world + this->scale * (float)this->total_x / 2.f) / this->scale;
     float z = (z_world + this->scale * (float)this->total_z / 2.f) / this->scale;
 
@@ -56,19 +59,38 @@ float Terrain::get_height(float x_world, float z_world){
 
     vec3 normal;
     std::vector<vec3> vertices;
-
-    if ( deltax + deltaz < 1 ) {
-
-        vertices.push_back(get_vertice(int_x, int_z));
-        vertices.push_back(get_vertice(int_x, int_z+1));
-        vertices.push_back(get_vertice(int_x+1, int_z));
+    
+    if ( deltax + deltaz < 1 ) { // Decide wether we are in upper or lower part of quad
+        vec3 p0(int_x * this->scale, 
+                get_pixel_height(int_x, int_z, this->heightmap)*this->height_scale, 
+                int_z * this->scale);
+        vec3 p1(int_x * this->scale, 
+                get_pixel_height(int_x, int_z+1, this->heightmap)*this->height_scale, 
+                (int_z+1) * this->scale);
+        vec3 p2((int_x+1) * this->scale, 
+                get_pixel_height(int_x+1, int_z, this->heightmap)*this->height_scale, 
+                int_z * this->scale);
+        
+        vertices.push_back(p0);
+        vertices.push_back(p1);
+        vertices.push_back(p2);
 
         normal = cross(vertices[1] - vertices[0], vertices[2] - vertices[0]);
     }
-    else {
-        vertices.push_back(get_vertice(int_x+1, int_z+1));
-        vertices.push_back(get_vertice(int_x+1, int_z));
-        vertices.push_back(get_vertice(int_x, int_z+1));
+    else { 
+        vec3 p0((int_x+1) * this->scale, 
+                get_pixel_height(int_x+1, int_z+1, this->heightmap)*this->height_scale, 
+                (int_z+1) * this->scale);
+        vec3 p1((int_x+1) * this->scale, 
+                get_pixel_height(int_x+1, int_z, this->heightmap)*this->height_scale, 
+                int_z * this->scale);
+        vec3 p2(int_x * this->scale, 
+                get_pixel_height(int_x, int_z+1, this->heightmap)*this->height_scale, 
+                (int_z+1) * this->scale);
+        
+        vertices.push_back(p0);
+        vertices.push_back(p1);
+        vertices.push_back(p2);
 
         normal = cross(vertices[1]-vertices[0], vertices[2] - vertices[0]);
     }
@@ -77,9 +99,7 @@ float Terrain::get_height(float x_world, float z_world){
 
     // Plane equation
     float D = dot(vertices[0], normal);
-    float height = 5.f+(D - normal.x * x * this->scale - normal.z * z * this->scale) / normal.y;
-    std::cout << height << ", " << normal.y << std::endl;
-    return height;
+    return 5.f+(D - normal.x * x * this->scale - normal.z * z * this->scale) / normal.y;
 }
 
 // ------------------
@@ -97,35 +117,6 @@ bool Terrain::point_in_terrain(float x_world, float z_world){
 
 // ---------------------------------------------------------------------------------------------------
 // PRIVATE FUNCTIONS
-
-vec3 Terrain::get_vertice(int x, int z){
-    unsigned mesh_index = floor(x / (float)this->chunk_size) +
-                    floor(z / (float)this->chunk_size) * (this->total_x / (float)this->chunk_size);
-    unsigned pixel_index = 3 * ((x % this->chunk_size) + (z % this->chunk_size) * this->chunk_size);
-
-    //std::cout << "Mesh index: " << mesh_index << std::endl;
-    //std::cout << "Pixel index: " << pixel_index << std::endl;
-    //std::cout << "x,chunk_size,z,total_x: " << x << "," << this->chunk_size << "," << z << "," << this->total_x << std::endl;
-
-    if ( mesh_index < this->meshes.size() and pixel_index < 3*pow(this->chunk_size,2) ){
-        Mesh* mesh = this->meshes.at(mesh_index);
-        vec3 indice = vec3(
-                mesh->vertices[pixel_index+0],
-                mesh->vertices[pixel_index+1],
-                mesh->vertices[pixel_index+2]
-                );
-
-        this->last_indice = indice;
-        return indice;
-    }
-    else {
-        Error::throw_warning(Error::index_out_of_range, "Terrain index: " + std::to_string(x) + "," + std::to_string(z));
-        return this->last_indice;
-    }
-}
-
-
-// --------------
 
 int Terrain::get_pixel_index(int x, int z, SDL_Surface* image)
 {
@@ -259,8 +250,8 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
     this->m2w_matrix = move_matrix  * rot_matrix;
     // Generate bounding spheres
     this->generate_bounding_sphere();
-    // Cleanup image from memory
-    delete(heightmap);
+    // Save image
+    this->heightmap = heightmap;
 }
 
 // ------------------
