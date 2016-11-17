@@ -785,7 +785,7 @@ void Renderer::normal_visualization_pass()
             glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
         }
     }
-
+    
 
     glBindVertexArray(0);
 
