@@ -39,6 +39,10 @@ Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3
     }
 
     has_animation = false;
+
+    for (auto mesh : this->meshes){
+        mesh->clear_mem();
+    }
 }
 
 

@@ -4,6 +4,20 @@
 /* Public Mesh functions */
 std::vector<Texture*> Mesh::loaded_textures;
 
+void Mesh::clear_mem(){
+    std::vector<GLuint>().swap(this->indices);
+    std::vector<GLfloat>().swap(this->vertices);
+    std::vector<GLfloat>().swap(this->normals);
+    std::vector<GLfloat>().swap(this->tex_coords);
+    std::vector<GLfloat>().swap(this->tangents);
+
+    //delete(this->diffuse_map);
+    //delete(this->specular_map);
+    //delete(this->normal_map);
+}
+
+// -------------------------
+
 void Mesh::upload_mesh_data()
 {
     glGenVertexArrays(1, &this->VAO);
@@ -16,7 +30,7 @@ void Mesh::upload_mesh_data()
     GLfloat* normals = &this->normals[0];
     GLfloat* tex_coords = &this->tex_coords[0];
     GLfloat* tangents = &this->tangents[0];
-    
+
     /* Element array buffer */
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(GLuint), indices, GL_STATIC_DRAW);
