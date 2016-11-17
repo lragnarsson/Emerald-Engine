@@ -1,6 +1,6 @@
 
 layout (triangles) in;
-layout (triangle_strip, max_vertices = 12) out;
+layout (triangle_strip, max_vertices = 28) out;
 
 in VS_OUT {
     vec2 TexCoord;
@@ -18,40 +18,49 @@ out vec3 Normal;   // view space normal
 uniform mat4 projection;
 uniform float upInterp; // Interpolation between up-vector and vertex own normal vector
 uniform mat4 view;
-const float MAGNITUDE = 1.8f; // Length of generated lines
+const float MAGNITUDE = 1.f; // Length of generated lines
+const float OFFSET = 5.f;
+const float TARGET = 15.f;
 
 
 void GenerateTallGrass(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal,
                        vec3 base_1, vec3 base_2)
 {
-    vec3 diff = 0.1 * base_1 + 0.1 * base_2;
+    vec3 tangent = 0.06 * base_1 + 0.06 * base_2;
 
-    vec3 grass_normal = normalize(cross(diff, inNormal));
+    vec3 grass_normal = normalize(cross(tangent, inNormal));
     if (grass_normal.z < 0) {
         grass_normal = -grass_normal;
     }
 
-    gl_Position = clipPos + projection * vec4(diff, 0);
-    FragPos = fragPos + diff;
-    TexCoord = texCoord;
-    Normal = grass_normal;
-    EmitVertex();
-
-    TexCoord = texCoord;
-    Normal = grass_normal;
-    gl_Position = clipPos + projection * vec4(3 * diff, 0);
-    FragPos = fragPos + 3 * diff;
-    EmitVertex();
-
     vec4 clip_space_normal = projection * vec4(inNormal * MAGNITUDE, 0);
     vec4 clip_space_up = projection * view * vec4(0, MAGNITUDE, 0, 0);
-
     vec4 interpNormal = mix(clip_space_normal, clip_space_up, 1);
-    gl_Position = clipPos + interpNormal + projection * vec4(2 * diff, 0);
+
+    float tangent_step = TARGET / 10.0;
+    for (int i=0; i < 3; i++) {
+        TexCoord = texCoord;
+        Normal = grass_normal;
+        gl_Position = clipPos + interpNormal * i +
+            projection * vec4((OFFSET + tangent_step * pow(i, 2)) * tangent, 0);
+        FragPos = fragPos + inNormal * MAGNITUDE * i + (OFFSET + tangent_step * pow(i, 2)) * tangent;
+        EmitVertex();
+
+        TexCoord = texCoord;
+        Normal = grass_normal;
+        gl_Position = clipPos + interpNormal * i +
+            projection * vec4((OFFSET + tangent_step * (pow(i, 2) + 1)) * tangent, 0);
+        FragPos = fragPos + inNormal * MAGNITUDE * i +
+            (OFFSET + tangent_step * (pow(i, 2) + 1)) * tangent;
+        EmitVertex();
+    }
+
+    gl_Position = clipPos + 3 * interpNormal + projection * vec4((OFFSET + TARGET) * tangent, 0);
     TexCoord = texCoord; // should make the line have the color of the originating vertex
-    FragPos = fragPos + inNormal * MAGNITUDE + 2 * diff;
+    FragPos = fragPos + 3 * inNormal * MAGNITUDE + (OFFSET + TARGET) * tangent;
     Normal = grass_normal;
     EmitVertex();
+
     EndPrimitive();
 }
 

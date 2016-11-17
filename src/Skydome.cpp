@@ -1,7 +1,7 @@
 #include "Skydome.hpp"
 
 const vec3 Skydome::sun_dawn = {.8f, .3f, 0.2f};
-const vec3 Skydome::sun_noon = {.5f, .35f, 0.2f};
+const vec3 Skydome::sun_noon = {1.f, 1.f, 1.f};//{.5f, .35f, 0.2f};
 const vec3 Skydome::sun_dusk = {0.9f, 0.3f, 0.1f};
 const vec3 Skydome::sun_midnight = {0.f, 0.f, 0.f};
 
@@ -77,7 +77,7 @@ void Skydome::upload_sun(const GLuint shader, const Camera &camera)
     glUniform3fv(glGetUniformLocation(shader, "sun_direction"),
                  1, value_ptr(view_space_dir));
     glUniform3fv(glGetUniformLocation(shader, "sun_color"),
-                 1, value_ptr(this->sun_color));
+                 1, value_ptr(normalize(this->sun_color)));
 
     glUseProgram(0);
 }

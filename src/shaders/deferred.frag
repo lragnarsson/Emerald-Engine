@@ -36,6 +36,7 @@ uniform vec3 sun_color;
 void main()
 {
     const vec3 eye_colors = vec3(0.2126, 0.7152, 0.0722);
+
     vec3 position = texture(g_position, TexCoord).rgb;
     vec3 normal = texture(g_normal_shininess, TexCoord).rgb;
     float shininess = texture(g_normal_shininess, TexCoord).a;
