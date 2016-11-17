@@ -29,7 +29,7 @@
 # It has a planar scale as well as a height scale and is loaded like
 # path/to/folder/with/heightmap/and/textures | planar_scale height_scale | chunk_size
 [terrain]
-res/models/terrain | 4 0.2 | 128
+res/models/terrain | 4 0.2 | 100
 
 [lights]
 # xPos yPos zPos | Red Green Blue

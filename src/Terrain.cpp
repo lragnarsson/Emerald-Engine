@@ -43,8 +43,11 @@ Terrain::~Terrain(){
 
 float Terrain::get_height(float x_world, float z_world){
     
-    float x = (x_world + this->scale*(float)this->total_x/2.f)/this->scale;
-    float z = (z_world + this->scale*(float)this->total_z/2.f)/this->scale;
+    //std::cout << "World coord: " << x_world << "," << z_world << std::endl;
+    
+    // Translate coordinates from world to model space
+    float x = (x_world + this->scale * (float)this->total_x / 2.f) / this->scale;
+    float z = (z_world + this->scale * (float)this->total_z / 2.f) / this->scale;
 
     int int_x = (int)x;
     int int_z = (int)z;
@@ -70,13 +73,14 @@ float Terrain::get_height(float x_world, float z_world){
         normal = cross(vertices[1]-vertices[0], vertices[2] - vertices[0]);
     }
     // Allways positive normal
-    normal = normalize(normal);
     if (normal.y < 0){
         normal = -normal;
     }
+    
+    std::cout << normal.x << "," << normal.y << "," << normal.z << std::endl;
 
     // Plane equation
-    float D = normal.x*vertices[0].x + normal.y*vertices[0].y + normal.z*vertices[0].z;
+    float D = dot(vertices[0], normal);
     return (D-normal.x*x-normal.z*z)/normal.y;
 }
 
@@ -97,11 +101,14 @@ bool Terrain::point_in_terrain(float x_world, float z_world){
 // PRIVATE FUNCTIONS
 
 vec3 Terrain::get_vertice(int x, int z){
-    int mesh_index = (x/this->chunk_size) + (z/this->chunk_size)*(this->total_x/this->chunk_size);
-    int pixel_index = 3 * ((x % this->chunk_size) + (z % this->chunk_size)*this->chunk_size);
+    int mesh_index = floor(x / (float)this->chunk_size) + 
+                    floor(z / (float)this->chunk_size) * (this->total_x / (float)this->chunk_size);
+    int pixel_index = 3 * ((x % this->chunk_size) + (z % this->chunk_size) * this->chunk_size);
     
-    std::cout << mesh_index << std::endl;
-    std::cout << pixel_index << std::endl;
+    //std::cout << "Mesh index: " << mesh_index << std::endl;
+    //std::cout << "Pixel index: " << pixel_index << std::endl;
+    //std::cout << "x,chunk_size,z,total_x: " << x << "," << this->chunk_size << "," << z << "," << this->total_x << std::endl;
+
     if ( mesh_index < this->meshes.size() and pixel_index < 3*pow(this->chunk_size,2) ){
         Mesh* mesh = this->meshes.at(mesh_index);
         vec3 indice = vec3(
@@ -208,12 +215,12 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
                 for (int x = 0; x < chunk_size-1+1; x++){
                     // Down right of quad
                     m->indices.push_back(x + z*(chunk_size+1));
-                    m->indices.push_back((x+1) + z*(chunk_size+1));
                     m->indices.push_back((x+1) + (z+1)*(chunk_size+1));
+                    m->indices.push_back((x+1) + z*(chunk_size+1));
                     // Upper left of quad
                     m->indices.push_back(x + z*(chunk_size+1));
-                    m->indices.push_back((x+1) + (z+1)*(chunk_size+1));
                     m->indices.push_back(x + (z+1)*(chunk_size+1));
+                    m->indices.push_back((x+1) + (z+1)*(chunk_size+1));
                 }
             }
             m->shininess = 4.f; // Some arbitrary default
