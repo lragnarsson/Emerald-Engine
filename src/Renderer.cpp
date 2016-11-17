@@ -645,7 +645,6 @@ void Renderer::render_bounding_spheres()
 void Renderer::geometry_pass()
 {
     Profiler::start_timer("Geometry pass");
-
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -679,6 +678,7 @@ void Renderer::geometry_pass()
 
             glUniform1f(glGetUniformLocation(shaders[GEOMETRY], "shininess"), mesh->shininess);
 
+
             glBindVertexArray(mesh->get_VAO());
 
             /* DRAW GEOMETRY */
@@ -690,6 +690,8 @@ void Renderer::geometry_pass()
         if (!terrain->draw_me) {
             continue;
         }
+        float i = 0.f;
+
         GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(terrain->m2w_matrix));
 
@@ -697,6 +699,9 @@ void Renderer::geometry_pass()
             if (!mesh->draw_me) {
                 continue;
             }
+            vec3 color_tmp = vec3(i);
+            i += 0.1f;
+            glUniform3fv(glGetUniformLocation(shaders[GEOMETRY], "tmp_foo"), 1, value_ptr(color_tmp));
             glActiveTexture(GL_TEXTURE0);
             GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY], "diffuse_map");
             glUniform1i(diffuse_loc, 0);
@@ -784,7 +789,7 @@ void Renderer::normal_visualization_pass()
             glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
         }
     }
-    
+
 
     glBindVertexArray(0);
 

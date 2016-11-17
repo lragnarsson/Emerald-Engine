@@ -10,6 +10,7 @@ layout (location = 1) out vec4 g_normal_shininess;
 layout (location = 2) out vec4 g_albedo_specular;
 
 uniform float shininess;
+uniform vec3 tmp_foo;
 
 uniform sampler2D diffuse_map;
 uniform sampler2D specular_map;
@@ -25,6 +26,6 @@ void main()
     g_normal_shininess.rgb = normalize(TBN_viewSpace * Normal);
     g_normal_shininess.a = shininess;
 
-    g_albedo_specular.rgb = texture(diffuse_map, TexCoord).rgb;
+    g_albedo_specular.rgb = tmp_foo; //texture(diffuse_map, TexCoord).rgb;
     g_albedo_specular.a = texture(specular_map, TexCoord).r;
 }

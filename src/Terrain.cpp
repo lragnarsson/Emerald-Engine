@@ -14,7 +14,7 @@ Terrain::Terrain()
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
     this->m2w_matrix = move_matrix  * rot_matrix;
     this->clamp_textures = false;
-    
+
     Terrain::loaded_terrain.push_back(this);
 }
 
@@ -26,7 +26,7 @@ Terrain::Terrain(std::string directory, float plane_scale, float height_scale, u
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
     this->m2w_matrix = move_matrix  * rot_matrix;
     this->clamp_textures = false;
-    
+
     load_heightmap(directory, plane_scale, height_scale, chunk_size);
 
     Terrain::loaded_terrain.push_back(this);
@@ -42,9 +42,9 @@ Terrain::~Terrain(){
 // -------------------
 
 float Terrain::get_height(float x_world, float z_world){
-    
+
     //std::cout << "World coord: " << x_world << "," << z_world << std::endl;
-    
+
     // Translate coordinates from world to model space
     float x = (x_world + this->scale * (float)this->total_x / 2.f) / this->scale;
     float z = (z_world + this->scale * (float)this->total_z / 2.f) / this->scale;
@@ -60,10 +60,10 @@ float Terrain::get_height(float x_world, float z_world){
     if ( deltax + deltaz < 1 ) {
 
         vertices.push_back(get_vertice(int_x, int_z));
-        vertices.push_back(get_vertice(int_x+1, int_z));
         vertices.push_back(get_vertice(int_x, int_z+1));
+        vertices.push_back(get_vertice(int_x+1, int_z));
 
-        normal = cross(vertices[1] - vertices[0], vertices[2] - vertices[0]); 
+        normal = cross(vertices[1] - vertices[0], vertices[2] - vertices[0]);
     }
     else {
         vertices.push_back(get_vertice(int_x+1, int_z+1));
@@ -72,21 +72,17 @@ float Terrain::get_height(float x_world, float z_world){
 
         normal = cross(vertices[1]-vertices[0], vertices[2] - vertices[0]);
     }
-    // Allways positive normal
-    if (normal.y < 0){
-        normal = -normal;
-    }
-    
+
     std::cout << normal.x << "," << normal.y << "," << normal.z << std::endl;
 
     // Plane equation
     float D = dot(vertices[0], normal);
-    return (D-normal.x*x-normal.z*z)/normal.y;
+    return this->height_scale * (normal.x * x - normal.z * z) / normal.y;
 }
 
 // ------------------
 bool Terrain::point_in_terrain(float x_world, float z_world){
-    
+
     float x = x_world + this->scale*this->total_x/2.f;
     float z = z_world + this->scale*this->total_z/2.f;
 
@@ -101,10 +97,10 @@ bool Terrain::point_in_terrain(float x_world, float z_world){
 // PRIVATE FUNCTIONS
 
 vec3 Terrain::get_vertice(int x, int z){
-    int mesh_index = floor(x / (float)this->chunk_size) + 
+    int mesh_index = floor(x / (float)this->chunk_size) +
                     floor(z / (float)this->chunk_size) * (this->total_x / (float)this->chunk_size);
     int pixel_index = 3 * ((x % this->chunk_size) + (z % this->chunk_size) * this->chunk_size);
-    
+
     //std::cout << "Mesh index: " << mesh_index << std::endl;
     //std::cout << "Pixel index: " << pixel_index << std::endl;
     //std::cout << "x,chunk_size,z,total_x: " << x << "," << this->chunk_size << "," << z << "," << this->total_x << std::endl;
@@ -112,9 +108,9 @@ vec3 Terrain::get_vertice(int x, int z){
     if ( mesh_index < this->meshes.size() and pixel_index < 3*pow(this->chunk_size,2) ){
         Mesh* mesh = this->meshes.at(mesh_index);
         vec3 indice = vec3(
-                mesh->vertices[pixel_index+0], 
-                mesh->vertices[pixel_index+1], 
-                mesh->vertices[pixel_index+2] 
+                mesh->vertices[pixel_index+0],
+                mesh->vertices[pixel_index+1] / this->height_scale,
+                mesh->vertices[pixel_index+2]
                 );
 
         this->last_indice = indice;
@@ -143,8 +139,8 @@ float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
     //Uint8 black;
     int index = get_pixel_index(x, z, image);
 
-    Uint8 *all_pixels = (Uint8*) image->pixels; 
-    Uint8 pixel = all_pixels[index]; 
+    Uint8 *all_pixels = (Uint8*) image->pixels;
+    Uint8 pixel = all_pixels[index];
 
     //SDL_GetRGBA(pixel, image->format, &red, &green, &blue, &alpha);
 
@@ -154,7 +150,7 @@ float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
 
 // -------------------
 
-void Terrain::load_heightmap(std::string directory, float plane_scale, float height_scale, unsigned chunk_size) 
+void Terrain::load_heightmap(std::string directory, float plane_scale, float height_scale, unsigned chunk_size)
 {
     std::string heightmap_file = directory + "/" + "heightmap.png";
     SDL_Surface* heightmap = IMG_Load(heightmap_file.c_str());
@@ -255,6 +251,7 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
 
     // Translate terrain to the middle
     this->scale = plane_scale;
+    this->height_scale = height_scale;
     this->world_coord = glm::vec3(-heightmap->w*plane_scale/2.f, 0, -heightmap->h*plane_scale/2.f);
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
     this->m2w_matrix = move_matrix  * rot_matrix;
@@ -293,7 +290,7 @@ vec3 Terrain::get_normal(int x, int z, SDL_Surface* image){
     if ( x < image->w-1 and x > 0 and z < image->h-1 and z > 0){
         vec3 base1 = p1-p2;
         vec3 base2 = p1-p3;
-        
+
         vec3 normal1 = normalize(cross(base1, base2));
         if (normal1.y < 0) {
             normal1 = -normal1;
@@ -445,7 +442,7 @@ unsigned Terrain::cull_me(Camera* camera){
                     mesh->bounding_sphere_radius);
             mesh->draw_me = draw_me;
             if (draw_me)
-                drawn_meshes++; 
+                drawn_meshes++;
         }
     }
 

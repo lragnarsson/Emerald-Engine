@@ -41,8 +41,8 @@ public:
     bool draw_me = true, clamp_textures = false;
     glm::vec3 world_coord;
     glm::mat4 m2w_matrix, move_matrix, rot_matrix;
-    float bounding_sphere_radius = -1.f, scale = 1.f;
-    
+    float bounding_sphere_radius = -1.f, scale = 1.f, height_scale = 1.f;
+
     const std::vector<Mesh*> get_meshes();
     void load_heightmap(std::string heightmap_file, float plane_scale, float height_scale, unsigned chunk_size);
     static const std::vector<Terrain*> get_loaded_terrain();
@@ -63,7 +63,7 @@ private:
     std::vector<Mesh*> meshes;
     glm::vec3 bounding_sphere_center;
 
-    
+
     float get_pixel_height(int x, int y, SDL_Surface* image);
     int get_pixel_index(int x, int y, SDL_Surface* image);
     glm::vec3 get_normal(int x, int z, SDL_Surface* image);
