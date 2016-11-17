@@ -43,8 +43,6 @@ Terrain::~Terrain(){
 
 float Terrain::get_height(float x_world, float z_world){
 
-    //std::cout << "World coord: " << x_world << "," << z_world << std::endl;
-
     // Translate coordinates from world to model coordinates
     float x_model = (x_world + this->scale * (float)this->total_x / 2.f);
     float z_model = (z_world + this->scale * (float)this->total_z / 2.f);
@@ -56,7 +54,8 @@ float Terrain::get_height(float x_world, float z_world){
     int int_z = (int)z;
     float deltax = x - (float)int_x;
     float deltaz = z - (float)int_z;
-
+    
+    // Needed for calculating normal
     vec3 normal;
     std::vector<vec3> vertices;
     
@@ -94,8 +93,6 @@ float Terrain::get_height(float x_world, float z_world){
 
         normal = cross(vertices[1]-vertices[0], vertices[2] - vertices[0]);
     }
-
-    //std::cout << normal.x << "," << normal.y << "," << normal.z << std::endl;
 
     // Plane equation
     float D = dot(vertices[0], normal);
@@ -135,9 +132,6 @@ float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
     Uint8 *all_pixels = (Uint8*) image->pixels;
     Uint8 pixel = all_pixels[index];
 
-    //SDL_GetRGBA(pixel, image->format, &red, &green, &blue, &alpha);
-
-    //std::cout << pixel << std::endl;
     return pixel;
 }
 
