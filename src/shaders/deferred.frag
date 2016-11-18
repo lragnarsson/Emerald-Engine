@@ -30,6 +30,7 @@ uniform sampler2D ssao_blurred;
 
 uniform vec3 sun_direction;
 uniform vec3 sun_color;
+uniform bool sun_up;
 // camera position is always 0,0,0 in view space
 
 
@@ -51,9 +52,6 @@ void main()
     // Point lights:
     for(int i=0; i < num_lights; i++) {
         vec3 light_dir = normalize(lights[i].position - position);
-        if (dot(normal, light_dir) <= 0) {
-            continue;
-        }
 
         float distance = length(lights[i].position - position);
         float attenuation = 1.0 / (_ATT_CON_ + _ATT_LIN_ * distance + _ATT_QUAD_ * distance * distance);
@@ -71,12 +69,14 @@ void main()
     }
 
     // Directional light source (sun):
-    float d = max(dot(normalize(normal), sun_direction), 0.0);
-    vec3 diffuse_light = occlusion * d * sun_color * albedo;
-    vec3 halfway_dir = normalize(sun_direction + view_direction);
-    float s = pow(max(dot(normal, halfway_dir), 0.0), shininess);
-    vec3 specular_light = s * sun_color * albedo;
-    light += diffuse_light + specular_light;
+    if (sun_up) {
+        float d = max(dot(normalize(normal), sun_direction), 0.0);
+        vec3 diffuse_light = occlusion * d * sun_color * albedo;
+        vec3 halfway_dir = normalize(sun_direction + view_direction);
+        float s = pow(max(dot(normal, halfway_dir), 0.0), shininess);
+        vec3 specular_light = s * sun_color * albedo;
+        light += diffuse_light + specular_light;
+    }
 
 
     OutColor = vec4(light, 1.0);
