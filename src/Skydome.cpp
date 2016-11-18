@@ -1,5 +1,8 @@
 #include "Skydome.hpp"
 
+
+using namespace glm;
+
 const vec3 Skydome::sun_dawn = {.8f, .3f, 0.2f};
 const vec3 Skydome::sun_noon = {.5f, .35f, 0.2f};
 const vec3 Skydome::sun_dusk = {0.9f, 0.3f, 0.1f};
@@ -90,6 +93,15 @@ void Skydome::propagate_time(float elapsed_time)
         time_of_day += 24.f;
 }
 
+// --------------
+
+vec3 Skydome::get_sun_direction(){
+    return this->sun_direction;
+}
+
+// --------------
+
+
 
 void Skydome::reset_time()
 {
@@ -177,3 +189,5 @@ void Skydome::calculate_sun()
     }
 
 }
+
+// -----------------

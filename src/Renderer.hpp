@@ -91,13 +91,14 @@ private:
       SHOW_RGB_COMPONENT,
       SHOW_ALPHA_COMPONENT,
       SHOW_SSAO,
-      HDR_BLOOM
+      HDR_BLOOM,
+      DEPTH_MAP
     };
 
     render_mode mode;
-    GLuint shaders[15];
+    GLuint shaders[16];
     // Frame buffers
-    GLuint g_buffer, ssao_fbo, hdr_fbo, post_proc_fbo, ping_pong_fbo_red, ping_pong_fbo_rgb;
+    GLuint g_buffer, ssao_fbo, hdr_fbo, post_proc_fbo, ping_pong_fbo_red, ping_pong_fbo_rgb, depth_buffer, depth_map;
     // Textures
     GLuint g_position, g_normal_shininess, g_albedo_specular, ssao_tex, color_tex, bright_tex, post_proc_tex,  ping_pong_tex_red, ping_pong_tex_rgb;
     GLuint quad_vao, quad_vbo;
@@ -118,6 +119,7 @@ private:
     GLint ssao_n_samples;
     bool ssao_on;
     bool smooth_ssao;
+    bool shadows_on = true;
 
     // Tweak bar
     TwBar* tweak_bar;
@@ -146,6 +148,7 @@ private:
     void init_show_ssao_shader();
     void init_blur_shaders();
     void init_hdr_bloom_shader();
+    void init_depth_buffer();
 
     void upload_camera_uniforms(const Camera &camera);
     void draw_tweak_bar();
@@ -155,6 +158,7 @@ private:
     void render_flat();
     void render_bounding_spheres();
     void post_processing();
+    void render_depth_map(const Camera &camera);
 
     void clear_ssao();
     void ssao_pass();
