@@ -30,6 +30,10 @@ Terrain::Terrain(std::string directory, float plane_scale, float height_scale, u
     load_heightmap(directory, plane_scale, height_scale, chunk_size);
 
     Terrain::loaded_terrain.push_back(this);
+
+    for (auto mesh : this->meshes){
+        mesh->clear_mem();
+    }
 }
 
 // -------------------
