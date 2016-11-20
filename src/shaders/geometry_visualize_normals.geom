@@ -49,20 +49,20 @@ void main()
     vec3 frag_pos, frag_pos_01, frag_pos_02, normal, normal_01, normal_02;
     vec2 tex_coord, tex_coord_01, tex_coord_02;
     vec4 clip_pos;
-    float par=0.0f;
-    float par2=0.0f;
-    float step_len = 1/float(n_lines+1);
+    float par2 = 0.0f;
+    float step_len = 1/float(2 * (n_lines + 1));
+    float par = -2 *step_len;;
 
     /* This loop creates lines in a pattern like this:
        The pipes are the lines created. No lines are created on the triangle edges. 
                       V0
                      / | \
-                    / | | \
-                   / | | | \
+                    /|   |\
+                   /|  |  |\
                  V1---------V2
     */
     for (int i=1; i<=n_lines; i++) {
-        par = par + step_len;
+        par = par + 3 *step_len;
         
         frag_pos_01 = mix(gs_in[0].FragPos, gs_in[1].FragPos, par);
         tex_coord_01 = mix(gs_in[0].TexCoord, gs_in[1].TexCoord, par);
@@ -71,10 +71,10 @@ void main()
         tex_coord_02 = mix(gs_in[0].TexCoord, gs_in[2].TexCoord, par);
         normal_02 = normalize(mix(gs_in[0].Normal, gs_in[2].Normal, par));
         
-        par2 = 0.0f;
-        float step_2 = 1/float(i+1);
+        float step_2 = 1/float(2 * (i + 1));
+        par2 = -2 *step_2;
         for (int j=1; j<=i; j++) {
-            par2 = par2 + step_2;
+            par2 = par2 + 3 * step_2;
             frag_pos = mix(frag_pos_01, frag_pos_02, par2);
             clip_pos = projection * vec4(frag_pos, 1.0f);
             tex_coord = mix(tex_coord_01, tex_coord_02, par2);
