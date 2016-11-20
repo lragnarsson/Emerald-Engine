@@ -179,7 +179,7 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
                     m->vertices.push_back(z*plane_scale);
 
                     // Create a normal for each vertice
-                    vec3 normal = get_normal(x, z, heightmap);
+                    vec3 normal = get_normal(x, z, heightmap, plane_scale, height_scale);
                     m->normals.push_back(normal.x);
                     m->normals.push_back(normal.y);
                     m->normals.push_back(normal.z);
@@ -189,7 +189,7 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
                     m->tex_coords.push_back(z);
 
                     // Need tangents beacause of transform in geometry.vert
-                    vec3 tangent = get_tangent(x, z, heightmap);
+                    vec3 tangent = get_tangent(x, z, heightmap, plane_scale, height_scale);
                     m->tangents.push_back(tangent.x);
                     m->tangents.push_back(tangent.y);
                     m->tangents.push_back(tangent.z);
@@ -270,12 +270,15 @@ const std::vector<Terrain*> Terrain::get_loaded_terrain()
 // -------------------
 /* Private Model functions */
 
-vec3 Terrain::get_normal(int x, int z, SDL_Surface* image){
-    vec3 p1(x, get_pixel_height(x, z, image), z);
-    vec3 p2(x-1, get_pixel_height(x-1, z, image), z);
-    vec3 p3(x, get_pixel_height(x, z-1, image), z-1);
-    vec3 p4(x+1, get_pixel_height(x+1, z, image), z);
-    vec3 p5(x, get_pixel_height(x, z+1, image), z+1);
+/* ps = plane_scale
+   hs = height_scale */
+vec3 Terrain::get_normal(int x, int z, SDL_Surface* image,
+                         float ps, float hs){
+    vec3 p1(x*ps,     get_pixel_height(x, z, image)*hs,   z*ps);
+    vec3 p2((x-1)*ps, get_pixel_height(x-1, z, image)*hs, z*ps);
+    vec3 p3(x*ps,     get_pixel_height(x, z-1, image)*hs, (z-1)*ps);
+    vec3 p4((x+1)*ps, get_pixel_height(x+1, z, image)*hs, z*ps);
+    vec3 p5(x*ps,    get_pixel_height(x, z+1, image)*hs, (z+1)*ps);
 
     // If not along edges
     if ( x < image->w-1 and x > 0 and z < image->h-1 and z > 0){
@@ -319,10 +322,13 @@ vec3 Terrain::get_normal(int x, int z, SDL_Surface* image){
 
 // ----------------------
 
-vec3 Terrain::get_tangent(int x, int z, SDL_Surface* image){
+/* ps = plane_scale
+   hs = height_scale */
+vec3 Terrain::get_tangent(int x, int z, SDL_Surface* image, float ps, float hs){
     // If not along edges
     if ( x < image->w-1 and x > 0 and z < image->h-1 and z > 0){
-        vec3 tangent = normalize(vec3(x+1, get_pixel_height(x+1, z, image), z) - vec3(x, get_pixel_height(x, z, image), z));
+        vec3 tangent = normalize(vec3((x+1)*ps, get_pixel_height(x+1, z, image)*hs, z*ps) -
+                                 vec3(x*ps, get_pixel_height(x, z, image)*hs, z*ps));
 
         return tangent;
     }
