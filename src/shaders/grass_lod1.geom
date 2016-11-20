@@ -13,11 +13,17 @@ out vec2 TexCoord;
 out vec3 FragPos;  // view space position
 out vec3 Normal;   // view space normal
 
+uniform sampler2D wind_map;
+uniform sampler2D diffuse_map;
 
 // for converting normals to clip space
 uniform mat4 projection;
 uniform float upInterp; // Interpolation between up-vector and vertex own normal vector
 uniform mat4 view;
+uniform vec3 wind_direction;
+uniform float wind_strength;
+uniform vec2 time_offset;
+
 const float MAGNITUDE = 0.3f; // Height scale for grass
 const float GRASS_SCALE = 3.f; // Uniform scale for grass
 const float OFFSET = 40.f; // Position offset in triangle
@@ -31,7 +37,6 @@ void GenerateTallGrass(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal,
                        vec3 base_1, vec3 base_2)
 {
     vec3 tangent = 0.06 * base_1 + 0.06 * base_2;
-
     vec3 grass_normal = normalize(cross(tangent, inNormal));
     if (grass_normal.z < 0) {
         grass_normal = -grass_normal;
@@ -43,12 +48,15 @@ void GenerateTallGrass(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal,
 
     // TODO: read gradient from a wave normal map with texture pos based on world coordinates and time.
     // Possibly with an offset based on wind direction.
-    vec3 gradient = vec3(1.5, 0, 0);
+    vec2 wind_coord = fract(texCoord + wind_strength * time_offset);
+    vec3 gradient = vec3(view * vec4(wind_strength * (wind_direction +
+                                      texture(wind_map, wind_coord).rgb), 0));
+    gradient = gradient - dot(inNormal, gradient); // Project onto xz-plane
 
     for (int i=0; i < 9; i++) {
         TexCoord = texCoord;
         Normal = grass_normal;
-        float bend_interp = pow(GRASS_1_Y[i] / GRASS_1_Y[8], 2.5);
+        float bend_interp = pow(GRASS_1_Y[i] / GRASS_1_Y[8], 2.7);
 
         float y = GRASS_SCALE * GRASS_1_Y[i];
         vec3 xz = (OFFSET + GRASS_SCALE * GRASS_1_X[i]) * tangent + bend_interp * gradient;

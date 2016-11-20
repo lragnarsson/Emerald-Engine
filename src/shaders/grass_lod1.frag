@@ -8,6 +8,7 @@ layout (location = 2) out vec4 g_albedo_specular;
 
 uniform float shininess;
 
+uniform sampler2D wind_map;
 uniform sampler2D diffuse_map;
 
 const float SPECULAR = 1.0f;

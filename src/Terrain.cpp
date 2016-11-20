@@ -5,6 +5,7 @@ using namespace glm;
 
 
 std::vector<Terrain*> Terrain::loaded_terrain;
+Texture* Terrain::wind_map;
 
 // --------------------
 
@@ -28,6 +29,7 @@ Terrain::Terrain(std::string directory, float plane_scale, float height_scale, u
     this->clamp_textures = false;
 
     load_heightmap(directory, plane_scale, height_scale, chunk_size);
+    load_wind(directory, "wind.jpg");
 
     Terrain::loaded_terrain.push_back(this);
 
@@ -213,25 +215,24 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
                     m->indices.push_back((x+1) + (z+1)*(chunk_size+1));
                 }
             }
-            m->shininess = 4.f; // Some arbitrary default
+            m->shininess = 1.f;
 
-            // Use default diffuse and specular maps
             Texture* diffuse_map;
-            diffuse_map = m->load_texture("albedo.png", directory, clamp_textures);
+            diffuse_map = Mesh::load_texture("albedo.png", directory, clamp_textures);
             diffuse_map->type = DIFFUSE;
             diffuse_map->path = directory;
             m->diffuse_map = diffuse_map;
 
 
             Texture* specular_map;
-            specular_map = m->load_texture("specular.png", directory, clamp_textures);
+            specular_map = Mesh::load_texture("specular.png", directory, clamp_textures);
             specular_map->type = SPECULAR;
             specular_map->path = directory;
             m->specular_map = specular_map;
 
             // Keep normals as normal map
             Texture* normal_map;
-            normal_map = m->load_texture("normal.png", directory, clamp_textures);
+            normal_map = Mesh::load_texture("normal.png", directory, clamp_textures);
             normal_map->type = NORMAL;
             normal_map->path = directory;
             m->normal_map = normal_map;
@@ -447,4 +448,14 @@ unsigned Terrain::cull_me(Camera* camera){
     }
 
     return drawn_meshes;
+}
+
+
+//------------------
+
+void Terrain::load_wind(std::string directory, std::string name) {
+
+    wind_map = Mesh::load_texture(name, directory, false);
+    wind_map->type = NORMAL;
+    wind_map->path = directory;
 }

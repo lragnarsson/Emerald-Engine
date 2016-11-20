@@ -1,4 +1,4 @@
-#ifndef MESH_H 
+#ifndef MESH_H
 #define MESH_H
 
 #ifdef __linux__
@@ -61,13 +61,13 @@ public:
     ~Mesh() { };
     void clear_mem();
 
-    /* Upload vertices, normals etc to the GPU */
     void upload_mesh_data();
     GLuint get_VAO();
-    Texture* load_texture(const std::string filename, const std::string basepath, bool clamp);
     void generate_bounding_sphere();
     glm::vec3 get_center_point_world(glm::mat4 m2w_matrix);
     glm::vec3 get_center_point();
+
+    static Texture* load_texture(const std::string filename, const std::string basepath, bool clamp);
 private:
     static std::vector<Texture*> loaded_textures;
     GLuint VAO, EBO;

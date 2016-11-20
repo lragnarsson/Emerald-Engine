@@ -218,13 +218,13 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         aiString filepath;
         material->GetTexture(aiTextureType_DIFFUSE, 0, &filepath);
         Texture* texture;
-        texture = m->load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
+        texture = Mesh::load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
         texture->type = DIFFUSE;
         texture->path = filepath;
         m->diffuse_map = texture;
     } else {
         Texture* texture;
-        texture = m->load_texture(DEFAULT_DIFFUSE, DEFAULT_PATH, clamp_textures);
+        texture = Mesh::load_texture(DEFAULT_DIFFUSE, DEFAULT_PATH, clamp_textures);
         texture->type = DIFFUSE;
         texture->path = DEFAULT_PATH;
         m->diffuse_map = texture;
@@ -234,7 +234,7 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         aiString filepath;
         material->GetTexture(aiTextureType_SPECULAR, 0, &filepath);
         Texture* texture;
-        texture = m->load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
+        texture = Mesh::load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
         texture->type = SPECULAR;
         texture->path = filepath;
         m->specular_map = texture;
@@ -246,13 +246,13 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
         aiString filepath;
         material->GetTexture(aiTextureType_HEIGHT, 0, &filepath);
         Texture* texture;
-        texture = m->load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
+        texture = Mesh::load_texture(std::string(filepath.C_Str()), this->directory, clamp_textures);
         texture->type = NORMAL;
         texture->path = filepath;
         m->normal_map = texture;
     } else { // Default normal map keeps the geometry defined normals
         Texture* texture;
-        texture = m->load_texture(DEFAULT_NORMAL, DEFAULT_PATH, clamp_textures);
+        texture = Mesh::load_texture(DEFAULT_NORMAL, DEFAULT_PATH, clamp_textures);
         texture->type = NORMAL;
         texture->path = DEFAULT_PATH;
         m->normal_map = texture;
@@ -296,7 +296,7 @@ void Model::generate_bounding_sphere()
             if(mesh->vertices[i + 2] > z_local_max){
                 z_local_max = mesh->vertices[i + 2];
             }
-            
+
             // Mins
             if (mesh->vertices[i] < x_min){
                 x_min = mesh->vertices[i];
@@ -374,7 +374,7 @@ unsigned Model::cull_me(Camera* camera){
                     mesh->bounding_sphere_radius * this->scale);
             mesh->draw_me = draw_me;
             if (draw_me)
-                drawn_meshes++; 
+                drawn_meshes++;
         }
     }
 

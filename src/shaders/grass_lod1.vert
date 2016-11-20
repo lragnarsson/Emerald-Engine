@@ -7,11 +7,10 @@ layout (location = 2) in vec2 in_TexCoord;
 layout (location = 3) in vec3 in_Tangent;
 
 out VS_OUT {
-    out vec2 TexCoord;  // 
+    out vec2 TexCoord;
     out vec3 FragPos;   // view space position
     out vec3 Normal;    // view space normal
 } vs_out;
-//out mat3 NormalMatrix;
 
 uniform mat4 model;
 uniform mat4 view;

@@ -732,7 +732,7 @@ void Renderer::geometry_pass()
             glUniform1i(normal_loc, 2);
             glBindTexture(GL_TEXTURE_2D, mesh->normal_map->id);
 
-            glUniform1f(glGetUniformLocation(shaders[GEOMETRY], "shininess"), 1);
+            glUniform1f(glGetUniformLocation(shaders[GEOMETRY], "shininess"), mesh->shininess);
 
             glBindVertexArray(mesh->get_VAO());
 
@@ -838,6 +838,17 @@ void Renderer::grass_generation_pass()
     glUseProgram(shaders[GRASS_LOD1]);
     glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "upInterp"), this->up_interp);
     glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "shininess"), 20);
+    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "wind_strength"), 3.f);
+    glUniform3fv(glGetUniformLocation(shaders[GRASS_LOD1], "wind_direction"),
+                 1, value_ptr(vec3(0.3f, 0.f, -0.7f)));
+    glUniform2fv(glGetUniformLocation(shaders[GRASS_LOD1], "time_offset"),
+                 1, value_ptr(((float)SDL_GetTicks()) / 100000.f * vec2(0.5f, -0.5f)));
+
+    glActiveTexture(GL_TEXTURE0);
+    GLuint wind_loc = glGetUniformLocation(shaders[GRASS_LOD1], "wind_map");
+    glUniform1i(wind_loc, 0);
+    glBindTexture(GL_TEXTURE_2D, Terrain::wind_map->id);
+
     for (auto terrain : Terrain::get_loaded_terrain()) {
         if (!terrain->draw_me) {
             continue;
@@ -849,9 +860,9 @@ void Renderer::grass_generation_pass()
             if (!mesh->draw_me) {
                 continue;
             }
-            glActiveTexture(GL_TEXTURE0);
+            glActiveTexture(GL_TEXTURE0 + 1);
             GLuint diffuse_loc = glGetUniformLocation(shaders[GRASS_LOD1], "diffuse_map");
-            glUniform1i(diffuse_loc, 0);
+            glUniform1i(diffuse_loc, 1);
             glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
 
             glBindVertexArray(mesh->get_VAO());
