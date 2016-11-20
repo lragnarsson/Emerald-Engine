@@ -109,6 +109,16 @@ void update_camera()
     if (!camera.can_look_free()) {
         camera.move_look_point_along_path(0.1f);
     }
+    if (camera.get_height_lock()){
+        glm::vec3 pos = camera.get_pos();
+
+        for ( auto terrain : Terrain::get_loaded_terrain() ){
+            if (terrain->point_in_terrain(pos.x, pos.z)) {
+                camera.set_height(terrain->get_height(pos.x, pos.z));
+                break;
+            }
+        }
+    }
 
     camera.update_culling_frustum();
     camera.update_view_matrix();
@@ -138,7 +148,7 @@ void run()
         Profiler::start_timer("Swap");
         SDL_GL_SwapWindow(main_window);
         Profiler::stop_timer("Swap");
-        SDL_Delay(45);
+        SDL_Delay(40);
         Profiler::stop_timer("-> Frame time");
     }
 }
@@ -154,6 +164,7 @@ void print_welcome()
     welcome += std::string("Numbers 1-7 = Display different buffers\n");
     welcome += std::string("F           = Follow path with camera\n");
     welcome += std::string("T           = Toggle tweakbar display\n");
+    welcome += std::string("Y           = Toggle follow terrain.\n");
     welcome += std::string("X,Z         = Interact with lights\n");
     welcome += std::string("P           = Print profiling numbers\n");
     welcome += std::string("\nA complete description of all keyboard commands can be found in doc/keyboard_command_reference.md\n");

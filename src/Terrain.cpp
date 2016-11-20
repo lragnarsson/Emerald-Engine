@@ -30,6 +30,10 @@ Terrain::Terrain(std::string directory, float plane_scale, float height_scale, u
     load_heightmap(directory, plane_scale, height_scale, chunk_size);
 
     Terrain::loaded_terrain.push_back(this);
+
+    for (auto mesh : this->meshes){
+        mesh->clear_mem();
+    }
 }
 
 // -------------------
@@ -37,6 +41,79 @@ Terrain::~Terrain(){
     for (auto mesh : meshes){
         delete(mesh);
     }
+}
+
+// -------------------
+
+float Terrain::get_height(float x_world, float z_world){
+
+    // Translate coordinates from world to model coordinates
+    float x_model = (x_world + this->scale * (float)this->total_x / 2.f);
+    float z_model = (z_world + this->scale * (float)this->total_z / 2.f);
+    // Translate coordinates from world to index values for the heightmap
+    float x = (x_world + this->scale * (float)this->total_x / 2.f) / this->scale;
+    float z = (z_world + this->scale * (float)this->total_z / 2.f) / this->scale;
+
+    int int_x = (int)x;
+    int int_z = (int)z;
+    float deltax = x - (float)int_x;
+    float deltaz = z - (float)int_z;
+    
+    // Needed for calculating normal
+    vec3 normal;
+    std::vector<vec3> vertices;
+    
+    if ( deltax + deltaz < 1 ) { // Decide wether we are in upper or lower part of quad
+        vec3 p0(int_x * this->scale, 
+                get_pixel_height(int_x, int_z, this->heightmap)*this->height_scale, 
+                int_z * this->scale);
+        vec3 p1(int_x * this->scale, 
+                get_pixel_height(int_x, int_z+1, this->heightmap)*this->height_scale, 
+                (int_z+1) * this->scale);
+        vec3 p2((int_x+1) * this->scale, 
+                get_pixel_height(int_x+1, int_z, this->heightmap)*this->height_scale, 
+                int_z * this->scale);
+        
+        vertices.push_back(p0);
+        vertices.push_back(p1);
+        vertices.push_back(p2);
+
+        normal = cross(vertices[1] - vertices[0], vertices[2] - vertices[0]);
+    }
+    else { 
+        vec3 p0((int_x+1) * this->scale, 
+                get_pixel_height(int_x+1, int_z+1, this->heightmap)*this->height_scale, 
+                (int_z+1) * this->scale);
+        vec3 p1((int_x+1) * this->scale, 
+                get_pixel_height(int_x+1, int_z, this->heightmap)*this->height_scale, 
+                int_z * this->scale);
+        vec3 p2(int_x * this->scale, 
+                get_pixel_height(int_x, int_z+1, this->heightmap)*this->height_scale, 
+                (int_z+1) * this->scale);
+        
+        vertices.push_back(p0);
+        vertices.push_back(p1);
+        vertices.push_back(p2);
+
+        normal = cross(vertices[1]-vertices[0], vertices[2] - vertices[0]);
+    }
+
+    // Plane equation
+    float D = dot(vertices[0], normal);
+    return 5.f+(D - normal.x * x_model - normal.z * z_model) / normal.y;
+}
+
+// ------------------
+bool Terrain::point_in_terrain(float x_world, float z_world){
+
+    float x = x_world + this->scale*this->total_x/2.f;
+    float z = z_world + this->scale*this->total_z/2.f;
+
+    if ( x > this->total_x*this->scale or z > this->total_z*this->scale or x < 0 or z < 0){
+        return false;
+    }
+
+    return true;
 }
 
 // ---------------------------------------------------------------------------------------------------
@@ -59,9 +136,6 @@ float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
     Uint8 *all_pixels = (Uint8*) image->pixels;
     Uint8 pixel = all_pixels[index];
 
-    //SDL_GetRGBA(pixel, image->format, &red, &green, &blue, &alpha);
-
-    //std::cout << pixel << std::endl;
     return pixel;
 }
 
@@ -79,6 +153,11 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
     if (heightmap->format->BitsPerPixel != 8){
         Error::throw_error(Error::cant_load_image, "Need 8-bit per pixel images for heightmap, this image is " + std::to_string(heightmap->format->BitsPerPixel) + "-bit!");
     }
+
+    // We need to save some size data in order to access correct indexes
+    this->chunk_size = chunk_size;
+    this->total_x = heightmap->w;
+    this->total_z = heightmap->h;
 
     for (int z_total = 0; z_total < heightmap->h; z_total += chunk_size){
         for (int x_total = 0; x_total < heightmap->w; x_total += chunk_size){
@@ -163,13 +242,14 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
 
     // Translate terrain to the middle
     this->scale = plane_scale;
+    this->height_scale = height_scale;
     this->world_coord = glm::vec3(-heightmap->w*plane_scale/2.f, 0, -heightmap->h*plane_scale/2.f);
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
     this->m2w_matrix = move_matrix  * rot_matrix;
     // Generate bounding spheres
     this->generate_bounding_sphere();
-    // Cleanup image from memory
-    delete(heightmap);
+    // Save image
+    this->heightmap = heightmap;
 }
 
 // ------------------
@@ -191,30 +271,45 @@ const std::vector<Terrain*> Terrain::get_loaded_terrain()
 /* Private Model functions */
 
 vec3 Terrain::get_normal(int x, int z, SDL_Surface* image){
+    vec3 p1(x, get_pixel_height(x, z, image), z);
+    vec3 p2(x-1, get_pixel_height(x-1, z, image), z);
+    vec3 p3(x, get_pixel_height(x, z-1, image), z-1);
+    vec3 p4(x+1, get_pixel_height(x+1, z, image), z);
+    vec3 p5(x, get_pixel_height(x, z+1, image), z+1);
+
     // If not along edges
     if ( x < image->w-1 and x > 0 and z < image->h-1 and z > 0){
-        vec3 base1 = vec3(x, get_pixel_height(x, z, image), z) - vec3(x-1, get_pixel_height(x-1, z, image), z);
-        vec3 base2 = vec3(x, get_pixel_height(x, z+1, image), z+1) - vec3(x-1, get_pixel_height(x-1, z, image), z);
+        vec3 base1 = p1-p2;
+        vec3 base2 = p1-p3;
+
         vec3 normal1 = normalize(cross(base1, base2));
         if (normal1.y < 0) {
             normal1 = -normal1;
         }
 
-        base1 = vec3(x+1, get_pixel_height(x+1, z, image), z) - vec3(x, get_pixel_height(x, z, image), z);
-        base2 = vec3(x+1, get_pixel_height(x+1, z+1, image), z+1) - vec3(x, get_pixel_height(x, z, image), z);
+        base1 = p1-p4;
+        base2 = p1-p3;
         vec3 normal2 = normalize(cross(base1, base2));
         if (normal2.y < 0) {
             normal2 = -normal2;
         }
 
-        base1 = vec3(x, get_pixel_height(x, z-1, image), z-1) - vec3(x-1, get_pixel_height(x-1, z-1, image), z-1);
-        base2 = vec3(x, get_pixel_height(x, z, image), z) - vec3(x-1, get_pixel_height(x-1, z-1, image), z-1);
+        base1 = p1-p5;
+        base2 = p1-p4;
         vec3 normal3 = normalize(cross(base1, base2));
         if (normal3.y < 0) {
             normal3 = -normal3;
         }
 
-        return normalize(normal1 + normal2 + normal3);
+
+        base1 = p1-p2;
+        base2 = p1-p5;
+        vec3 normal4 = normalize(cross(base1, base2));
+        if (normal4.y < 0) {
+            normal4 = -normal4;
+        }
+
+        return normalize(normal1 + normal2 + normal3 + normal4);
     }
     else { // Along edges just return upVector for now
         // TODO: Return normal for slopes

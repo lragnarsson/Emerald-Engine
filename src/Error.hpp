@@ -33,6 +33,7 @@ public:
     static const ErrorMessage camera_free_mode;
     static const ErrorMessage performance_counter_already_started;
     static const ErrorMessage performance_counter_not_started;
+    static const ErrorMessage index_out_of_range;
 };
 
 #endif

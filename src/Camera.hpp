@@ -38,6 +38,7 @@ public:
            glm::vec3 right, float speed, float rot_speed);
     glm::vec3 get_pos() const {return position;}
     void set_pos(glm::vec3 new_pos);
+    void set_height(float height);
     glm::mat4 get_view_matrix() const {return view_matrix;}
     bool can_move_free() const {return free_cam;}
     bool can_look_free() const {return free_look;}
@@ -51,6 +52,7 @@ public:
     void look_at_path(float elapsed_time);
     void toggle_free_move();
     void toggle_free_look();
+    void toggle_height_lock();
     void cycle_move_anim_path(int& parameter);
     void cycle_look_anim_path(int& parameter);
 
@@ -63,6 +65,7 @@ public:
     bool sphere_in_frustum(glm::vec3 center, float radius);
 
     void update_view_matrix() {view_matrix = glm::lookAt(position, position + front, up);}
+    bool get_height_lock();
 
 private:
     glm::vec3 position, look_pos; // Look pos will be invalid if free look is enabled
@@ -74,6 +77,7 @@ private:
     int look_anim_path_id;
     bool free_cam;
     bool free_look;
+    bool height_lock;
 
     glm::vec3 frustum_normals[5];
     GLfloat frustum_offsets[5];
