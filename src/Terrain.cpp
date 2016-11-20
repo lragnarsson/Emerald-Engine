@@ -61,39 +61,39 @@ float Terrain::get_height(float x_world, float z_world){
     int int_z = (int)z;
     float deltax = x - (float)int_x;
     float deltaz = z - (float)int_z;
-    
+
     // Needed for calculating normal
     vec3 normal;
     std::vector<vec3> vertices;
-    
+
     if ( deltax + deltaz < 1 ) { // Decide wether we are in upper or lower part of quad
-        vec3 p0(int_x * this->scale, 
-                get_pixel_height(int_x, int_z, this->heightmap)*this->height_scale, 
+        vec3 p0(int_x * this->scale,
+                get_pixel_height(int_x, int_z, this->heightmap)*this->height_scale,
                 int_z * this->scale);
-        vec3 p1(int_x * this->scale, 
-                get_pixel_height(int_x, int_z+1, this->heightmap)*this->height_scale, 
+        vec3 p1(int_x * this->scale,
+                get_pixel_height(int_x, int_z+1, this->heightmap)*this->height_scale,
                 (int_z+1) * this->scale);
-        vec3 p2((int_x+1) * this->scale, 
-                get_pixel_height(int_x+1, int_z, this->heightmap)*this->height_scale, 
+        vec3 p2((int_x+1) * this->scale,
+                get_pixel_height(int_x+1, int_z, this->heightmap)*this->height_scale,
                 int_z * this->scale);
-        
+
         vertices.push_back(p0);
         vertices.push_back(p1);
         vertices.push_back(p2);
 
         normal = cross(vertices[1] - vertices[0], vertices[2] - vertices[0]);
     }
-    else { 
-        vec3 p0((int_x+1) * this->scale, 
-                get_pixel_height(int_x+1, int_z+1, this->heightmap)*this->height_scale, 
+    else {
+        vec3 p0((int_x+1) * this->scale,
+                get_pixel_height(int_x+1, int_z+1, this->heightmap)*this->height_scale,
                 (int_z+1) * this->scale);
-        vec3 p1((int_x+1) * this->scale, 
-                get_pixel_height(int_x+1, int_z, this->heightmap)*this->height_scale, 
+        vec3 p1((int_x+1) * this->scale,
+                get_pixel_height(int_x+1, int_z, this->heightmap)*this->height_scale,
                 int_z * this->scale);
-        vec3 p2(int_x * this->scale, 
-                get_pixel_height(int_x, int_z+1, this->heightmap)*this->height_scale, 
+        vec3 p2(int_x * this->scale,
+                get_pixel_height(int_x, int_z+1, this->heightmap)*this->height_scale,
                 (int_z+1) * this->scale);
-        
+
         vertices.push_back(p0);
         vertices.push_back(p1);
         vertices.push_back(p2);
@@ -181,13 +181,8 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
                     m->vertices.push_back(height*height_scale);
                     m->vertices.push_back(z*plane_scale);
 
-<<<<<<< HEAD
-                    // Create a normal for each vertex
-                    vec3 normal = get_normal(x, z, heightmap);
-=======
                     // Create a normal for each vertice
                     vec3 normal = get_normal(x, z, heightmap, plane_scale, height_scale);
->>>>>>> master
                     m->normals.push_back(normal.x);
                     m->normals.push_back(normal.y);
                     m->normals.push_back(normal.z);
@@ -222,21 +217,21 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
 
             // Use default diffuse and specular maps
             Texture* diffuse_map;
-            diffuse_map = m->load_texture("albedo.jpg", directory, clamp_textures);
+            diffuse_map = m->load_texture("albedo.png", directory, clamp_textures);
             diffuse_map->type = DIFFUSE;
             diffuse_map->path = directory;
             m->diffuse_map = diffuse_map;
 
 
             Texture* specular_map;
-            specular_map = m->load_texture("specular.jpg", directory, clamp_textures);
+            specular_map = m->load_texture("specular.png", directory, clamp_textures);
             specular_map->type = SPECULAR;
             specular_map->path = directory;
             m->specular_map = specular_map;
 
             // Keep normals as normal map
             Texture* normal_map;
-            normal_map = m->load_texture("normal.jpg", directory, clamp_textures);
+            normal_map = m->load_texture("normal.png", directory, clamp_textures);
             normal_map->type = NORMAL;
             normal_map->path = directory;
             m->normal_map = normal_map;

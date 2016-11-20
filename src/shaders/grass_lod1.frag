@@ -18,6 +18,6 @@ void main()
 
     g_normal_shininess.rgb = Normal;
     g_normal_shininess.a = shininess;
-    g_albedo_specular.rgb = texture(diffuse_map, TexCoord).rgb * normalize(vec3(0.2, 0.3, 0.2));
+    g_albedo_specular.rgb = texture(diffuse_map, TexCoord).rgb;
     g_albedo_specular.a = SPECULAR;
 }

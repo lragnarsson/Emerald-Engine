@@ -94,7 +94,7 @@ void main()
     float step_len = 1/float(2 * (n_lines + 1));
     float par = -2 *step_len;
     /* This loop creates lines in a pattern like this:
-       The pipes are the lines created. No lines are created on the triangle edges. 
+       The pipes are the lines created. No lines are created on the triangle edges.
                       V0
                      / | \
                     /|   |\

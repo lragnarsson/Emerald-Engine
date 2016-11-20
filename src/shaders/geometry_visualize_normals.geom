@@ -45,7 +45,7 @@ void GenerateLine(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal)
 void main()
 {
     GenerateLine(gl_in[0].gl_Position, gs_in[0].TexCoord, gs_in[0].FragPos, 2 * gs_in[0].Normal); // First vertex normal
-    
+
     vec3 frag_pos, frag_pos_01, frag_pos_02, normal, normal_01, normal_02;
     vec2 tex_coord, tex_coord_01, tex_coord_02;
     vec4 clip_pos;
@@ -54,7 +54,7 @@ void main()
     float par = -2 *step_len;
 
     /* This loop creates lines in a pattern like this:
-       The pipes are the lines created. No lines are created on the triangle edges. 
+       The pipes are the lines created. No lines are created on the triangle edges.
                       V0
                      / | \
                     /|   |\
@@ -63,14 +63,14 @@ void main()
     */
     for (int i=1; i<=n_lines; i++) {
         par = par + 3 *step_len;
-        
+
         frag_pos_01 = mix(gs_in[0].FragPos, gs_in[1].FragPos, par);
         tex_coord_01 = mix(gs_in[0].TexCoord, gs_in[1].TexCoord, par);
         normal_01 = normalize(mix(gs_in[0].Normal, gs_in[2].Normal, par));
         frag_pos_02 = mix(gs_in[0].FragPos, gs_in[2].FragPos, par);
         tex_coord_02 = mix(gs_in[0].TexCoord, gs_in[2].TexCoord, par);
         normal_02 = normalize(mix(gs_in[0].Normal, gs_in[2].Normal, par));
-        
+
         float step_2 = 1/float(2 * (i + 1));
         par2 = -2 *step_2;
         for (int j=1; j<=i; j++) {
@@ -79,7 +79,7 @@ void main()
             clip_pos = projection * vec4(frag_pos, 1.0f);
             tex_coord = mix(tex_coord_01, tex_coord_02, par2);
             normal = normalize(mix(normal_01, normal_02, par2));
-        
+
             GenerateLine(clip_pos, tex_coord, frag_pos, normal);
         }
     }

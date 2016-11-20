@@ -732,7 +732,7 @@ void Renderer::geometry_pass()
             glUniform1i(normal_loc, 2);
             glBindTexture(GL_TEXTURE_2D, mesh->normal_map->id);
 
-            glUniform1f(glGetUniformLocation(shaders[GEOMETRY], "shininess"), mesh->shininess);
+            glUniform1f(glGetUniformLocation(shaders[GEOMETRY], "shininess"), 1);
 
             glBindVertexArray(mesh->get_VAO());
 
@@ -762,7 +762,7 @@ void Renderer::normal_visualization_pass(const vec3 cam_pos)
 
     glUseProgram(shaders[GEOMETRY_NORMALS]);
     glUniform1f(glGetUniformLocation(shaders[GEOMETRY_NORMALS], "upInterp"), this->up_interp);
-    glUniform1i(glGetUniformLocation(shaders[GEOMETRY_NORMALS], "n_lines"), this->n_geometry_lines); 
+    glUniform1i(glGetUniformLocation(shaders[GEOMETRY_NORMALS], "n_lines"), this->n_geometry_lines);
     for (auto model : Model::get_loaded_models()) {
         if (!model->draw_me) {
             continue;
@@ -837,7 +837,7 @@ void Renderer::grass_generation_pass()
 
     glUseProgram(shaders[GRASS_LOD1]);
     glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "upInterp"), this->up_interp);
-    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "shininess"), 50);
+    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "shininess"), 20);
     for (auto terrain : Terrain::get_loaded_terrain()) {
         if (!terrain->draw_me) {
             continue;
