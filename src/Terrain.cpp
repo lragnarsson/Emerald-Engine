@@ -23,7 +23,7 @@ Terrain::Terrain()
 
 Terrain::Terrain(std::string directory, float plane_scale, float height_scale, unsigned chunk_size)
 {   this->rot_matrix = glm::mat4(1.f);
-    this->world_coord = glm::vec3(0.f);
+    this->world_coord = glm::vec3(0.f, 0.f, 0.f);
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
     this->m2w_matrix = move_matrix  * rot_matrix;
     this->clamp_textures = false;
@@ -105,7 +105,7 @@ float Terrain::get_height(float x_world, float z_world){
 
     // Plane equation
     float D = dot(vertices[0], normal);
-    return 5.f+(D - normal.x * x_model - normal.z * z_model) / normal.y;
+    return 10.f + (D - normal.x * x_model - normal.z * z_model) / normal.y;
 }
 
 // ------------------
@@ -247,7 +247,7 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
     // Translate terrain to the middle
     this->scale = plane_scale;
     this->height_scale = height_scale;
-    this->world_coord = glm::vec3(-heightmap->w*plane_scale/2.f, 0, -heightmap->h*plane_scale/2.f);
+    this->world_coord = glm::vec3(-heightmap->w*plane_scale/2.f, 0.f, -heightmap->h*plane_scale/2.f);
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
     this->m2w_matrix = move_matrix  * rot_matrix;
     // Generate bounding spheres

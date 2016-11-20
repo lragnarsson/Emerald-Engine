@@ -17,7 +17,7 @@ const vec3 Skydome::horizon_dusk = {0.9f, 0.4f, 0.1f};
 const vec3 Skydome::zenith_midnight = {0.f, 0.0f, 0.01f};
 const vec3 Skydome::horizon_midnight = {0.f, 0.01f, 0.05f};
 
-const float Skydome::altitude_margin = -0.055f;
+const float Skydome::altitude_margin = -0.12f;
 
 
 void Skydome::init()
