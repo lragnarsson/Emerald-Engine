@@ -1,6 +1,6 @@
 
 layout (triangles) in;
-layout (triangle_strip, max_vertices = 28) out;
+layout (triangle_strip, max_vertices = 54) out;
 
 in VS_OUT {
     vec2 TexCoord;
@@ -68,6 +68,7 @@ void main()
     vec3 frag_pos_base_12 = normalize(gs_in[2].FragPos - gs_in[1].FragPos);
 
     // TODO: Add more grass!
+    /*
     GenerateTallGrass(gl_in[0].gl_Position, gs_in[0].TexCoord, gs_in[0].FragPos, gs_in[0].Normal,
                       frag_pos_base_01, frag_pos_base_02);
     GenerateTallGrass(gl_in[1].gl_Position, gs_in[1].TexCoord, gs_in[1].FragPos, gs_in[1].Normal,
@@ -83,5 +84,44 @@ void main()
 
     GenerateTallGrass(middlePos, middleTex, middleFragPos, middleNormal,
                       frag_pos_base_02, frag_pos_base_01);
+    */
 
+    vec3 frag_pos, frag_pos_01, frag_pos_02, normal, normal_01, normal_02;
+    vec2 tex_coord, tex_coord_01, tex_coord_02;
+    vec4 clip_pos;
+    float par2 = 0.0f;
+    const int n_lines = 3;
+    float step_len = 1/float(2 * (n_lines + 1));
+    float par = -2 *step_len;
+    /* This loop creates lines in a pattern like this:
+       The pipes are the lines created. No lines are created on the triangle edges. 
+                      V0
+                     / | \
+                    /|   |\
+                   /|  |  |\
+                 V1---------V2
+    */
+    for (int i=1; i<=n_lines; i++) {
+        par = par + 3 *step_len;
+
+        frag_pos_01 = mix(gs_in[0].FragPos, gs_in[1].FragPos, par);
+        tex_coord_01 = mix(gs_in[0].TexCoord, gs_in[1].TexCoord, par);
+        normal_01 = normalize(mix(gs_in[0].Normal, gs_in[2].Normal, par));
+        frag_pos_02 = mix(gs_in[0].FragPos, gs_in[2].FragPos, par);
+        tex_coord_02 = mix(gs_in[0].TexCoord, gs_in[2].TexCoord, par);
+        normal_02 = normalize(mix(gs_in[0].Normal, gs_in[2].Normal, par));
+
+        float step_2 = 1/float(2 * (i + 1));
+        par2 = -2 *step_2;
+        for (int j=1; j<=i; j++) {
+            par2 = par2 + 3 * step_2;
+            frag_pos = mix(frag_pos_01, frag_pos_02, par2);
+            clip_pos = projection * vec4(frag_pos, 1.0f);
+            tex_coord = mix(tex_coord_01, tex_coord_02, par2);
+            normal = normalize(mix(normal_01, normal_02, par2));
+
+            GenerateTallGrass(clip_pos, tex_coord, frag_pos, normal,
+                              frag_pos_base_01, frag_pos_base_02);
+        }
+    }
 }

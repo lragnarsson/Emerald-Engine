@@ -51,7 +51,7 @@ void main()
     vec4 clip_pos;
     float par2 = 0.0f;
     float step_len = 1/float(2 * (n_lines + 1));
-    float par = -2 *step_len;;
+    float par = -2 *step_len;
 
     /* This loop creates lines in a pattern like this:
        The pipes are the lines created. No lines are created on the triangle edges. 

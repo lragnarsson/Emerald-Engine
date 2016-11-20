@@ -65,19 +65,19 @@ void Renderer::render(const Camera &camera)
         render_deferred(camera);
         break;
     case POSITION_MODE:
-        render_g_position();
+        render_g_position(camera);
         break;
     case NORMAL_MODE:
-        render_g_normal();
+        render_g_normal(camera);
         break;
     case ALBEDO_MODE:
-        render_g_albedo();
+        render_g_albedo(camera);
         break;
     case SPECULAR_MODE:
-        render_g_specular();
+        render_g_specular(camera);
         break;
     case SSAO_MODE:
-        render_ssao();
+        render_ssao(camera);
         break;
     }
 
@@ -220,7 +220,7 @@ void Renderer::render_deferred(const Camera &camera)
     grass_generation_pass();
     /* VISUALIZE NORMALS: EXPERIMENTAL STUFF */
     if (this->show_normals) {
-        normal_visualization_pass();
+        normal_visualization_pass(camera.get_pos());
     }
 
     // SSAO PASS
@@ -755,7 +755,7 @@ void Renderer::geometry_pass()
 
 // --------------------------
 
-void Renderer::normal_visualization_pass()
+void Renderer::normal_visualization_pass(const vec3 cam_pos)
 {
     Profiler::start_timer("Normal visualization pass");
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
@@ -771,6 +771,9 @@ void Renderer::normal_visualization_pass()
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
 
         for (auto mesh : model->get_meshes()) {
+            if (!mesh->draw_me) {
+                continue;
+            }
             glActiveTexture(GL_TEXTURE0);
             GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY_NORMALS], "diffuse_map");
             glUniform1i(diffuse_loc, 0);
@@ -792,6 +795,11 @@ void Renderer::normal_visualization_pass()
 
         for (auto mesh : terrain->get_meshes()) {
             if (!mesh->draw_me) {
+                continue;
+            }
+            printf("Distance to mesh center: %f\n", glm::length(cam_pos - mesh->get_center_point_world(terrain->m2w_matrix)));
+            if (glm::length(cam_pos - mesh->get_center_point_world(terrain->m2w_matrix)) > 1000.0) {
+                // TODO: This value depends heavily on the size of meshes. Do this properly
                 continue;
             }
             glActiveTexture(GL_TEXTURE0);
@@ -838,6 +846,9 @@ void Renderer::grass_generation_pass()
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(terrain->m2w_matrix));
 
         for (auto mesh : terrain->get_meshes()) {
+            if (!mesh->draw_me) {
+                continue;
+            }
             glActiveTexture(GL_TEXTURE0);
             GLuint diffuse_loc = glGetUniformLocation(shaders[GRASS_LOD1], "diffuse_map");
             glUniform1i(diffuse_loc, 0);
@@ -862,13 +873,13 @@ void Renderer::grass_generation_pass()
 }
 
 
-void Renderer::render_g_position()
+void Renderer::render_g_position(const Camera &camera)
 {
     geometry_pass();
 
     grass_generation_pass();
     if (this->show_normals) {
-        normal_visualization_pass();
+        normal_visualization_pass(camera.get_pos());
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -886,13 +897,13 @@ void Renderer::render_g_position()
 
 // --------------------------
 
-void Renderer::render_g_normal()
+void Renderer::render_g_normal(const Camera &camera)
 {
     geometry_pass();
 
     grass_generation_pass();
     if (this->show_normals) {
-        normal_visualization_pass();
+        normal_visualization_pass(camera.get_pos());
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -910,12 +921,12 @@ void Renderer::render_g_normal()
 
 // --------------------------
 
-void Renderer::render_g_albedo()
+void Renderer::render_g_albedo(const Camera &camera)
 {
     geometry_pass();
     grass_generation_pass();
     if (this->show_normals) {
-        normal_visualization_pass();
+        normal_visualization_pass(camera.get_pos());
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -933,13 +944,13 @@ void Renderer::render_g_albedo()
 
 // --------------------------
 
-void Renderer::render_g_specular()
+void Renderer::render_g_specular(const Camera &camera)
 {
     geometry_pass();
 
     // Moved into else for debug.
     if (this->show_normals) {
-        normal_visualization_pass();
+        normal_visualization_pass(camera.get_pos());
     } else {
         grass_generation_pass();
     }
@@ -959,12 +970,12 @@ void Renderer::render_g_specular()
 
 // --------------------------
 
-void Renderer::render_ssao()
+void Renderer::render_ssao(const Camera &camera)
 {
     geometry_pass();
     grass_generation_pass();
     if (this->show_normals) {
-        normal_visualization_pass();
+        normal_visualization_pass(camera.get_pos());
     }
 
     ssao_pass();

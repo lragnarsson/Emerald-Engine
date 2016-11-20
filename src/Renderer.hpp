@@ -136,7 +136,7 @@ private:
     // Normal visualization settings
     bool show_normals = false;
     float up_interp = 0.8; // between [0,1]
-    int n_geometry_lines = 5;
+    int n_geometry_lines = 3;
 
     void init_g_buffer();
     void init_hdr_fbo();
@@ -170,13 +170,13 @@ private:
     void blur_rgb_texture(GLuint source_tex, GLuint fbo_tex, GLuint target_fbo, filter_type ft, int iterations);
 
     void geometry_pass();
-    void normal_visualization_pass();
+    void normal_visualization_pass(const vec3 cam_pos);
     void grass_generation_pass();
-    void render_g_position();
-    void render_g_normal();
-    void render_g_albedo();
-    void render_g_specular();
-    void render_ssao();
+    void render_g_position(const Camera &camera);
+    void render_g_normal(const Camera &camer);
+    void render_g_albedo(const Camera &camer);
+    void render_g_specular(const Camera &camer);
+    void render_ssao(const Camera &camer);
 };
 
 #endif

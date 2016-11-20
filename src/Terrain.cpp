@@ -34,6 +34,9 @@ Terrain::Terrain(std::string directory, float plane_scale, float height_scale, u
     for (auto mesh : this->meshes){
         mesh->clear_mem();
     }
+
+    // Debug
+    printf("Terrain loaded. Number of meshes: %lu\n", meshes.size());
 }
 
 // -------------------
