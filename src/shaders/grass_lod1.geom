@@ -18,11 +18,11 @@ out vec3 Normal;   // view space normal
 uniform mat4 projection;
 uniform float upInterp; // Interpolation between up-vector and vertex own normal vector
 uniform mat4 view;
-const float MAGNITUDE = 1.f; // Length of generated lines
+const float MAGNITUDE = 0.3f; // Length of generated lines
 const float OFFSET = 40.f;
 const float GRASS_1_X[9] = float[9](-0.329877, 0.329877, -0.212571, 0.212571, -0.173286, 0.173286, -0.151465, 0.151465, 0.000000);
-const float GRASS_1_Y[9] = float[9](0.000000, 0.000000, 7.836071, 7.836071, 12.914148, 12.914148, 16.372519, 16.372519, 20.000000);
-const float GRASS_SCALE = 1.f;
+const float GRASS_1_Y[9] = float[9](0.000000, 0.000000, 2.490297, 2.490297, 4.847759, 4.847759, 6.651822, 6.651822, 8.000000);
+const float GRASS_SCALE = 3.f;
 
 
 void GenerateTallGrass(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal,
