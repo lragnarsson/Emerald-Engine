@@ -24,8 +24,8 @@ void Renderer::init()
                                       "build/shaders/show_red_component.frag");
     shaders[HDR_BLOOM] = load_shaders("build/shaders/identity.vert",
                                       "build/shaders/hdr_bloom.frag");
-    shaders[DEPTH_MAP] = load_shaders("build/shaders/depth_map.vert",
-                                      "build/shaders/depth_map.frag");
+    shaders[SHADOW_MAP] = load_shaders("build/shaders/shadow_map.vert",
+                                      "build/shaders/shadow_map.frag");
 
 
     init_g_buffer();
@@ -38,7 +38,7 @@ void Renderer::init()
     init_blur_shaders();
     init_hdr_bloom_shader();
     init_ping_pong_fbos();
-    init_depth_buffer();
+    init_shadow_buffer();
 
     sphere = new Model("res/models/sphere/sphere.obj");
     skydome = new Skydome();
@@ -202,7 +202,7 @@ void Renderer::render_deferred(const Camera &camera)
 {
     // Draw shadows
     if (this->shadows_on){
-        render_depth_map(camera);
+        render_shadow_map(camera);
     }
 
     /* GEOMETRY PASS */
@@ -235,6 +235,8 @@ void Renderer::render_deferred(const Camera &camera)
     glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, ssao_tex);
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, this->shadow_map);
 
     // Render deferred shading stage to quad:
     glBindVertexArray(quad_vao);
@@ -651,17 +653,17 @@ void Renderer::render_bounding_spheres()
 
 // ------------------------
 
-void Renderer::render_depth_map(const Camera &camera){
-    // Bind depth_buffer FBO
+void Renderer::render_shadow_map(const Camera &camera){
+    // Bind shadow_buffer FBO
     glViewport(0, 0, SCREEN_WIDTH/_SHADOW_SCALE_, SCREEN_HEIGHT/_SHADOW_SCALE_);
     glClear(GL_DEPTH_BUFFER_BIT);
-    glBindFramebuffer(GL_FRAMEBUFFER, this->depth_buffer);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->depth_map, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, this->shadow_buffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->shadow_map, 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
 
     // Use depth buffer shader
-    glUseProgram(shaders[DEPTH_MAP]);
+    glUseProgram(shaders[SHADOW_MAP]);
 
     // Set up some geometry based on my position and the suns direction
     glm::vec3 camera_pos = camera.get_pos();
@@ -670,8 +672,10 @@ void Renderer::render_depth_map(const Camera &camera){
             camera_pos - normalize(this->skydome->get_sun_direction())*500.f, // position
             camera_pos+camera.front*(_FAR_-_NEAR_)/2.f, // lookAtPos
             glm::vec3( 0.0f, 1.0f,  0.0f)); // Up
-    glm::mat4 light_space_matrix = light_projection * light_view;
-    GLuint light_space_location = glGetUniformLocation(shaders[DEPTH_MAP], "light_space_matix");
+    this->light_space_matrix = light_projection * light_view;
+
+    // Upload to shader
+    GLuint light_space_location = glGetUniformLocation(shaders[SHADOW_MAP], "light_space_matrix");
     glUniformMatrix4fv(light_space_location, 1, GL_FALSE, glm::value_ptr(light_space_matrix));
 
 
@@ -680,7 +684,7 @@ void Renderer::render_depth_map(const Camera &camera){
         if (!model->draw_me) {
             continue;
         }
-        GLuint m2w_location = glGetUniformLocation(shaders[DEPTH_MAP], "model");
+        GLuint m2w_location = glGetUniformLocation(shaders[SHADOW_MAP], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(model->m2w_matrix));
 
         for (auto mesh : model->get_meshes()) {
@@ -700,7 +704,7 @@ void Renderer::render_depth_map(const Camera &camera){
             continue;
         }
 
-        GLuint m2w_location = glGetUniformLocation(shaders[DEPTH_MAP], "model");
+        GLuint m2w_location = glGetUniformLocation(shaders[SHADOW_MAP], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(terrain->m2w_matrix));
 
         for (auto mesh : terrain->get_meshes()) {
@@ -716,8 +720,10 @@ void Renderer::render_depth_map(const Camera &camera){
 
         }
     }
-    
+
+    // Reset rendering settings
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glUseProgram(0);
 }
 
@@ -727,12 +733,8 @@ void Renderer::geometry_pass()
 {
     Profiler::start_timer("Geometry pass");
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
-    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if (this->shadows_on){
-        glBindTexture(GL_TEXTURE_2D, depth_map);
-    }
 
     glUseProgram(shaders[GEOMETRY]);
 
@@ -1139,6 +1141,7 @@ void Renderer::init_g_buffer()
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_normal_shininess"), 1);
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_albedo_specular"), 2);
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "ssao_blurred"), 3);
+    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "frag_pos_light_space"), 4);
     glUseProgram(0);
 
     glDisable(GL_BLEND);
@@ -1241,11 +1244,11 @@ void Renderer::init_hdr_fbo()
     /* Attach a depth buffer */
     GLuint depth_buffer;
     glGenRenderbuffers(1, &depth_buffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, shadow_buffer);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32,
             SCREEN_WIDTH, SCREEN_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-            GL_RENDERBUFFER, depth_buffer);
+            GL_RENDERBUFFER, shadow_buffer);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::ostringstream error_msg;
@@ -1341,13 +1344,13 @@ void Renderer::init_hdr_bloom_shader()
 }
 // -----------------
 
-void Renderer::init_depth_buffer(){
+void Renderer::init_shadow_buffer(){
     // Generate depth buffer FBO for shadows
-    glGenFramebuffers(1, &this->depth_buffer);
+    glGenFramebuffers(1, &this->shadow_buffer);
 
     // Generate depth map (texture)
-    glGenTextures(1, &this->depth_map);
-    glBindTexture(GL_TEXTURE_2D, this->depth_map);
+    glGenTextures(1, &this->shadow_map);
+    glBindTexture(GL_TEXTURE_2D, this->shadow_map);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 
             SCREEN_WIDTH/_SHADOW_SCALE_, SCREEN_HEIGHT/_SHADOW_SCALE_, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -1355,12 +1358,12 @@ void Renderer::init_depth_buffer(){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    // Attach depth map to FBO (render to texture, only depth)
-    glBindFramebuffer(GL_FRAMEBUFFER, this->depth_buffer);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->depth_map, 0);
+    // Attach depth map to FBO depth buffer (render to texture, only depth)
+    glBindFramebuffer(GL_FRAMEBUFFER, this->shadow_buffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this->shadow_map, 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);  
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 }
 

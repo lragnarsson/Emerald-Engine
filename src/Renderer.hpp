@@ -92,17 +92,17 @@ private:
       SHOW_ALPHA_COMPONENT,
       SHOW_SSAO,
       HDR_BLOOM,
-      DEPTH_MAP
+      SHADOW_MAP,
     };
 
     render_mode mode;
     GLuint shaders[16];
     // Frame buffers
-    GLuint g_buffer, ssao_fbo, hdr_fbo, post_proc_fbo, ping_pong_fbo_red, ping_pong_fbo_rgb, depth_buffer, depth_map;
+    GLuint g_buffer, ssao_fbo, hdr_fbo, post_proc_fbo, ping_pong_fbo_red, ping_pong_fbo_rgb, shadow_buffer;
     // Textures
-    GLuint g_position, g_normal_shininess, g_albedo_specular, ssao_tex, color_tex, bright_tex, post_proc_tex,  ping_pong_tex_red, ping_pong_tex_rgb;
+    GLuint g_position, g_normal_shininess, g_albedo_specular, ssao_tex, color_tex, bright_tex, post_proc_tex,  ping_pong_tex_red, ping_pong_tex_rgb, shadow_map, frag_pos_light_space;
     GLuint quad_vao, quad_vbo;
-    mat4 w2v_matrix;
+    mat4 w2v_matrix, light_space_matrix;
     Model *sphere;
     Skydome *skydome;
 
@@ -148,7 +148,7 @@ private:
     void init_show_ssao_shader();
     void init_blur_shaders();
     void init_hdr_bloom_shader();
-    void init_depth_buffer();
+    void init_shadow_buffer();
 
     void upload_camera_uniforms(const Camera &camera);
     void draw_tweak_bar();
@@ -158,7 +158,7 @@ private:
     void render_flat();
     void render_bounding_spheres();
     void post_processing();
-    void render_depth_map(const Camera &camera);
+    void render_shadow_map(const Camera &camera);
 
     void clear_ssao();
     void ssao_pass();

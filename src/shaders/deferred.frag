@@ -27,11 +27,32 @@ uniform sampler2D g_position;
 uniform sampler2D g_normal_shininess;
 uniform sampler2D g_albedo_specular;
 uniform sampler2D ssao_blurred;
+uniform sampler2D frag_pos_light_space;
+uniform sampler2D shadow_map;
 
 uniform vec3 sun_direction;
 uniform vec3 sun_color;
 // camera position is always 0,0,0 in view space
 
+// ------------------
+
+float shadow_calculation(vec4 frag_pos_light_space)
+{
+    // perform perspective divide
+    vec3 proj_coords = frag_pos_light_space.xyz / frag_pos_light_space.w;
+    // Transform to [0,1] range
+    proj_coords = proj_coords * 0.5 + 0.5;
+    // Get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closest_depth = texture(shadow_map, proj_coords.xy).r; 
+    // Get depth of current fragment from light's perspective
+    float current_depth = proj_coords.z;
+    // Check whether current frag pos is in shadow
+    float shadow = current_depth > closest_depth ? 1.0 : 0.0;
+
+    return shadow;
+}  
+
+// ------------------
 
 void main()
 {
