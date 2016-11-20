@@ -28,10 +28,6 @@ void Camera::set_pos(glm::vec3 new_pos)
 
 void Camera::set_height(float height)
 {
-    if (!this->free_cam) {
-        std::string extra_info = std::string("Tried to set camera position when it was not in free mode.\n");
-        Error::throw_error(Error::camera_free_mode, extra_info);
-    }
     this->position.y = height;
 }
 
@@ -66,7 +62,13 @@ void Camera::move_along_path(float elapsed_time)
     } else {
         Error::throw_error(Error::model_has_no_path);
     }
-    this->position = new_pos;
+    if (this->height_lock) {
+        // camera height will be handled by a different function.
+        this->position.x = new_pos.x;
+        this->position.z = new_pos.z;
+    } else {
+        this->position = new_pos;
+    }
 }
 
 
