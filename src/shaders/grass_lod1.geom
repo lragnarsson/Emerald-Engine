@@ -18,11 +18,13 @@ out vec3 Normal;   // view space normal
 uniform mat4 projection;
 uniform float upInterp; // Interpolation between up-vector and vertex own normal vector
 uniform mat4 view;
-const float MAGNITUDE = 0.3f; // Length of generated lines
-const float OFFSET = 40.f;
+const float MAGNITUDE = 0.3f; // Height scale for grass
+const float GRASS_SCALE = 3.f; // Uniform scale for grass
+const float OFFSET = 40.f; // Position offset in triangle
+
+// Vertices for tall straight grass:
 const float GRASS_1_X[9] = float[9](-0.329877, 0.329877, -0.212571, 0.212571, -0.173286, 0.173286, -0.151465, 0.151465, 0.000000);
 const float GRASS_1_Y[9] = float[9](0.000000, 0.000000, 2.490297, 2.490297, 4.847759, 4.847759, 6.651822, 6.651822, 8.000000);
-const float GRASS_SCALE = 3.f;
 
 
 void GenerateTallGrass(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal,
@@ -39,18 +41,22 @@ void GenerateTallGrass(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal,
     vec4 ws_up_in_cs = projection * view * vec4(0, MAGNITUDE, 0, 0); // World space up in clip space
     vec4 interpNormal = mix(clip_space_normal, ws_up_in_cs, upInterp);
 
+    // TODO: read gradient from a wave normal map with texture pos based on world coordinates and time.
+    // Possibly with an offset based on wind direction.
+    vec3 gradient = vec3(1.5, 0, 0);
+
     for (int i=0; i < 9; i++) {
         TexCoord = texCoord;
         Normal = grass_normal;
+        float bend_interp = pow(GRASS_1_Y[i] / GRASS_1_Y[8], 2.5);
 
-        vec3 xz = (OFFSET + GRASS_SCALE * GRASS_1_X[i]) * tangent;
         float y = GRASS_SCALE * GRASS_1_Y[i];
+        vec3 xz = (OFFSET + GRASS_SCALE * GRASS_1_X[i]) * tangent + bend_interp * gradient;
         gl_Position = clipPos + projection * vec4(xz, 0) + interpNormal * y;
         FragPos = fragPos + xz + inNormal * y;
 
         EmitVertex();
     }
-
     EndPrimitive();
 }
 
@@ -61,6 +67,7 @@ void main()
     vec3 frag_pos_base_01 = normalize(gs_in[1].FragPos - gs_in[0].FragPos);
     vec3 frag_pos_base_12 = normalize(gs_in[2].FragPos - gs_in[1].FragPos);
 
+    // TODO: Add more grass!
     GenerateTallGrass(gl_in[0].gl_Position, gs_in[0].TexCoord, gs_in[0].FragPos, gs_in[0].Normal,
                       frag_pos_base_01, frag_pos_base_02);
     GenerateTallGrass(gl_in[1].gl_Position, gs_in[1].TexCoord, gs_in[1].FragPos, gs_in[1].Normal,
