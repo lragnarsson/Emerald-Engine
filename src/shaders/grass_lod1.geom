@@ -21,6 +21,8 @@ uniform mat4 view;
 const float MAGNITUDE = 1.0f; // Length of generated lines
 const float OFFSET = 5.f;
 const float TARGET = 15.f;
+const float grass_1_x[9] = float[9](-0.329877, 0.329877, -0.212571, 0.212571, -0.173286, 0.173286, -0.151465, 0.151465, 0.000000);
+const float grass_1_y[9] = float[9](0.000000, 0.000000, 7.836071, 7.836071, 12.914148, 12.914148, 16.372519, 16.372519, 20.000000);
 
 
 void GenerateTallGrass(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal,
@@ -86,5 +88,5 @@ void main()
 
     GenerateTallGrass(middlePos, middleTex, middleFragPos, middleNormal,
                       frag_pos_base_02, frag_pos_base_01);
-    
+
 }
