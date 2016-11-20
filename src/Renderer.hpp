@@ -73,6 +73,8 @@ public:
     void propagate_time(bool forward);
     void increase_up_interp();
     void decrease_up_interp();
+    void increase_grass_amount();
+    void decrease_grass_amount();
     void toggle_show_normals();
 
 private:
@@ -133,7 +135,8 @@ private:
 
     // Normal visualization settings
     bool show_normals = false;
-    float up_interp = 0.0; // between [0,1]
+    float up_interp = 0.8; // between [0,1]
+    int n_geometry_lines = 5;
 
     void init_g_buffer();
     void init_hdr_fbo();

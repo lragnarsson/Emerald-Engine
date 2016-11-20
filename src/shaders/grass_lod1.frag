@@ -10,7 +10,7 @@ uniform float shininess;
 
 uniform sampler2D diffuse_map;
 
-const float SPECULAR = 0.5f;
+const float SPECULAR = 1.0f;
 
 void main()
 {

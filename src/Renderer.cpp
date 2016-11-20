@@ -188,6 +188,21 @@ void Renderer::decrease_up_interp()
         this->up_interp -= 0.1f;
 }
 
+void Renderer::increase_grass_amount()
+{
+    n_geometry_lines++;
+    if (this->n_geometry_lines > 20)
+        this->n_geometry_lines = 20;
+}
+
+void Renderer::decrease_grass_amount()
+{
+    if (this->n_geometry_lines > 0)
+        n_geometry_lines--;
+    if (this->n_geometry_lines < 0)
+        this->n_geometry_lines = 0;
+}
+
 void Renderer::toggle_show_normals()
 {
     this->show_normals = !this->show_normals;
@@ -746,7 +761,7 @@ void Renderer::normal_visualization_pass()
 
     glUseProgram(shaders[GEOMETRY_NORMALS]);
     glUniform1f(glGetUniformLocation(shaders[GEOMETRY_NORMALS], "upInterp"), this->up_interp);
-
+    glUniform1i(glGetUniformLocation(shaders[GEOMETRY_NORMALS], "n_lines"), this->n_geometry_lines); 
     for (auto model : Model::get_loaded_models()) {
         if (!model->draw_me) {
             continue;
@@ -920,9 +935,12 @@ void Renderer::render_g_albedo()
 void Renderer::render_g_specular()
 {
     geometry_pass();
-    grass_generation_pass();
+
+    // Moved into else for debug.
     if (this->show_normals) {
         normal_visualization_pass();
+    } else {
+        grass_generation_pass();
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
