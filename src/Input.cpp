@@ -102,6 +102,9 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     printf("Camera position x,y,z: %f %f %f\n", pos.x, pos.y, pos.z);
                     Profiler::print_results();
                     break;
+                case SDLK_y:
+                    camera.toggle_height_lock();
+                    break;
                 case SDLK_f:
                     if (camera.has_move_path()) {
                         camera.toggle_free_move();

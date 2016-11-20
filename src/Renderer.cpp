@@ -645,7 +645,6 @@ void Renderer::render_bounding_spheres()
 void Renderer::geometry_pass()
 {
     Profiler::start_timer("Geometry pass");
-
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -679,6 +678,7 @@ void Renderer::geometry_pass()
 
             glUniform1f(glGetUniformLocation(shaders[GEOMETRY], "shininess"), mesh->shininess);
 
+
             glBindVertexArray(mesh->get_VAO());
 
             /* DRAW GEOMETRY */
@@ -690,6 +690,7 @@ void Renderer::geometry_pass()
         if (!terrain->draw_me) {
             continue;
         }
+
         GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(terrain->m2w_matrix));
 

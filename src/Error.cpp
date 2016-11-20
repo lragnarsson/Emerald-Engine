@@ -20,6 +20,7 @@ const ErrorMessage Error::camera_has_no_path = {14, "Camera must be in free mode
 const ErrorMessage Error::camera_free_mode = {15, "Camera free mode error!"};
 const ErrorMessage Error::performance_counter_already_started = {16, "Performance counter already started! Counter: "};
 const ErrorMessage Error::performance_counter_not_started= {17, "Performance counter NOT started! Counter: "};
+const ErrorMessage Error::index_out_of_range = {18, "Index out of range!"};
 
 
 void Error::throw_error(const ErrorMessage& message, string extra_information)

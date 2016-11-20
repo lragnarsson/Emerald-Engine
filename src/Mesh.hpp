@@ -59,6 +59,7 @@ public:
 
     Mesh() { };
     ~Mesh() { };
+    void clear_mem();
 
     /* Upload vertices, normals etc to the GPU */
     void upload_mesh_data();

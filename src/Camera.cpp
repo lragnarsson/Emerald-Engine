@@ -13,6 +13,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 front, glm::vec3 up, glm::vec3 righ
     this->has_look_anim_path = false;
     this->free_cam = true;
     this->free_look = true;
+    this->height_lock = false;
 }
 
 
@@ -25,6 +26,10 @@ void Camera::set_pos(glm::vec3 new_pos)
     this->position = new_pos;
 }
 
+void Camera::set_height(float height)
+{
+    this->position.y = height;
+}
 
 void Camera::attach_move_animation_path(int animation_id, float start_parameter)
 {
@@ -57,7 +62,13 @@ void Camera::move_along_path(float elapsed_time)
     } else {
         Error::throw_error(Error::model_has_no_path);
     }
-    this->position = new_pos;
+    if (this->height_lock) {
+        // camera height will be handled by a different function.
+        this->position.x = new_pos.x;
+        this->position.z = new_pos.z;
+    } else {
+        this->position = new_pos;
+    }
 }
 
 
@@ -102,6 +113,16 @@ void Camera::toggle_free_look()
         Error::throw_error(Error::camera_has_no_path);
     }
     this->free_look = !this->free_look;
+}
+
+void Camera::toggle_height_lock()
+{
+    this->height_lock = !this->height_lock;
+}
+
+bool Camera::get_height_lock()
+{
+    return this->height_lock;
 }
 
 
