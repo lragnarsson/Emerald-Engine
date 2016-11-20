@@ -18,11 +18,11 @@ out vec3 Normal;   // view space normal
 uniform mat4 projection;
 uniform float upInterp; // Interpolation between up-vector and vertex own normal vector
 uniform mat4 view;
-const float MAGNITUDE = 1.0f; // Length of generated lines
-const float OFFSET = 5.f;
-const float TARGET = 15.f;
-const float grass_1_x[9] = float[9](-0.329877, 0.329877, -0.212571, 0.212571, -0.173286, 0.173286, -0.151465, 0.151465, 0.000000);
-const float grass_1_y[9] = float[9](0.000000, 0.000000, 7.836071, 7.836071, 12.914148, 12.914148, 16.372519, 16.372519, 20.000000);
+const float MAGNITUDE = 1.f; // Length of generated lines
+const float OFFSET = 40.f;
+const float GRASS_1_X[9] = float[9](-0.329877, 0.329877, -0.212571, 0.212571, -0.173286, 0.173286, -0.151465, 0.151465, 0.000000);
+const float GRASS_1_Y[9] = float[9](0.000000, 0.000000, 7.836071, 7.836071, 12.914148, 12.914148, 16.372519, 16.372519, 20.000000);
+const float GRASS_SCALE = 1.f;
 
 
 void GenerateTallGrass(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal,
@@ -39,29 +39,17 @@ void GenerateTallGrass(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal,
     vec4 ws_up_in_cs = projection * view * vec4(0, MAGNITUDE, 0, 0); // World space up in clip space
     vec4 interpNormal = mix(clip_space_normal, ws_up_in_cs, upInterp);
 
-    float tangent_step = TARGET / 10.0;
-    for (int i=0; i < 3; i++) {
+    for (int i=0; i < 9; i++) {
         TexCoord = texCoord;
         Normal = grass_normal;
-        gl_Position = clipPos + interpNormal * i +
-            projection * vec4((OFFSET + tangent_step * pow(i, 2)) * tangent, 0);
-        FragPos = fragPos + inNormal * MAGNITUDE * i + (OFFSET + tangent_step * pow(i, 2)) * tangent;
-        EmitVertex();
 
-        TexCoord = texCoord;
-        Normal = grass_normal;
-        gl_Position = clipPos + interpNormal * i +
-            projection * vec4((OFFSET + tangent_step * (pow(i, 2) + 1)) * tangent, 0);
-        FragPos = fragPos + inNormal * MAGNITUDE * i +
-            (OFFSET + tangent_step * (pow(i, 2) + 1)) * tangent;
+        vec3 xz = (OFFSET + GRASS_SCALE * GRASS_1_X[i]) * tangent;
+        float y = GRASS_SCALE * GRASS_1_Y[i];
+        gl_Position = clipPos + projection * vec4(xz, 0) + interpNormal * y;
+        FragPos = fragPos + xz + inNormal * y;
+
         EmitVertex();
     }
-
-    gl_Position = clipPos + 3 * interpNormal + projection * vec4((OFFSET + TARGET) * tangent, 0);
-    TexCoord = texCoord; // should make the line have the color of the originating vertex
-    FragPos = fragPos + 3 * inNormal * MAGNITUDE + (OFFSET + TARGET) * tangent;
-    Normal = grass_normal;
-    EmitVertex();
 
     EndPrimitive();
 }
