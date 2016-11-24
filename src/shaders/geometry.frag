@@ -4,10 +4,12 @@
 in vec2 TexCoord;
 in vec3 FragPos;
 in mat3 TBN_viewSpace;
+in vec4 frag_pos_light_space;
 
 layout (location = 0) out vec3 g_position;
 layout (location = 1) out vec4 g_normal_shininess;
 layout (location = 2) out vec4 g_albedo_specular;
+layout (location = 3) out vec4 frag_pos_light_texture;
 
 uniform float shininess;
 

@@ -1,5 +1,7 @@
 #include "Skydome.hpp"
 
+using namespace glm;
+
 const vec3 Skydome::sun_dawn = {.8f, .3f, 0.2f};
 const vec3 Skydome::sun_noon = {.5f, .35f, 0.2f};
 const vec3 Skydome::sun_dusk = {0.9f, 0.3f, 0.1f};
@@ -19,6 +21,9 @@ const vec3 Skydome::horizon_midnight = {0.f, 0.01f, 0.05f};
 
 const float Skydome::altitude_margin = -0.055f;
 
+// Calculate the viewing are for light (light projection) used for shadow map
+const mat4 Skydome::light_projection = glm::ortho(-_FAR_, _FAR_, -_FAR_, _FAR_, _NEAR_, _FAR_);
+
 
 void Skydome::init()
 {
@@ -27,6 +32,7 @@ void Skydome::init()
                                 "build/shaders/skydome.frag");
     init_uniforms();
     reset_time();
+
 }
 
 
@@ -176,4 +182,28 @@ void Skydome::calculate_sun()
         this->sun_color = sun_midnight;
     }
 
+}
+
+// ---------------
+// Shadow mapping
+void Skydome::update_light_space(Camera &camera){
+
+    vec3 camera_pos = camera.get_pos();
+    vec3 camera_front = camera.front;
+
+    vec3 mid_frustum = camera_pos + ((_FAR_ - _NEAR_)/2.f)*camera_front;
+    vec3 sun_pos = mid_frustum - 5000.f*sun_direction;
+
+    this->light_view_matrix = glm::lookAt(sun_pos, // position
+                                         normalize(sun_pos), // look at mid frustum
+                                         vec3( 0.0f, 1.0f,  0.0f)); // up
+
+    // This matrix transforms from world space to light view space
+    this->light_space_matrix = Skydome::light_projection * this->light_view_matrix;
+}
+
+// -------------
+
+mat4 Skydome::get_light_space_matrix(){
+    return this->light_space_matrix;
 }

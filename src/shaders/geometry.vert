@@ -9,15 +9,19 @@ layout (location = 3) in vec3 in_Tangent;
 out vec2 TexCoord;
 out vec3 FragPos;
 out mat3 TBN_viewSpace;
+out vec4 frag_pos_light_space;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform mat4 light_space_matrix;
 
 
 void main()
 {
     FragPos = vec3(view * model * vec4(in_Position, 1.0));
+    frag_pos_light_space = light_space_matrix * model * vec4(FragPos, 1.0);
+
     gl_Position = projection * vec4(FragPos, 1.0);
     TexCoord = in_TexCoord;
 

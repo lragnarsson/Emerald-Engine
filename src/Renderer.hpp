@@ -34,7 +34,7 @@ enum render_mode {
     NORMAL_MODE,
     ALBEDO_MODE,
     SPECULAR_MODE,
-    SSAO_MODE
+    SSAO_MODE,
 };
 
 enum filter_type {
@@ -74,7 +74,7 @@ public:
     void increase_up_interp();
     void decrease_up_interp();
     void toggle_show_normals();
-    
+
 private:
     enum shader {
       FORWARD,
@@ -91,15 +91,16 @@ private:
       SHOW_RGB_COMPONENT,
       SHOW_ALPHA_COMPONENT,
       SHOW_SSAO,
-      HDR_BLOOM
+      HDR_BLOOM,
+      SHADOW_BUFFER
     };
 
     render_mode mode;
-    GLuint shaders[15];
+    GLuint shaders[16];
     // Frame buffers
-    GLuint g_buffer, ssao_fbo, hdr_fbo, post_proc_fbo, ping_pong_fbo_red, ping_pong_fbo_rgb;
+    GLuint g_buffer, ssao_fbo, hdr_fbo, post_proc_fbo, ping_pong_fbo_red, ping_pong_fbo_rgb, depth_map_FBO;
     // Textures
-    GLuint g_position, g_normal_shininess, g_albedo_specular, ssao_tex, color_tex, bright_tex, post_proc_tex,  ping_pong_tex_red, ping_pong_tex_rgb;
+    GLuint g_position, g_normal_shininess, g_albedo_specular, ssao_tex, color_tex, bright_tex, post_proc_tex,  ping_pong_tex_red, ping_pong_tex_rgb, depth_map_texture, light_space_texture;
     GLuint quad_vao, quad_vbo;
     mat4 w2v_matrix;
     Model *sphere;
@@ -118,6 +119,7 @@ private:
     GLint ssao_n_samples;
     bool ssao_on;
     bool smooth_ssao;
+    bool update_shadow_map;
 
     // Tweak bar
     TwBar* tweak_bar;
@@ -146,11 +148,13 @@ private:
     void init_show_ssao_shader();
     void init_blur_shaders();
     void init_hdr_bloom_shader();
+    void init_shadow_buffer();
 
     void upload_camera_uniforms(const Camera &camera);
     void draw_tweak_bar();
 
     void render_deferred(const Camera &camera);
+    void render_shadow_map(const Camera &camera);
     void render_forward();
     void render_flat();
     void render_bounding_spheres();
