@@ -455,7 +455,7 @@ unsigned Terrain::cull_me(Camera* camera){
 
 void Terrain::load_wind(std::string directory, std::string name) {
 
-    wind_map = Mesh::load_texture(name, directory, false);
-    wind_map->type = NORMAL;
-    wind_map->path = directory;
+    Terrain::wind_map = Mesh::load_texture(name, directory, false);
+    Terrain::wind_map->type = NORMAL;
+    Terrain::wind_map->path = directory;
 }

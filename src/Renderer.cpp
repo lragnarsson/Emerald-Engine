@@ -830,6 +830,10 @@ void Renderer::normal_visualization_pass(const vec3 cam_pos)
 
 void Renderer::grass_generation_pass()
 {
+    std::vector<Terrain*> loaded_terrain = Terrain::get_loaded_terrain();
+    if (loaded_terrain.size() == 0)
+        return;
+
     Profiler::start_timer("Grass generation pass");
     glDisable(GL_CULL_FACE);
 
@@ -847,9 +851,10 @@ void Renderer::grass_generation_pass()
     glActiveTexture(GL_TEXTURE0);
     GLuint wind_loc = glGetUniformLocation(shaders[GRASS_LOD1], "wind_map");
     glUniform1i(wind_loc, 0);
+
     glBindTexture(GL_TEXTURE_2D, Terrain::wind_map->id);
 
-    for (auto terrain : Terrain::get_loaded_terrain()) {
+    for (auto terrain : loaded_terrain) {
         if (!terrain->draw_me) {
             continue;
         }
