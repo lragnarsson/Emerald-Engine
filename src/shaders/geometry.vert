@@ -20,7 +20,7 @@ uniform mat4 light_space_matrix;
 void main()
 {
     FragPos = vec3(view * model * vec4(in_Position, 1.0));
-    frag_pos_light_space = light_space_matrix * model * vec4(FragPos, 1.0);
+    frag_pos_light_space = light_space_matrix * vec4(FragPos, 1.0);
 
     gl_Position = projection * vec4(FragPos, 1.0);
     TexCoord = in_TexCoord;

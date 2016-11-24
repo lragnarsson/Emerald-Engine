@@ -87,13 +87,15 @@ void Skydome::upload_sun(const GLuint shader, const Camera &camera)
 }
 
 
-void Skydome::propagate_time(float elapsed_time)
+void Skydome::propagate_time(float elapsed_time, Camera &camera)
 {
     time_of_day += elapsed_time * time_scale;
     if (time_of_day >= 24.f)
         time_of_day -= 24.f;
     else if (time_of_day < 0.f)
         time_of_day += 24.f;
+
+    this->update_light_space(camera);
 }
 
 

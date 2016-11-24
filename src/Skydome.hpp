@@ -33,7 +33,8 @@ public:
     void init();
     void draw(const Camera &camera);
     void upload_sun(const GLuint shader, const Camera &camera);
-    void propagate_time(float elapsed_time);
+    void propagate_time(float elapsed_time, Camera &camera);
+    void update_light_space(Camera &camera);
     void reset_time();
     glm::mat4 get_light_space_matrix();
 
@@ -51,7 +52,6 @@ private:
     void init_uniforms();
     void calculate_sky();
     void calculate_sun();
-    void update_light_space(Camera &camera);
 
 
     // Constant color values:

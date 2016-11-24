@@ -165,10 +165,10 @@ float Renderer::get_time_diff()
 }
 
 
-void Renderer::propagate_time(bool forward)
+void Renderer::propagate_time(bool forward, Camera &camera)
 {
     float delta = forward ? this->time_diff : -(float)this->time_diff;
-    skydome->propagate_time(delta);
+    skydome->propagate_time(delta, camera);
     this->update_shadow_map = true;
 }
 
@@ -1102,11 +1102,13 @@ void Renderer::init_shadow_buffer(){
 
     glGenTextures(1, &light_space_texture);
     glBindTexture(GL_TEXTURE_2D, light_space_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT,
-            0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT,
+            0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
             light_space_texture, 0);
 
     // Set the shadow map as texture unit 4 in deferred stage
@@ -1114,6 +1116,8 @@ void Renderer::init_shadow_buffer(){
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "shadow_map"), 4);
     // And set light_space_frag_pos as nr 5
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "frag_pos_light_texture"), 5);
+
+    // Restore program
     glUseProgram(0);
 }
 

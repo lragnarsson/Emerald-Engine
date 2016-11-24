@@ -21,6 +21,7 @@ uniform sampler2D normal_map;
 void main()
 {
     g_position.rgb = FragPos;
+    frag_pos_light_texture = frag_pos_light_space;
 
     vec3 Normal = texture(normal_map, TexCoord).rgb;
     Normal = normalize(Normal * 2.0 - 1.0);
