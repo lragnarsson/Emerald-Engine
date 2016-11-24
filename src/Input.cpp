@@ -1,5 +1,4 @@
 #include "Input.hpp"
-#include "Profiler.hpp"
 
 void init_input()
 {
@@ -148,6 +147,12 @@ void handle_mouse_input(Camera &camera, Renderer &renderer)
     unsigned int button_state;
 
     button_state = SDL_GetRelativeMouseState(&dx, &dy);
+
+    // Update shadow map if mouse is moved
+    int epsilon = 1;
+    if ( dx > epsilon or dy > epsilon){
+        renderer.update_shadow_map(camera);
+    }
 
     int distance = std::abs(dx) + std::abs(dy);
     if (!camera.can_look_free() && distance > 2) {

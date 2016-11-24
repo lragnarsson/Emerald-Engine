@@ -103,6 +103,7 @@ void Renderer::update_time(){
     last_timestamp = current_time;
 }
 
+
 // --------------------------
 
 void Renderer::set_mode(render_mode mode)
@@ -169,9 +170,14 @@ void Renderer::propagate_time(bool forward, Camera &camera)
 {
     float delta = forward ? this->time_diff : -(float)this->time_diff;
     skydome->propagate_time(delta, camera);
-    this->update_shadow_map = true;
+    this->trigger_shadow_map = true;
 }
 
+void Renderer::update_shadow_map(Camera &camera)
+{
+    this->skydome->update_light_space(camera);
+    this->trigger_shadow_map = true;
+}
 
 void Renderer::increase_up_interp()
 {
@@ -237,9 +243,9 @@ void Renderer::render_shadow_map(const Camera &camera){
 void Renderer::render_deferred(const Camera &camera)
 {
     /* SHADOW MAP */
-    if (this->update_shadow_map){
+    if (this->trigger_shadow_map){
         render_shadow_map(camera);
-        this->update_shadow_map = false;
+        this->trigger_shadow_map = false;
     }
 
     /* GEOMETRY PASS */

@@ -71,6 +71,7 @@ public:
     void copy_tweak_bar_cam_values(const Camera& camera);
     float get_time_diff();
     void propagate_time(bool forward, Camera &camera);
+    void update_shadow_map(Camera &camera);
     void increase_up_interp();
     void decrease_up_interp();
     void toggle_show_normals();
@@ -119,7 +120,7 @@ private:
     GLint ssao_n_samples;
     bool ssao_on;
     bool smooth_ssao;
-    bool update_shadow_map;
+    bool trigger_shadow_map = true;
 
     // Tweak bar
     TwBar* tweak_bar;
