@@ -244,6 +244,17 @@ void Renderer::render_deferred(const Camera &camera)
 {
     /* SHADOW MAP */
     if (this->trigger_shadow_map){
+        //mat4 matrix = skydome->get_light_space_matrix();
+        //std::cout << matrix[0][0] << ","\
+        //    << matrix [0][1] << ","\
+        //    << matrix [0][2] << ","\
+        //    << matrix [1][0]<< ","\
+        //    << matrix [1][1]<< ","\
+        //    << matrix [1][2]<< ","\
+        //    << matrix [2][0]<< ","\
+        //    << matrix [2][1]<< ","\
+        //    << matrix [2][2]<< std::endl;
+
         render_shadow_map(camera);
         this->trigger_shadow_map = false;
     }
@@ -1127,6 +1138,7 @@ void Renderer::init_shadow_buffer(){
 
     // Restore program
     glUseProgram(0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 

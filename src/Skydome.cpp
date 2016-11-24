@@ -24,7 +24,6 @@ const float Skydome::altitude_margin = -0.055f;
 // Calculate the viewing are for light (light projection) used for shadow map
 const mat4 Skydome::light_projection = glm::ortho(-10.f, 10.f, -10.f, 10.f, _NEAR_, _FAR_);
 
-
 void Skydome::init()
 {
     this->sphere = new Model("res/models/sphere/sphere.obj");

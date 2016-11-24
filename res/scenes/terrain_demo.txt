@@ -36,10 +36,10 @@ res/models/terrain | 4 0.2 | 100
 -50 10 0 | 1.0 0.7 0.5
 
 
-#[models]
+[models]
 # Models are loaded using the following syntax:
 # /path/to/model | rotX rotY rotZ | Xpos Ypos Zpos | scale | animation_path_id start_animation | nr_of_lights
-
+res/models/nanosuit/nanosuit.obj 0 0 0 | 20 5 -5 | 1 | -1 0 0
 
 # This will start a new section for loading flat-shaded models.
 [flat]
