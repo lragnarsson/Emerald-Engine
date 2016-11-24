@@ -209,7 +209,7 @@ void Renderer::render_shadow_map(const Camera &camera){
     GLuint w2light_location = glGetUniformLocation(shaders[SHADOW_BUFFER], "light_space_matrix");
     glUniformMatrix4fv(w2light_location, 1, GL_FALSE, value_ptr(this->skydome->get_light_space_matrix()));
 
-    // Render objects
+    // Render models into depth buffer
     for (auto model : Model::get_loaded_models()) {
         if (!model->draw_me) {
             continue;
@@ -274,6 +274,8 @@ void Renderer::render_deferred(const Camera &camera)
     glBindTexture(GL_TEXTURE_2D, ssao_tex);
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, depth_map_texture);
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, light_space_texture);
 
     // Render deferred shading stage to quad:
     glBindVertexArray(quad_vao);

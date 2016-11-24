@@ -22,7 +22,7 @@ const vec3 Skydome::horizon_midnight = {0.f, 0.01f, 0.05f};
 const float Skydome::altitude_margin = -0.055f;
 
 // Calculate the viewing are for light (light projection) used for shadow map
-const mat4 Skydome::light_projection = glm::ortho(-_FAR_, _FAR_, -_FAR_, _FAR_, _NEAR_, _FAR_);
+const mat4 Skydome::light_projection = glm::ortho(-10.f, 10.f, -10.f, 10.f, _NEAR_, _FAR_);
 
 
 void Skydome::init()
