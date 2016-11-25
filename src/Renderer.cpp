@@ -166,11 +166,10 @@ float Renderer::get_time_diff()
 }
 
 
-void Renderer::propagate_time(bool forward, Camera &camera)
+void Renderer::propagate_time(bool forward)
 {
     float delta = forward ? this->time_diff : -(float)this->time_diff;
-    skydome->propagate_time(delta, camera);
-    this->trigger_shadow_map = true;
+    skydome->propagate_time(delta);
 }
 
 void Renderer::update_shadow_map(Camera &camera)
@@ -226,7 +225,7 @@ void Renderer::render_shadow_map(const Camera &camera){
         if (!model->draw_me) {
             continue;
         }
-        GLuint m2w_location = glGetUniformLocation(shaders[FORWARD], "model");
+        GLuint m2w_location = glGetUniformLocation(shaders[SHADOW_BUFFER], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(model->m2w_matrix));
 
         for (auto mesh : model->get_meshes()) {
@@ -282,7 +281,7 @@ void Renderer::render_deferred(const Camera &camera)
     glUseProgram(shaders[DEFERRED]);
 
     // Upload matrix for view to light space
-    mat4 v2w2light_matrix = inverse(camera.get_view_matrix()) * this->skydome->get_light_space_matrix();
+    mat4 v2w2light_matrix = this->skydome->get_light_space_matrix() * inverse(camera.get_view_matrix());
     //std::cout << v2w2light_matrix[0][0] << ","\
     //    << v2w2light_matrix [0][1] << ","\
     //    << v2w2light_matrix [0][2] << ",\n"\

@@ -48,7 +48,7 @@ float shadow_calculation(vec4 frag_pos_light_space)
     // Get depth of current fragment from light's perspective
     float current_depth = proj_coords.z;
     // Check whether current frag pos is in shadow
-    float shadow = current_depth > closest_depth ? 1.0 : 0.0;
+    float shadow = current_depth > closest_depth - 0.1 ? 1.0 : 0.0;
 
     return shadow;
 }  
@@ -65,7 +65,7 @@ void main()
     float specular = texture(g_albedo_specular, TexCoord).a;
     float occlusion = texture(ssao_blurred, TexCoord).r; // Only red
     vec3 view_direction = normalize(- position);
-    float shadow = shadow_calculation(light_space_matrix * vec4(position, 1.0));
+    float shadow = shadow_calculation(light_space_matrix * vec4(position, 1.f));
 
     // Ambient
     vec3 light = 0.03 * occlusion * albedo;

@@ -70,7 +70,7 @@ public:
     void toggle_tweak_bar();
     void copy_tweak_bar_cam_values(const Camera& camera);
     float get_time_diff();
-    void propagate_time(bool forward, Camera &camera);
+    void propagate_time(bool forward);
     void update_shadow_map(Camera &camera);
     void increase_up_interp();
     void decrease_up_interp();
