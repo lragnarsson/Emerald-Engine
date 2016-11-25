@@ -79,6 +79,9 @@ void Renderer::render(const Camera &camera)
     case SSAO_MODE:
         render_ssao();
         break;
+    case SHADOW_MODE:
+        render_shadow_map(camera);
+        break;
     }
 
     if (draw_bounding_spheres) {
@@ -203,7 +206,7 @@ void Renderer::toggle_show_normals()
 
 // --------------------------
 
-void Renderer::render_shadow_map(const Camera &camera){
+void Renderer::shadow_pass(const Camera &camera){
     glUseProgram(shaders[SHADOW_BUFFER]);
     // Attach shadow_map FBO
     glBindFramebuffer(GL_FRAMEBUFFER, this->depth_map_FBO);
@@ -238,6 +241,24 @@ void Renderer::render_shadow_map(const Camera &camera){
         }
     }
 
+    // Render terrain
+    for (auto terrain : Terrain::get_loaded_terrain()) {
+        if (!terrain->draw_me) {
+            continue;
+        }
+        GLuint m2w_location = glGetUniformLocation(shaders[SHADOW_BUFFER], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(terrain->m2w_matrix));
+
+        for (auto mesh : terrain->get_meshes()) {
+            if (!mesh->draw_me) {
+                continue;
+            }
+            /* DRAW */
+            glBindVertexArray(mesh->get_VAO());
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        }
+    }
+
     // Restore OpenGL state
     glUseProgram(0);
     glCullFace(GL_BACK);
@@ -254,7 +275,7 @@ void Renderer::render_deferred(const Camera &camera)
     /* SHADOW MAP */
     if (this->trigger_shadow_map){
 
-        render_shadow_map(camera);
+        shadow_pass(camera);
         this->trigger_shadow_map = false;
     }
 
@@ -983,7 +1004,7 @@ void Renderer::render_ssao()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_SSAO]);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, depth_map_texture);
+    glBindTexture(GL_TEXTURE_2D, ssao_tex);
 
     // Render quad
     glBindVertexArray(quad_vao);
@@ -992,6 +1013,27 @@ void Renderer::render_ssao()
     glUseProgram(0);
 }
 
+// --------------------------
+
+void Renderer::render_shadow_map(const Camera &camera)
+{
+    shadow_pass(camera);
+    geometry_pass();
+    if (this->show_normals) {
+        normal_visualization_pass();
+    }
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[SHOW_SSAO]);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, depth_map_texture);
+
+    // Render quad
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glUseProgram(0);
+}
 
 // --------------------------
 

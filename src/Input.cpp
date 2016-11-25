@@ -88,6 +88,9 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                 case SDLK_7:
                     renderer.set_mode(SSAO_MODE);
                     break;
+                case SDLK_8:
+                    renderer.set_mode(SHADOW_MODE);
+                    break;
                 case SDLK_b:
                     renderer.draw_bounding_spheres = !renderer.draw_bounding_spheres;
                 case SDLK_k:

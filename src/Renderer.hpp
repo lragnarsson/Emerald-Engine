@@ -35,6 +35,7 @@ enum render_mode {
     ALBEDO_MODE,
     SPECULAR_MODE,
     SSAO_MODE,
+    SHADOW_MODE
 };
 
 enum filter_type {
@@ -155,7 +156,7 @@ private:
     void draw_tweak_bar();
 
     void render_deferred(const Camera &camera);
-    void render_shadow_map(const Camera &camera);
+    void shadow_pass(const Camera &camera);
     void render_forward();
     void render_flat();
     void render_bounding_spheres();
@@ -177,6 +178,7 @@ private:
     void render_g_albedo();
     void render_g_specular();
     void render_ssao();
+    void render_shadow_map(const Camera &camera);
 };
 
 #endif

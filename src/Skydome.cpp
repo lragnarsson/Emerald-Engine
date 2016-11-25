@@ -22,7 +22,7 @@ const vec3 Skydome::horizon_midnight = {0.f, 0.01f, 0.05f};
 const float Skydome::altitude_margin = -0.055f;
 
 // Calculate the viewing are for light (light projection) used for shadow map
-const mat4 Skydome::light_projection = glm::ortho(-_FAR_/2.f, _FAR_/2.f, -_FAR_/10.f, _FAR_/10.f, _NEAR_, _FAR_);
+const mat4 Skydome::light_projection = glm::ortho(-_FAR_/4.f, 3*_FAR_/4.f, -_FAR_/4.f, _FAR_/4.f, _NEAR_, _FAR_);
 
 void Skydome::init()
 {
@@ -191,8 +191,8 @@ void Skydome::update_light_space(Camera &camera){
     vec3 camera_pos = camera.get_pos();
     vec3 camera_front = camera.front;
 
-    vec3 mid_frustum = camera_pos + (_FAR_ / 100.f) * camera_front;
-    vec3 sun_pos = camera_pos + (0.05f * _FAR_) * sun_direction;
+    vec3 mid_frustum = camera_pos + (_FAR_ / 4.f) * camera_front;
+    vec3 sun_pos = camera_pos + (0.5f * _FAR_) * sun_direction;
 
     this->light_view_matrix = glm::lookAt(sun_pos, // position
                                           mid_frustum, // look at mid frustum
