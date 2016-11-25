@@ -207,9 +207,15 @@ void Renderer::toggle_show_normals()
 void Renderer::render_shadow_map(const Camera &camera){
     glUseProgram(shaders[SHADOW_BUFFER]);
     // Attach shadow_map FBO
-    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, this->depth_map_FBO);
+    // If we wish to render shadow in different resolution than screen
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glClear(GL_DEPTH_BUFFER_BIT);
+    // Disable color rendering
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    // Render only backface to avoid self shadowing
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
 
     // Upload matrix for light space
     GLuint w2light_location = glGetUniformLocation(shaders[SHADOW_BUFFER], "light_space_matrix");
@@ -233,8 +239,12 @@ void Renderer::render_shadow_map(const Camera &camera){
         }
     }
 
-    // Restore framebuffer
+    // Restore OpenGL state
     glUseProgram(0);
+    glCullFace(GL_BACK);
+    glDisable(GL_CULL_FACE);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -1100,35 +1110,23 @@ void Renderer::init_shadow_buffer(){
     // Create a texture into which we will render the depth map
     glGenTextures(1, &this->depth_map_texture);
     glBindTexture(GL_TEXTURE_2D, this->depth_map_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-            SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    // Attach the texture as the depth buffer of the FBO
-    glBindFramebuffer(GL_FRAMEBUFFER, depth_map_FBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_map_texture, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // In G buffer we need to initialize a light space fragPos
-    // This frag pos is needed to calc shadows in deferred stage
-    glUseProgram(shaders[GEOMETRY]);
-    glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
-
-    glGenTextures(1, &light_space_texture);
-    glBindTexture(GL_TEXTURE_2D, light_space_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCREEN_WIDTH, SCREEN_HEIGHT,
-            0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32,
+            SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_DEPTH_COMPONENT32, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-            light_space_texture, 0);
+
+    // Use FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, depth_map_FBO);
+    // Attach the texture as the depth buffer of the FBO
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_map_texture, 0);
+    // No color texture
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    // Reset framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
     // Set the shadow map as texture unit 4 in deferred stage
     glUseProgram(shaders[DEFERRED]);
@@ -1215,11 +1213,28 @@ void Renderer::init_g_buffer()
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D,
             g_albedo_specular, 0);
 
+    // In G buffer we need to initialize a light space fragPos
+    // This frag pos is needed to calc shadows in deferred stage
+    glUseProgram(shaders[GEOMETRY]);
+    glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
+
+    glGenTextures(1, &light_space_texture);
+    glBindTexture(GL_TEXTURE_2D, light_space_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F,
+            SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA32F, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_RGBA32F, GL_TEXTURE_2D,
+            light_space_texture, 0);
+
+
     /* Specify color attachments of the buffer */
-    GLuint attachments[3] = {GL_COLOR_ATTACHMENT0,
+    GLuint attachments[4] = {GL_COLOR_ATTACHMENT0,
         GL_COLOR_ATTACHMENT1,
         GL_COLOR_ATTACHMENT2};
-    glDrawBuffers(3, attachments);
+    glDrawBuffers(4, attachments);
 
     /* Attach a depth buffer */
     GLuint depth_buffer;
