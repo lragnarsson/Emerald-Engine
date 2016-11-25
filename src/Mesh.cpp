@@ -2,14 +2,14 @@
 
 /* --- MESH --- */
 /* Public Mesh functions */
-std::vector<Texture*> Mesh::loaded_textures;
+vector<Texture*> Mesh::loaded_textures;
 
 void Mesh::clear_mem(){
-    std::vector<GLuint>().swap(this->indices);
-    std::vector<GLfloat>().swap(this->vertices);
-    std::vector<GLfloat>().swap(this->normals);
-    std::vector<GLfloat>().swap(this->tex_coords);
-    std::vector<GLfloat>().swap(this->tangents);
+    vector<GLuint>().swap(this->indices);
+    vector<GLfloat>().swap(this->vertices);
+    vector<GLfloat>().swap(this->normals);
+    vector<GLfloat>().swap(this->tex_coords);
+    vector<GLfloat>().swap(this->tangents);
 
     //delete(this->diffuse_map);
     //delete(this->specular_map);
@@ -72,22 +72,38 @@ GLuint Mesh::get_VAO()
 
 // --------------------
 
-Texture* Mesh::load_texture(const std::string filename, const std::string basepath, bool clamp)
+void Mesh::load_texture(const string filename, const string basepath,
+                        const bool clamp, const texture_type tex_type)
 {
-    std::string filepath = basepath + "/" + filename;
-    for (uint i = 0; i < Mesh::loaded_textures.size(); i++) {
-        if (!filename.compare(std::string(Mesh::loaded_textures[i]->path.C_Str()))) {
-            return Mesh::loaded_textures[i];
+    string full_path = basepath + "/" + filename;
+
+    for (int i = 0; i < Mesh::loaded_textures.size(); i++) {
+        // Check if texture has been loaded already:
+        if (!full_path.compare(Mesh::loaded_textures[i]->full_path)) {
+            switch (tex_type) {
+            case DIFFUSE:
+                this->diffuse_map = Mesh::loaded_textures[i];
+                break;
+            case SPECULAR:
+                this->specular_map = Mesh::loaded_textures[i];
+                break;
+            case NORMAL:
+                this->normal_map = Mesh::loaded_textures[i];
+                break;
+            }
+            return;
         }
     }
 
-    SDL_Surface* surface = IMG_Load(filepath.c_str());
+    SDL_Surface* surface = IMG_Load(full_path.c_str());
     if (surface == NULL) {
         Error::throw_error(Error::cant_load_image, SDL_GetError());
     }
 
     /* Upload texture */
     Texture* texture = new Texture();
+    texture->type = tex_type;
+    texture->full_path = full_path;
     glGenTextures(1, &texture->id);
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
@@ -109,11 +125,22 @@ Texture* Mesh::load_texture(const std::string filename, const std::string basepa
         GLenum color_format = surface->format->Rmask == 255 ? GL_RGB : GL_BGR;
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, color_format, GL_UNSIGNED_BYTE, surface->pixels);
     }
+
     glGenerateMipmap(GL_TEXTURE_2D);
 
     Mesh::loaded_textures.push_back(texture);
 
-    return texture;
+    switch (tex_type) {
+    case DIFFUSE:
+        this->diffuse_map = texture;
+        break;
+    case SPECULAR:
+        this->specular_map = texture;
+        break;
+    case NORMAL:
+        this->normal_map = texture;
+        break;
+    }
 }
 
 // -----------------
