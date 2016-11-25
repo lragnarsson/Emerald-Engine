@@ -24,9 +24,8 @@ uniform vec3 wind_direction;
 uniform float wind_strength;
 uniform vec2 time_offset;
 
-const float MAGNITUDE = 0.1f; // Height scale for grass
+const float MAGNITUDE = 0.05f; // Height scale for grass
 const float GRASS_SCALE = 2.f; // Uniform scale for grass
-const float OFFSET = 40.f; // Position offset in triangle
 
 // Vertices for tall straight grass:
 const float GRASS_1_X[9] = float[9](-0.329877, 0.329877, -0.212571, 0.212571, -0.173286, 0.173286, -0.151465, 0.151465, 0.000000);
@@ -37,9 +36,12 @@ const float GRASS_3_X[7] = float[7](-1.200000, -0.300000, -0.600000, 0.600000, 0
 const float GRASS_3_Y[7] = float[7](3.250000, 2.000000, 0.000000, 0.000000, 3.250000, 3.250000, 5.000000);
 
 void generate_grass(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal,
-                       vec3 base_1, vec3 base_2, const float[7] grass_x, const float[7] grass_y)
+                    vec3 base_1, vec3 base_2, const float[7] grass_x, const float[7] grass_y)
 {
-    vec3 tangent = 0.06 * base_1 + 0.06 * base_2;
+    float scale_s = 0.5 * normalize(texture(wind_map, texCoord * 10)).r - 0.5;
+    float scale_t = 0.5 * normalize(texture(wind_map, texCoord * 10)).b - 0.5;
+    vec3 tangent = 0.05 * (scale_s * base_1 + scale_t * base_2);
+
     vec3 grass_normal = normalize(cross(tangent, inNormal));
     if (grass_normal.z < 0) {
         grass_normal = -grass_normal;
@@ -50,8 +52,8 @@ void generate_grass(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal,
     vec4 interpNormal = mix(clip_space_normal, ws_up_in_cs, upInterp);
 
     vec2 wind_coord = fract(texCoord + wind_strength * time_offset);
-    vec3 gradient = vec3(view * vec4(wind_strength * (wind_direction +
-                                                      texture(wind_map, wind_coord).rgb), 0));
+    vec3 gradient = vec3(view * vec4(wind_strength * 0.3 * (wind_direction +
+                                                            texture(wind_map, wind_coord).rgb), 0));
     gradient = gradient - dot(inNormal, gradient); // Project onto xz-plane
     gradient = vec3(view * vec4(gradient, 0));
 
@@ -63,7 +65,7 @@ void generate_grass(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal,
         float y = GRASS_SCALE * grass_y[i];
         vec3 xz = (GRASS_SCALE * grass_x[i]) * tangent + bend_interp * gradient;
         gl_Position = clipPos + projection * vec4(xz, 0) + interpNormal * y;
-        FragPos = fragPos + xz + inNormal * y;
+        FragPos = fragPos + xz + MAGNITUDE * inNormal * y;
 
         EmitVertex();
     }
