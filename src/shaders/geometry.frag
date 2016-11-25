@@ -9,7 +9,6 @@ in vec4 frag_pos_light_space;
 layout (location = 0) out vec3 g_position;
 layout (location = 1) out vec4 g_normal_shininess;
 layout (location = 2) out vec4 g_albedo_specular;
-layout (location = 3) out vec4 frag_pos_light_texture;
 
 uniform float shininess;
 
@@ -21,7 +20,6 @@ uniform sampler2D normal_map;
 void main()
 {
     g_position.rgb = FragPos;
-    frag_pos_light_texture = frag_pos_light_space;
 
     vec3 Normal = texture(normal_map, TexCoord).rgb;
     Normal = normalize(Normal * 2.0 - 1.0);

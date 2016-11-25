@@ -254,16 +254,6 @@ void Renderer::render_deferred(const Camera &camera)
 {
     /* SHADOW MAP */
     if (this->trigger_shadow_map){
-        //mat4 matrix = skydome->get_light_space_matrix();
-        //std::cout << matrix[0][0] << ","\
-        //    << matrix [0][1] << ","\
-        //    << matrix [0][2] << ","\
-        //    << matrix [1][0]<< ","\
-        //    << matrix [1][1]<< ","\
-        //    << matrix [1][2]<< ","\
-        //    << matrix [2][0]<< ","\
-        //    << matrix [2][1]<< ","\
-        //    << matrix [2][2]<< std::endl;
 
         render_shadow_map(camera);
         this->trigger_shadow_map = false;
@@ -291,6 +281,21 @@ void Renderer::render_deferred(const Camera &camera)
     Profiler::start_timer("Deferred pass");
     glUseProgram(shaders[DEFERRED]);
 
+    // Upload matrix for view to light space
+    mat4 v2w2light_matrix = inverse(camera.get_view_matrix()) * this->skydome->get_light_space_matrix();
+    //std::cout << v2w2light_matrix[0][0] << ","\
+    //    << v2w2light_matrix [0][1] << ","\
+    //    << v2w2light_matrix [0][2] << ",\n"\
+    //    << v2w2light_matrix [1][0]<< ","\
+    //    << v2w2light_matrix [1][1]<< ","\
+    //    << v2w2light_matrix [1][2]<< ",\n"\
+    //    << v2w2light_matrix [2][0]<< ","\
+    //    << v2w2light_matrix [2][1]<< ","\
+    //    << v2w2light_matrix [2][2]<< std::endl;
+
+    GLuint v2w2light_location = glGetUniformLocation(shaders[DEFERRED], "light_space_matrix");
+    glUniformMatrix4fv(v2w2light_location, 1, GL_FALSE, value_ptr(v2w2light_matrix));
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, g_position);
     glActiveTexture(GL_TEXTURE1);
@@ -301,8 +306,6 @@ void Renderer::render_deferred(const Camera &camera)
     glBindTexture(GL_TEXTURE_2D, ssao_tex);
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, depth_map_texture);
-    glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_2D, light_space_texture);
 
     // Render deferred shading stage to quad:
     glBindVertexArray(quad_vao);
@@ -726,9 +729,6 @@ void Renderer::geometry_pass()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(shaders[GEOMETRY]);
-    // Upload matrix for light space
-    GLuint w2light_location = glGetUniformLocation(shaders[GEOMETRY], "light_space_matrix");
-    glUniformMatrix4fv(w2light_location, 1, GL_FALSE, value_ptr(this->skydome->get_light_space_matrix()));
 
     for (auto model : Model::get_loaded_models()) {
         if (!model->draw_me) {
@@ -1110,8 +1110,8 @@ void Renderer::init_shadow_buffer(){
     // Create a texture into which we will render the depth map
     glGenTextures(1, &this->depth_map_texture);
     glBindTexture(GL_TEXTURE_2D, this->depth_map_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32,
-            SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_DEPTH_COMPONENT32, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+            SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -1127,13 +1127,16 @@ void Renderer::init_shadow_buffer(){
     // Reset framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-
     // Set the shadow map as texture unit 4 in deferred stage
     glUseProgram(shaders[DEFERRED]);
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "shadow_map"), 4);
-    // And set light_space_frag_pos as nr 5
-    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "frag_pos_light_texture"), 5);
 
+    // Check if init is ok
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::ostringstream error_msg;
+        error_msg << "GL enum: " << glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        Error::throw_error(Error::renderer_init_fail, error_msg.str());
+    }
     // Restore program
     glUseProgram(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
