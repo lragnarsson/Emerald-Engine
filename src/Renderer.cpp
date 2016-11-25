@@ -208,7 +208,7 @@ void Renderer::render_shadow_map(const Camera &camera){
     // Attach shadow_map FBO
     glBindFramebuffer(GL_FRAMEBUFFER, this->depth_map_FBO);
     // If we wish to render shadow in different resolution than screen
-    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glViewport(0, 0, SCREEN_WIDTH * _SHADOW_SCALE_, SCREEN_HEIGHT * _SHADOW_SCALE_);
     glClear(GL_DEPTH_BUFFER_BIT);
     // Disable color rendering
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -983,7 +983,7 @@ void Renderer::render_ssao()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_SSAO]);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, ssao_tex);
+    glBindTexture(GL_TEXTURE_2D, depth_map_texture);
 
     // Render quad
     glBindVertexArray(quad_vao);
@@ -1110,7 +1110,7 @@ void Renderer::init_shadow_buffer(){
     glGenTextures(1, &this->depth_map_texture);
     glBindTexture(GL_TEXTURE_2D, this->depth_map_texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-            SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+            SCREEN_WIDTH * _SHADOW_SCALE_, SCREEN_HEIGHT * _SHADOW_SCALE_, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
