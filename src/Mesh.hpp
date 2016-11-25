@@ -28,9 +28,11 @@
 
 #include "Error.hpp"
 
-const std::string DEFAULT_PATH = "res/models/default";
-const std::string DEFAULT_DIFFUSE = "default_diffuse.jpg";
-const std::string DEFAULT_NORMAL = "default_normal.jpg";
+using namespace std;
+
+const string DEFAULT_PATH = "res/models/default";
+const string DEFAULT_DIFFUSE = "default_diffuse.jpg";
+const string DEFAULT_NORMAL = "default_normal.jpg";
 
 
 enum texture_type {
@@ -42,7 +44,7 @@ enum texture_type {
 struct Texture {
     GLuint id;
     texture_type type;
-    aiString path;
+    string full_path;
 };
 
 
@@ -50,8 +52,8 @@ class Mesh {
 public:
     GLuint index_count, vertex_count;
     GLfloat shininess = 80;
-    std::vector<GLuint> indices;
-    std::vector<GLfloat> vertices, normals, tex_coords, tangents;
+    vector<GLuint> indices;
+    vector<GLfloat> vertices, normals, tex_coords, tangents;
     Texture *diffuse_map, *specular_map, *normal_map;
     bool draw_me = true;
     float bounding_sphere_radius = -1.f;
@@ -63,13 +65,16 @@ public:
 
     void upload_mesh_data();
     GLuint get_VAO();
+    void set_texture(const string full_path, const bool clamp,
+                     const texture_type tex_type);
+    static Texture *load_texture(const string full_path, const bool clamp,
+                                 const texture_type tex_type);
     void generate_bounding_sphere();
     glm::vec3 get_center_point_world(glm::mat4 m2w_matrix);
     glm::vec3 get_center_point();
 
-    static Texture* load_texture(const std::string filename, const std::string basepath, bool clamp);
 private:
-    static std::vector<Texture*> loaded_textures;
+    static vector<Texture*> loaded_textures;
     GLuint VAO, EBO;
     GLuint VBO[4]; // Vertices, normals, texCoords, tangents
 };

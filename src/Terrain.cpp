@@ -29,7 +29,7 @@ Terrain::Terrain(std::string directory, float plane_scale, float height_scale, u
     this->clamp_textures = false;
 
     load_heightmap(directory, plane_scale, height_scale, chunk_size);
-    load_wind(directory, "wind.jpg");
+    load_wind(directory + "/wind.jpg");
 
     Terrain::loaded_terrain.push_back(this);
 
@@ -148,6 +148,7 @@ float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
 
 void Terrain::load_heightmap(std::string directory, float plane_scale, float height_scale, unsigned chunk_size)
 {
+    std::cout << "load" << std::endl;
     std::string heightmap_file = directory + "/" + "heightmap.png";
     SDL_Surface* heightmap = IMG_Load(heightmap_file.c_str());
 
@@ -217,25 +218,16 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
             }
             m->shininess = 1.f;
 
-            Texture* diffuse_map;
-            diffuse_map = Mesh::load_texture("albedo.png", directory, clamp_textures);
-            diffuse_map->type = DIFFUSE;
-            diffuse_map->path = directory;
-            m->diffuse_map = diffuse_map;
+            // Use default diffuse and specular maps
+            m->set_texture(directory + "/albedo.png",
+                           clamp_textures, DIFFUSE);
 
-
-            Texture* specular_map;
-            specular_map = Mesh::load_texture("specular.png", directory, clamp_textures);
-            specular_map->type = SPECULAR;
-            specular_map->path = directory;
-            m->specular_map = specular_map;
+            m->set_texture(directory + "/specular.png",
+                           clamp_textures, SPECULAR);
 
             // Keep normals as normal map
-            Texture* normal_map;
-            normal_map = Mesh::load_texture("normal.png", directory, clamp_textures);
-            normal_map->type = NORMAL;
-            normal_map->path = directory;
-            m->normal_map = normal_map;
+            m->set_texture(directory + "/normal.png",
+                           clamp_textures, NORMAL);
 
             // Upload to GPU and save mesh
             m->upload_mesh_data();
@@ -453,9 +445,7 @@ unsigned Terrain::cull_me(Camera* camera){
 
 //------------------
 
-void Terrain::load_wind(std::string directory, std::string name) {
+void Terrain::load_wind(std::string full_path) {
 
-    Terrain::wind_map = Mesh::load_texture(name, directory, false);
-    Terrain::wind_map->type = NORMAL;
-    Terrain::wind_map->path = directory;
+    Terrain::wind_map = Mesh::load_texture(full_path, false, NORMAL);
 }

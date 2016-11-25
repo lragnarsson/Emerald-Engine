@@ -70,7 +70,7 @@ private:
     glm::vec3 get_normal(int x, int z, SDL_Surface* image, float plane_scale, float height_scale);
     glm::vec3 get_tangent(int x, int z, SDL_Surface* image, float plane_scale, float height_scale);
     void generate_bounding_sphere();
-    void load_wind(std::string directory, std::string name);
+    void load_wind(std::string full_path);
 };
 
 
