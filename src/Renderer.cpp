@@ -842,11 +842,11 @@ void Renderer::grass_generation_pass()
     glUseProgram(shaders[GRASS_LOD1]);
     glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "upInterp"), this->up_interp);
     glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "shininess"), 20);
-    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "wind_strength"), 3.f);
+    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "wind_strength"), 1.f);
     glUniform3fv(glGetUniformLocation(shaders[GRASS_LOD1], "wind_direction"),
                  1, value_ptr(vec3(0.3f, 0.f, -0.7f)));
     glUniform2fv(glGetUniformLocation(shaders[GRASS_LOD1], "time_offset"),
-                 1, value_ptr(((float)SDL_GetTicks()) / 100000.f * vec2(0.5f, -0.5f)));
+                 1, value_ptr(((float)SDL_GetTicks()) / 100000.f * vec2(0.f, -1.f)));
 
     glActiveTexture(GL_TEXTURE0);
     GLuint wind_loc = glGetUniformLocation(shaders[GRASS_LOD1], "wind_map");
