@@ -36,6 +36,11 @@ const float GRASS_2_Y[7] = float[7](0.000000, 0.000000, 3.691449, 3.691449, 7.02
 const float GRASS_3_X[7] = float[7](-1.200000, -0.300000, -0.600000, 0.600000, 0.600000, 1.200000, 1.800000);
 const float GRASS_3_Y[7] = float[7](3.250000, 2.000000, 0.000000, 0.000000, 3.250000, 3.250000, 5.000000);
 
+// u,v coordinates for grass locations inside triangle
+const float COORDS_U[6] = float[6](0.125000, 0.125000, 0.437500, 0.125000, 0.437500, 0.750000);
+const float COORDS_V[6] = float[6](0.750000, 0.437500, 0.437500, 0.125000, 0.125000, 0.125000);
+const int N_GRASS_STRAWS = 6;
+
 void generate_grass(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal,
                        vec3 base_1, vec3 base_2, const float[7] grass_x, const float[7] grass_y)
 {
@@ -75,52 +80,33 @@ void main()
 {
     vec3 frag_pos_base_02 = normalize(gs_in[2].FragPos - gs_in[0].FragPos);
     vec3 frag_pos_base_01 = normalize(gs_in[1].FragPos - gs_in[0].FragPos);
-    vec3 frag_pos_base_12 = normalize(gs_in[2].FragPos - gs_in[1].FragPos);
+    vec3 frag_pos_01 = gs_in[1].FragPos - gs_in[0].FragPos;
+    vec3 frag_pos_02 = gs_in[2].FragPos - gs_in[0].FragPos;
+    vec3 frag_pos;
 
-    vec3 frag_pos, frag_pos_01, frag_pos_02, normal, normal_01, normal_02;
-    vec2 tex_coord, tex_coord_01, tex_coord_02;
+    vec2 tex_coord;
+    vec2 tex_coord_base_01 = gs_in[1].TexCoord - gs_in[0].TexCoord;
+    vec2 tex_coord_base_02 = gs_in[2].TexCoord - gs_in[0].TexCoord;
+
+    vec3 normal = (gs_in[0].Normal + gs_in[1].Normal + gs_in[2].Normal) / 3;
+
     vec4 clip_pos;
-    float par2 = 0.0f;
-    const int n_lines = 3;
-    float step_len = 1/float(2 * (n_lines + 1));
-    float par = -2 *step_len;
-    /* This loop creates lines in a pattern like this:
-       The pipes are the lines created. No lines are created on the triangle edges.
-                      V0
-                     / | \
-                    /|   |\
-                   /|  |  |\
-                 V1---------V2
-    */
-    for (int i=1; i<=n_lines; i++) {
-        par = par + 3 *step_len;
-
-        frag_pos_01 = mix(gs_in[0].FragPos, gs_in[1].FragPos, par);
-        tex_coord_01 = mix(gs_in[0].TexCoord, gs_in[1].TexCoord, par);
-        normal_01 = normalize(mix(gs_in[0].Normal, gs_in[2].Normal, par));
-        frag_pos_02 = mix(gs_in[0].FragPos, gs_in[2].FragPos, par);
-        tex_coord_02 = mix(gs_in[0].TexCoord, gs_in[2].TexCoord, par);
-        normal_02 = normalize(mix(gs_in[0].Normal, gs_in[2].Normal, par));
-
-        float step_2 = 1/float(2 * (i + 1));
-        par2 = -2 *step_2;
-        bool tall = true;
-        for (int j=1; j<=i; j++) {
-            par2 = par2 + 3 * step_2;
-            frag_pos = mix(frag_pos_01, frag_pos_02, par2);
-            clip_pos = projection * vec4(frag_pos, 1.0f);
-            tex_coord = mix(tex_coord_01, tex_coord_02, par2);
-            normal = normalize(mix(normal_01, normal_02, par2));
-
-            if (tall)
-                generate_grass(clip_pos, tex_coord, frag_pos, normal,
-                               frag_pos_base_01, frag_pos_base_02,
-                               GRASS_2_X, GRASS_2_Y);
-            else
-                generate_grass(clip_pos, tex_coord, frag_pos, normal,
-                               frag_pos_base_01, frag_pos_base_02,
-                               GRASS_3_X, GRASS_3_Y);
-            tall = !tall;
-        }
+    
+    bool tall = true;
+    for (int i=1; i<=N_GRASS_STRAWS; i++) {
+        frag_pos = gs_in[0].FragPos + frag_pos_01 * COORDS_U[i] + frag_pos_02 * COORDS_V[i];
+        tex_coord = tex_coord_base_01 * COORDS_U[i] + tex_coord_base_02 * COORDS_V[i];
+        clip_pos = projection * vec4(frag_pos, 1.0f);
+        
+        if (tall)
+            generate_grass(clip_pos, tex_coord, frag_pos, normal,
+                           frag_pos_base_01, frag_pos_base_02,
+                           GRASS_2_X, GRASS_2_Y);
+        else
+            generate_grass(clip_pos, tex_coord, frag_pos, normal,
+                           frag_pos_base_01, frag_pos_base_02,
+                           GRASS_3_X, GRASS_3_Y);
+        
+        tall = !tall;
     }
 }
