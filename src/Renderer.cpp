@@ -174,6 +174,7 @@ void Renderer::propagate_time(bool forward)
 
 void Renderer::update_shadow_map(Camera &camera)
 {
+
     this->skydome->update_light_space(camera);
     this->trigger_shadow_map = true;
 }
@@ -237,6 +238,25 @@ void Renderer::render_shadow_map(const Camera &camera){
             glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
         }
     }
+
+    // Render terrain into depth buffer
+    for (auto terrain : Terrain::get_loaded_terrain()) {
+        if (!terrain->draw_me) {
+            continue;
+        }
+        GLuint m2w_location = glGetUniformLocation(shaders[SHADOW_BUFFER], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(terrain->m2w_matrix));
+
+        for (auto mesh : terrain->get_meshes()) {
+            if (!mesh->draw_me) {
+                continue;
+            }
+            /* DRAW */
+            glBindVertexArray(mesh->get_VAO());
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        }
+    }
+
 
     // Restore OpenGL state
     glUseProgram(0);

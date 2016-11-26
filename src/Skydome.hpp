@@ -24,6 +24,7 @@
 #include "Model.hpp"
 #include "Utils.hpp"
 #include "Error.hpp"
+#include "Terrain.hpp"
 
 class Skydome
 {

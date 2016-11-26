@@ -37,7 +37,7 @@ uniform mat4 light_space_matrix;
 // ------------------
 // Is this fragment in shadow or not?
 
-float shadow_calculation(vec4 frag_pos_light_space)
+float shadow_calculation(vec4 frag_pos_light_space, float bias)
 {
     // perform perspective divide
     vec3 proj_coords = frag_pos_light_space.xyz / frag_pos_light_space.w;
@@ -47,8 +47,26 @@ float shadow_calculation(vec4 frag_pos_light_space)
     float closest_depth = texture(shadow_map, proj_coords.xy).r; 
     // Get depth of current fragment from light's perspective
     float current_depth = proj_coords.z;
+    
+    vec2 texel_size = 1.0 / textureSize(shadow_map, 0);
+    int core_size = 2;
+    float shadow = 0;
+
+    for(int x = -core_size; x <= core_size; ++x)
+    {
+        for(int y = -core_size; y <= core_size; ++y)
+        {
+            float pcf_depth = texture(shadow_map, proj_coords.xy + vec2(x, y) * texel_size).r; 
+            shadow += current_depth - bias < pcf_depth ? 1.0 : 0.2;        
+        }    
+    }
+    shadow /= (2 * core_size) * (2 * core_size);
+
+    // If outside of shadow frustum, just put light there
+    if(proj_coords.z > 1.0)
+        shadow = 1.0;
     // Check whether current frag pos is in shadow
-    float shadow = current_depth < closest_depth ? 1.0 : 0.0;
+    //float shadow = current_depth - bias < closest_depth ? 1.0 : 0.0;
 
     return shadow;
 }  
@@ -65,7 +83,8 @@ void main()
     float specular = texture(g_albedo_specular, TexCoord).a;
     float occlusion = texture(ssao_blurred, TexCoord).r; // Only red
     vec3 view_direction = normalize(- position);
-    float shadow = shadow_calculation(light_space_matrix * vec4(position, 1.f));
+    float shadow_bias = max(0.012 * (1.0 - dot(normal, sun_direction)), 0.005);
+    float shadow = shadow_calculation(light_space_matrix * vec4(position, 1.f), shadow_bias);
 
     // Ambient
     vec3 light = 0.03 * occlusion * albedo;
