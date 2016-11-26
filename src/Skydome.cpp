@@ -1,5 +1,7 @@
 #include "Skydome.hpp"
 
+using namespace glm;
+
 const vec3 Skydome::sun_dawn = {.8f, .3f, 0.2f};
 const vec3 Skydome::sun_noon = {.5f, .35f, 0.2f};
 const vec3 Skydome::sun_dusk = {0.9f, 0.3f, 0.1f};
@@ -19,6 +21,8 @@ const vec3 Skydome::horizon_midnight = {0.f, 0.01f, 0.05f};
 
 const float Skydome::altitude_margin = -0.055f;
 
+// Calculate the viewing are for light (light projection) used for shadow map
+const mat4 Skydome::light_projection = glm::ortho(-_FAR_/2.f, _FAR_/2.f, -_FAR_/10.f, _FAR_/10.f, _NEAR_, _FAR_/1.3f);
 
 void Skydome::init()
 {
@@ -27,6 +31,7 @@ void Skydome::init()
                                 "build/shaders/skydome.frag");
     init_uniforms();
     reset_time();
+
 }
 
 
@@ -88,6 +93,7 @@ void Skydome::propagate_time(float elapsed_time)
         time_of_day -= 24.f;
     else if (time_of_day < 0.f)
         time_of_day += 24.f;
+
 }
 
 
@@ -176,4 +182,39 @@ void Skydome::calculate_sun()
         this->sun_color = sun_midnight;
     }
 
+}
+
+// ---------------
+// Shadow mapping
+void Skydome::update_light_space(Camera &camera){
+
+    vec3 camera_pos = camera.get_pos();
+    vec3 camera_front = camera.front;
+
+    vec3 look_at = camera_pos + (_FAR_ / 500.f) * camera_front;// + (_FAR_ / 1000.f) * camera_front;
+    vec3 sun_pos = camera_pos + (0.4f * _FAR_) * sun_direction;
+
+    // Adjust lookAt/look_at for terrain height
+    Terrain* my_terrain = nullptr;
+    for (auto terrain : Terrain::get_loaded_terrain() ){
+        if ( terrain->point_in_terrain(look_at.x, look_at.z) ){
+            float height = terrain->get_height(look_at.x, look_at.z);
+            if ( height + 15.f > look_at.y ){
+                look_at.y = height + 15.0;
+            }
+        }
+    }
+
+    this->light_view_matrix = glm::lookAt(sun_pos, // position
+                                          look_at, // look at mid frustum
+                                          cross(sun_pos, camera_front)); // up
+
+    // This matrix transforms from world space to light view space
+    this->light_space_matrix = Skydome::light_projection * this->light_view_matrix;
+}
+
+// -------------
+
+mat4 Skydome::get_light_space_matrix(){
+    return this->light_space_matrix;
 }

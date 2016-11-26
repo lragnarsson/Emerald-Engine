@@ -24,8 +24,7 @@
 #include "Model.hpp"
 #include "Utils.hpp"
 #include "Error.hpp"
-
-using namespace glm;
+#include "Terrain.hpp"
 
 class Skydome
 {
@@ -36,17 +35,20 @@ public:
     void draw(const Camera &camera);
     void upload_sun(const GLuint shader, const Camera &camera);
     void propagate_time(float elapsed_time);
+    void update_light_space(Camera &camera);
     void reset_time();
+    glm::mat4 get_light_space_matrix();
 
 private:
-    vec3 sun_direction;
-    vec3 sun_color;
+    glm::vec3 sun_direction;
+    glm::vec3 sun_color;
     Model *sphere; // actual dome
     GLuint shader;
     float altitude, azimuth, interp, interp_night;
 
-    vec3 zenith_color;
-    vec3 horizon_color;
+    glm::vec3 zenith_color;
+    glm::vec3 horizon_color;
+    glm::mat4 light_view_matrix, light_space_matrix;
 
     void init_uniforms();
     void calculate_sky();
@@ -54,24 +56,27 @@ private:
 
 
     // Constant color values:
-    static const vec3 sun_dawn;
-    static const vec3 sun_noon;
-    static const vec3 sun_dusk;
-    static const vec3 sun_midnight;
+    static const glm::vec3 sun_dawn;
+    static const glm::vec3 sun_noon;
+    static const glm::vec3 sun_dusk;
+    static const glm::vec3 sun_midnight;
 
-    static const vec3 zenith_dawn;
-    static const vec3 horizon_dawn;
+    static const glm::vec3 zenith_dawn;
+    static const glm::vec3 horizon_dawn;
 
-    static const vec3 zenith_noon;
-    static const vec3 horizon_noon;
+    static const glm::vec3 zenith_noon;
+    static const glm::vec3 horizon_noon;
 
-    static const vec3 zenith_dusk;
-    static const vec3 horizon_dusk;
+    static const glm::vec3 zenith_dusk;
+    static const glm::vec3 horizon_dusk;
 
-    static const vec3 zenith_midnight;
-    static const vec3 horizon_midnight;
+    static const glm::vec3 zenith_midnight;
+    static const glm::vec3 horizon_midnight;
 
     static const float altitude_margin;
+
+    // Light space, used for shadow mapping
+    static const glm::mat4 light_projection;
 };
 
 #endif

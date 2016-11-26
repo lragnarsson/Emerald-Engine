@@ -33,6 +33,13 @@
 [camera_animation]
 0 0 | 0 5
 
+# Terrain is a special kind of model that acts as ground.
+# It has a planar scale as well as a height scale and is loaded like
+# path/to/folder/with/heightmap/and/textures | planar_scale height_scale | chunk_size
+[terrain]
+res/models/terrain | 4 0.2 | 10
+
+
 [lights]
 # xPos yPos zPos | Red Green Blue
 -50 10 0 | 1.0 0.7 0.5
@@ -43,7 +50,7 @@
 # /path/to/model | rotX rotY rotZ | Xpos Ypos Zpos | scale | animation_path_id start_animation | nr_of_lights
 #res/models/nanosuit/nanosuit.obj 0 5 0 | 20 0 -5 | 1 | -1 0 0
 #res/models/muro/muro.obj 0 5 0 | 20 0 5 | 0.08 |-1 0 0
-res/models/sponza/sponza.obj 0 0 0 | 0 0 0 | 0.1 | -1 0 0
+res/models/sponza/sponza.obj 0 0 0 | 0 0 0 | 0.1 | -1 -10 0
 
 # This will start a new section for loading flat-shaded models.
 [flat]
