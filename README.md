@@ -17,11 +17,15 @@ FEATURES
 --------
  - Deferred shading
  - Screen Space Ambient Occlusion
+ - Shadow maps
+ - Bloom
  - Scene loader
+ - Terrain generation
  - Catmull-Rom splines for object and camera animation
  - Frustum culling
  - Normal maps
  - Shader precompiler
+ - Day-night cycle
  - Switch between different rendering paths during runtime:
    1. Forward
    2. Deferred
@@ -30,10 +34,12 @@ FEATURES
    5. Albedo
    6. Specular intensity
    7. SSAO buffer
+   8. Shadow map
  - Specular maps
  - Skybox
  - Keyboard and mouse control
  - Bounding sphere generation and visualization
+ - Normal vector visualization
  - Light sources attached to models
 
 
