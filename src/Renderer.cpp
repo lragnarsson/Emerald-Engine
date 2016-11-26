@@ -304,16 +304,6 @@ void Renderer::render_deferred(const Camera &camera)
 
     // Upload matrix for view to light space
     mat4 v2w2light_matrix = this->skydome->get_light_space_matrix() * inverse(camera.get_view_matrix());
-    //std::cout << v2w2light_matrix[0][0] << ","\
-    //    << v2w2light_matrix [0][1] << ","\
-    //    << v2w2light_matrix [0][2] << ",\n"\
-    //    << v2w2light_matrix [1][0]<< ","\
-    //    << v2w2light_matrix [1][1]<< ","\
-    //    << v2w2light_matrix [1][2]<< ",\n"\
-    //    << v2w2light_matrix [2][0]<< ","\
-    //    << v2w2light_matrix [2][1]<< ","\
-    //    << v2w2light_matrix [2][2]<< std::endl;
-
     GLuint v2w2light_location = glGetUniformLocation(shaders[DEFERRED], "light_space_matrix");
     glUniformMatrix4fv(v2w2light_location, 1, GL_FALSE, value_ptr(v2w2light_matrix));
 
