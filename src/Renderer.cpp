@@ -637,6 +637,23 @@ void Renderer::render_bounding_spheres()
         glBindVertexArray(0);
     }
 
+    for (auto terrain : Terrain::get_loaded_terrain()) {
+        for ( auto terrain_mesh : terrain->get_meshes() ){
+            mat4 bounding_scale = scale(mat4(1.f), vec3(terrain_mesh->bounding_sphere_radius) / 1.5f);
+            mat4 bounding_move = translate(mat4(1.f), vec3(-terrain->plane_scale/2.f, -terrain->plane_scale/2.f, 0.f)) * vec4(terrain_mesh->get_center_point(), 1.f);
+
+            GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
+            glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
+                    value_ptr(terrain->move_matrix * terrain->rot_matrix *
+                        bounding_move * bounding_scale));
+
+            // DRAW
+            glBindVertexArray(mesh->get_VAO());
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
+        }
+    }
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
@@ -785,7 +802,7 @@ void Renderer::normal_visualization_pass()
             glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
         }
     }
-    
+
 
     glBindVertexArray(0);
 
