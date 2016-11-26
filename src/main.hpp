@@ -20,7 +20,7 @@ Camera camera = Camera(glm::vec3(0.f, 10.f, 3.f),    // Position
                        glm::vec3(0.0f, 1.0f, 0.0f), // Up
                        glm::vec3(1.f, 0.f, 0.f),    // Right
                        0.04f,                        // Speed
-                       0.0005f);                      // Rotational speed
+                       0.0001f);                      // Rotational speed
 
 glm::mat4 w2v_matrix;
 glm::mat4 projection_matrix;
@@ -30,4 +30,3 @@ Renderer renderer;
 #ifdef PROFILING
 Profiler perf_monitor;
 #endif
-

@@ -72,11 +72,13 @@ public:
     void copy_tweak_bar_cam_values(const Camera& camera);
     float get_time_diff();
     void propagate_time(bool forward);
-    void update_shadow_map(Camera &camera);
+    void update_shadow_map(const Camera &camera);
     void increase_up_interp();
     void decrease_up_interp();
     void toggle_show_normals();
-
+    void increase_grass_amount();
+    void decrease_grass_amount();
+    
 private:
     enum shader {
       FORWARD,
@@ -94,11 +96,12 @@ private:
       SHOW_ALPHA_COMPONENT,
       SHOW_SSAO,
       HDR_BLOOM,
+      GRASS_LOD1,
       SHADOW_BUFFER
     };
 
     render_mode mode;
-    GLuint shaders[16];
+    GLuint shaders[17];
     // Frame buffers
     GLuint g_buffer, ssao_fbo, hdr_fbo, post_proc_fbo, ping_pong_fbo_red, ping_pong_fbo_rgb, depth_map_FBO;
     // Textures
@@ -137,6 +140,7 @@ private:
     // Normal visualization settings
     bool show_normals = false;
     float up_interp = 0.0; // between [0,1]
+    int n_geometry_lines = 3;
 
     void init_g_buffer();
     void init_hdr_fbo();
@@ -172,12 +176,13 @@ private:
     void blur_rgb_texture(GLuint source_tex, GLuint fbo_tex, GLuint target_fbo, filter_type ft, int iterations);
 
     void geometry_pass();
-    void normal_visualization_pass();
-    void render_g_position();
-    void render_g_normal();
-    void render_g_albedo();
-    void render_g_specular();
-    void render_ssao();
+    void normal_visualization_pass(const vec3 cam_pos);
+    void grass_generation_pass();
+    void render_g_position(const Camera &camera);
+    void render_g_normal(const Camera &camera);
+    void render_g_albedo(const Camera &camera);
+    void render_g_specular(const Camera &camera);
+    void render_ssao(const Camera &camera);
     void render_shadow_map(const Camera &camera);
 };
 

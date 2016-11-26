@@ -65,7 +65,7 @@ void Model::move_along_path(float elapsed_time)
     // get_pos updates the spline parameter for next iteration
     if (has_animation) {
         new_pos = this->anim_path->get_pos(this->spline_parameter,
-                                                     elapsed_time);
+                                           elapsed_time);
     } else {
         Error::throw_error(Error::model_has_no_path);
     }
@@ -103,8 +103,8 @@ void Model::attach_light(Light *light, glm::vec3 relative_pos) {
 
 
 /* Move model and all attached lights to world_coord.
-Important: the lights does not currently keep their relative
-position to the model */
+   Important: the lights does not currently keep their relative
+   position to the model */
 void Model::move_to(glm::vec3 world_coord) {
     this->world_coord = world_coord;
 
@@ -217,18 +217,18 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
     if(material->GetTextureCount(aiTextureType_DIFFUSE)) {
         aiString filepath;
         material->GetTexture(aiTextureType_DIFFUSE, 0, &filepath);
-        m->load_texture(std::string(filepath.C_Str()), this->directory,
-                        clamp_textures, DIFFUSE);
+        m->set_texture(this->directory + "/" + std::string(filepath.C_Str()),
+                       clamp_textures, DIFFUSE);
     } else {
-        m->load_texture(DEFAULT_DIFFUSE, DEFAULT_PATH,
-                        clamp_textures, DIFFUSE);
+        m->set_texture(DEFAULT_PATH + "/" + DEFAULT_DIFFUSE,
+                       clamp_textures, DIFFUSE);
     }
 
     if(material->GetTextureCount(aiTextureType_SPECULAR)) {
         aiString filepath;
         material->GetTexture(aiTextureType_SPECULAR, 0, &filepath);
-        m->load_texture(std::string(filepath.C_Str()), this->directory,
-                        clamp_textures, SPECULAR);
+        m->set_texture(this->directory + "/" + std::string(filepath.C_Str()),
+                       clamp_textures, SPECULAR);
     } else { // Use diffuse map as a specular map when specular is missing
         m->specular_map = m->diffuse_map;
     }
@@ -236,11 +236,11 @@ Mesh* Model::load_mesh(aiMesh* ai_mesh, const aiScene* scene) {
     if(material->GetTextureCount(aiTextureType_HEIGHT)) {
         aiString filepath;
         material->GetTexture(aiTextureType_HEIGHT, 0, &filepath);
-        m->load_texture(std::string(filepath.C_Str()), this->directory,
-                        clamp_textures, NORMAL);
+        m->set_texture(this->directory + "/" + std::string(filepath.C_Str()),
+                       clamp_textures, NORMAL);
     } else { // Default normal map keeps the geometry defined normals
-        m->load_texture(DEFAULT_NORMAL, DEFAULT_PATH,
-                        clamp_textures, NORMAL);
+        m->set_texture(DEFAULT_PATH + "/" + DEFAULT_NORMAL,
+                       clamp_textures, NORMAL);
     }
 
     m->upload_mesh_data();
@@ -349,14 +349,14 @@ const std::vector<Mesh*> Model::get_meshes()
 unsigned Model::cull_me(Camera* camera){
     unsigned drawn_meshes = 0;
     bool draw_me = camera->sphere_in_frustum(this->get_center_point_world(), \
-            this->bounding_sphere_radius * this->scale);
+                                             this->bounding_sphere_radius * this->scale);
     this->draw_me = draw_me;
 
     // If draw me - see if we can cull meshes
     if (draw_me){
         for (auto mesh : this->get_meshes()) {
             bool draw_me = camera->sphere_in_frustum(mesh->get_center_point_world(this->m2w_matrix), \
-                    mesh->bounding_sphere_radius * this->scale);
+                                                     mesh->bounding_sphere_radius * this->scale);
             mesh->draw_me = draw_me;
             if (draw_me)
                 drawn_meshes++;
