@@ -71,7 +71,7 @@ public:
     void toggle_tweak_bar();
     void copy_tweak_bar_cam_values(const Camera& camera);
     float get_time_diff();
-    void propagate_time(bool forward);
+    void propagate_time(const bool forward);
     void increase_up_interp();
     void decrease_up_interp();
     void increase_grass_amount();

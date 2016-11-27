@@ -285,6 +285,9 @@ void Renderer::shadow_pass(const Camera &camera){
 
 void Renderer::render_deferred(const Camera &camera)
 {
+    skydome->propagate_time(0.1f * this->time_diff);
+    skydome->upload_sun(shaders[DEFERRED], camera);
+
     shadow_pass(camera);
     geometry_pass();
     grass_generation_pass();
@@ -301,8 +304,6 @@ void Renderer::render_deferred(const Camera &camera)
     glBindFramebuffer(GL_FRAMEBUFFER, hdr_fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //skydome->propagate_time(this->time_diff);
-    skydome->upload_sun(shaders[DEFERRED], camera);
     Profiler::start_timer("Deferred pass");
     glUseProgram(shaders[DEFERRED]);
 
