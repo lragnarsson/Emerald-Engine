@@ -175,6 +175,8 @@ void print_welcome()
 
 void init(int argc, char *argv[])
 {
+    Parser::check_if_user_needs_help(argc, argv);
+
     if (!sdl_init(SCREEN_WIDTH, SCREEN_HEIGHT, Parser::get_display_mode_from_command_line(argc, argv), main_window, main_context)) {
         Error::throw_error(Error::display_init_fail);
     }
