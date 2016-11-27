@@ -148,6 +148,7 @@ void run()
         Profiler::start_timer("Swap");
         SDL_GL_SwapWindow(main_window);
         Profiler::stop_timer("Swap");
+        SDL_Delay(45);
         Profiler::stop_timer("-> Frame time");
     }
 }

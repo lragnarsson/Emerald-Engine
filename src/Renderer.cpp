@@ -28,7 +28,7 @@ void Renderer::init()
                                        "build/shaders/grass_lod1.geom",
                                        "build/shaders/grass_lod1.frag");
     shaders[SHADOW_BUFFER] = load_shaders("build/shaders/shadow.vert",
-                                      "build/shaders/shadow.frag");
+                                          "build/shaders/shadow.frag");
 
 
     init_g_buffer();
@@ -178,12 +178,6 @@ void Renderer::propagate_time(bool forward)
     skydome->propagate_time(delta);
 }
 
-void Renderer::update_shadow_map(Camera &camera)
-{
-
-    this->skydome->update_light_space(camera);
-    this->trigger_shadow_map = true;
-}
 
 void Renderer::increase_up_interp()
 {
@@ -226,6 +220,8 @@ void Renderer::toggle_show_normals()
 // --------------------------
 
 void Renderer::shadow_pass(const Camera &camera){
+    this->skydome->update_light_space(camera);
+
     glUseProgram(shaders[SHADOW_BUFFER]);
     // Attach shadow_map FBO
     glBindFramebuffer(GL_FRAMEBUFFER, this->depth_map_FBO);
@@ -234,8 +230,7 @@ void Renderer::shadow_pass(const Camera &camera){
     glClear(GL_DEPTH_BUFFER_BIT);
     // Disable color rendering
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    // Render only backface to avoid self shadowing
-    glEnable(GL_CULL_FACE);
+    // Render only backface to avoid self
     glCullFace(GL_FRONT);
 
     // Upload matrix for light space
@@ -281,7 +276,6 @@ void Renderer::shadow_pass(const Camera &camera){
     // Restore OpenGL state
     glUseProgram(0);
     glCullFace(GL_BACK);
-    glDisable(GL_CULL_FACE);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -291,27 +285,18 @@ void Renderer::shadow_pass(const Camera &camera){
 
 void Renderer::render_deferred(const Camera &camera)
 {
-    /* SHADOW MAP */
-    if (this->trigger_shadow_map){
-
-        shadow_pass(camera);
-        this->trigger_shadow_map = false;
-    }
-
-    /* GEOMETRY PASS */
+    shadow_pass(camera);
     geometry_pass();
-
     grass_generation_pass();
+
     /* VISUALIZE NORMALS: EXPERIMENTAL STUFF */
     if (this->show_normals) {
         normal_visualization_pass(camera.get_pos());
     }
 
-    // SSAO PASS
     if (this->ssao_on) {
         ssao_pass();
     }
-
 
     glBindFramebuffer(GL_FRAMEBUFFER, hdr_fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1106,7 +1091,7 @@ void Renderer::render_shadow_map(const Camera &camera)
     shadow_pass(camera);
     geometry_pass();
     if (this->show_normals) {
-        normal_visualization_pass();
+        normal_visualization_pass(camera.get_pos());
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

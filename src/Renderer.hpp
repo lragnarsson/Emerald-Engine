@@ -72,7 +72,6 @@ public:
     void copy_tweak_bar_cam_values(const Camera& camera);
     float get_time_diff();
     void propagate_time(bool forward);
-    void update_shadow_map(Camera &camera);
     void increase_up_interp();
     void decrease_up_interp();
     void increase_grass_amount();
@@ -81,27 +80,28 @@ public:
 
 private:
     enum shader {
-      FORWARD,
-      GEOMETRY,
-      GEOMETRY_NORMALS,
-      DEFERRED,
-      FLAT,
-      FLAT_TEXTURE,
-      SSAO,
-      BLUR_RED_5_X,
-      BLUR_RED_5_Y,
-      BLUR_RGB_11_X,
-      BLUR_RGB_11_Y,
-      SHOW_RGB_COMPONENT,
-      SHOW_ALPHA_COMPONENT,
-      SHOW_SSAO,
-      HDR_BLOOM,
-      GRASS_LOD1
-      SHADOW_BUFFER
+        FORWARD=0,
+        GEOMETRY,
+        GEOMETRY_NORMALS,
+        DEFERRED,
+        FLAT,
+        FLAT_TEXTURE,
+        SSAO,
+        BLUR_RED_5_X,
+        BLUR_RED_5_Y,
+        BLUR_RGB_11_X,
+        BLUR_RGB_11_Y,
+        SHOW_RGB_COMPONENT,
+        SHOW_ALPHA_COMPONENT,
+        SHOW_SSAO,
+        HDR_BLOOM,
+        SHADOW_BUFFER,
+        GRASS_LOD1,
+        NUM_SHADERS
     };
 
     render_mode mode;
-    GLuint shaders[16];
+    GLuint shaders[NUM_SHADERS];
     // Frame buffers
     GLuint g_buffer, ssao_fbo, hdr_fbo, post_proc_fbo, ping_pong_fbo_red, ping_pong_fbo_rgb, depth_map_FBO;
     // Textures
@@ -124,7 +124,6 @@ private:
     GLint ssao_n_samples;
     bool ssao_on;
     bool smooth_ssao;
-    bool trigger_shadow_map = true;
 
     // Tweak bar
     TwBar* tweak_bar;
