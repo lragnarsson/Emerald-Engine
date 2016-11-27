@@ -175,7 +175,7 @@ void print_welcome()
 
 void init(int argc, char *argv[])
 {
-    if (!sdl_init(SCREEN_WIDTH, SCREEN_HEIGHT, main_window, main_context)) {
+    if (!sdl_init(SCREEN_WIDTH, SCREEN_HEIGHT, Parser::get_display_mode_from_command_line(argc, argv), main_window, main_context)) {
         Error::throw_error(Error::display_init_fail);
     }
     init_input();

@@ -9,7 +9,7 @@ string Parser::get_scene_file_from_command_line(int argc, char *argv[])
     error_information += argv[0];
     error_information += " [/path/to/scene/file]";
 
-    if (argc != 1 && argc != 2) {
+    if (argc > 3) {
         Error::throw_error(Error::argument_error, error_information);
     }
 
@@ -24,4 +24,16 @@ string Parser::get_scene_file_from_command_line(int argc, char *argv[])
     Error::throw_error(Error::argument_error, error_information);
 
     return ""; // Needed for compiler warnings, but useless.
+}
+
+// ----------------
+
+display_mode Parser::get_display_mode_from_command_line(int argc, char *argv[]){
+
+    for (int i = 0; i < argc; i++) {
+        if ( string(argv[i]) == "--fullscreen" or string(argv[i]) == "-f" ) {
+            return FULLSCREEN;
+        }
+    }
+    return WINDOWED;
 }

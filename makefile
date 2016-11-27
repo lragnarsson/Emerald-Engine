@@ -2,10 +2,28 @@ UNAME_S := $(shell uname -s)
 
 # Engine constats
 # ----------------
+#
+
+# Resolution defaults to display size
+ifndef DEVELOP
+	ifndef SCREEN_WIDTH
+		ifeq ($(UNAME_S),Darwin)
+			SCREEN_WIDTH = "SCREEN_WIDTH=$(shell ./utils/screen_res.bash width)"
+		endif
+	endif
+	
+	ifndef SCREEN_HEIGHT
+		ifeq ($(UNAME_S),Darwin)
+			SCREEN_HEIGHT = "SCREEN_HEIGHT=$(shell ./utils/screen_res.bash height)"
+		endif
+	endif
+else
+	SCREEN_WIDTH="SCREEN_WIDTH=1024"
+	SCREEN_HEIGHT="SCREEN_HEIGHT=600"
+endif
+
 FRUSTUM_NEAR="_NEAR_=0.1f"
 FRUSTUM_FAR="_FAR_=1000.f"
-SCREEN_WIDTH="SCREEN_WIDTH=1280"
-SCREEN_HEIGHT="SCREEN_HEIGHT=800"
 SSAO_N_SAMPLES="_SSAO_N_SAMPLES_=8"
 MAX_LIGHTS="_MAX_LIGHTS_=25"
 ATT_QUAD="_ATT_QUAD_=0.05"

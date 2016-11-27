@@ -4,6 +4,7 @@
 
 
 bool sdl_init(const GLuint screen_width, const GLuint screen_height,
+              display_mode d_mode,
               SDL_Window *&main_window, SDL_GLContext &main_context)
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -11,14 +12,14 @@ bool sdl_init(const GLuint screen_width, const GLuint screen_height,
         return false;
     }
 
-
-#ifdef PROFILING
-    main_window = SDL_CreateWindow("TSBK07 Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                   screen_width, screen_height, SDL_WINDOW_OPENGL);
-#else
-    main_window = SDL_CreateWindow("TSBK07 Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                   screen_width, screen_height, SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL);
-#endif
+    if ( d_mode == WINDOWED){
+        main_window = SDL_CreateWindow("TSBK07 Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                screen_width, screen_height, SDL_WINDOW_OPENGL);
+    }
+    else {
+        main_window = SDL_CreateWindow("TSBK07 Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                screen_width, screen_height, SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL);
+    }
     if (!main_window) {
         std::cerr << "Unable to create window\n";
         return false;

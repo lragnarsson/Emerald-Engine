@@ -16,11 +16,13 @@
 #include <sstream>
 #include <iostream>
 
+#include "Parser.hpp"
 #include "Error.hpp"
 
 
 /* Initialize SDL and GLEW (on Linux) and creates an OpenGL context within a window */
 bool sdl_init(const GLuint screen_width, const GLuint screen_height,
+              display_mode d_mode,
               SDL_Window *&main_window, SDL_GLContext &main_context);
 
 /* Quits SDL properly */
