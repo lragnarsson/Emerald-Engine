@@ -27,6 +27,8 @@ void Renderer::init()
     shaders[GRASS_LOD1] = load_shaders("build/shaders/grass_lod1.vert",
                                        "build/shaders/grass_lod1.geom",
                                        "build/shaders/grass_lod1.frag");
+    shaders[SHADOW_BUFFER] = load_shaders("build/shaders/shadow.vert",
+                                      "build/shaders/shadow.frag");
 
 
     init_g_buffer();
@@ -39,6 +41,7 @@ void Renderer::init()
     init_blur_shaders();
     init_hdr_bloom_shader();
     init_ping_pong_fbos();
+    init_shadow_buffer();
 
     sphere = new Model("res/models/sphere/sphere.obj");
     skydome = new Skydome();
@@ -79,6 +82,9 @@ void Renderer::render(const Camera &camera)
     case SSAO_MODE:
         render_ssao(camera);
         break;
+    case SHADOW_MODE:
+        render_shadow_map(camera);
+        break;
     }
 
     if (draw_bounding_spheres) {
@@ -102,6 +108,7 @@ void Renderer::update_time(){
     time_diff = current_time - last_timestamp;
     last_timestamp = current_time;
 }
+
 
 // --------------------------
 
@@ -171,6 +178,12 @@ void Renderer::propagate_time(bool forward)
     skydome->propagate_time(delta);
 }
 
+void Renderer::update_shadow_map(Camera &camera)
+{
+
+    this->skydome->update_light_space(camera);
+    this->trigger_shadow_map = true;
+}
 
 void Renderer::increase_up_interp()
 {
@@ -212,8 +225,79 @@ void Renderer::toggle_show_normals()
 
 // --------------------------
 
+void Renderer::shadow_pass(const Camera &camera){
+    glUseProgram(shaders[SHADOW_BUFFER]);
+    // Attach shadow_map FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, this->depth_map_FBO);
+    // If we wish to render shadow in different resolution than screen
+    glViewport(0, 0, SCREEN_WIDTH * _SHADOW_SCALE_, SCREEN_HEIGHT * _SHADOW_SCALE_);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    // Disable color rendering
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    // Render only backface to avoid self shadowing
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+
+    // Upload matrix for light space
+    GLuint w2light_location = glGetUniformLocation(shaders[SHADOW_BUFFER], "light_space_matrix");
+    glUniformMatrix4fv(w2light_location, 1, GL_FALSE, value_ptr(this->skydome->get_light_space_matrix()));
+
+    // Render models into depth buffer
+    for (auto model : Model::get_loaded_models()) {
+        if (!model->draw_me) {
+            continue;
+        }
+        GLuint m2w_location = glGetUniformLocation(shaders[SHADOW_BUFFER], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(model->m2w_matrix));
+
+        for (auto mesh : model->get_meshes()) {
+            if (!mesh->draw_me) {
+                continue;
+            }
+            /* DRAW */
+            glBindVertexArray(mesh->get_VAO());
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        }
+    }
+
+    // Render terrain
+    for (auto terrain : Terrain::get_loaded_terrain()) {
+        if (!terrain->draw_me) {
+            continue;
+        }
+        GLuint m2w_location = glGetUniformLocation(shaders[SHADOW_BUFFER], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(terrain->m2w_matrix));
+
+        for (auto mesh : terrain->get_meshes()) {
+            if (!mesh->draw_me) {
+                continue;
+            }
+            /* DRAW */
+            glBindVertexArray(mesh->get_VAO());
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        }
+    }
+
+    // Restore OpenGL state
+    glUseProgram(0);
+    glCullFace(GL_BACK);
+    glDisable(GL_CULL_FACE);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+// --------------------------
+
 void Renderer::render_deferred(const Camera &camera)
 {
+    /* SHADOW MAP */
+    if (this->trigger_shadow_map){
+
+        shadow_pass(camera);
+        this->trigger_shadow_map = false;
+    }
+
     /* GEOMETRY PASS */
     geometry_pass();
 
@@ -237,6 +321,11 @@ void Renderer::render_deferred(const Camera &camera)
     Profiler::start_timer("Deferred pass");
     glUseProgram(shaders[DEFERRED]);
 
+    // Upload matrix for view to light space
+    mat4 v2w2light_matrix = this->skydome->get_light_space_matrix() * inverse(camera.get_view_matrix());
+    GLuint v2w2light_location = glGetUniformLocation(shaders[DEFERRED], "light_space_matrix");
+    glUniformMatrix4fv(v2w2light_location, 1, GL_FALSE, value_ptr(v2w2light_matrix));
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, g_position);
     glActiveTexture(GL_TEXTURE1);
@@ -245,6 +334,8 @@ void Renderer::render_deferred(const Camera &camera)
     glBindTexture(GL_TEXTURE_2D, g_albedo_specular);
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, ssao_tex);
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, depth_map_texture);
 
     // Render deferred shading stage to quad:
     glBindVertexArray(quad_vao);
@@ -1008,6 +1099,27 @@ void Renderer::render_ssao(const Camera &camera)
     glUseProgram(0);
 }
 
+// --------------------------
+
+void Renderer::render_shadow_map(const Camera &camera)
+{
+    shadow_pass(camera);
+    geometry_pass();
+    if (this->show_normals) {
+        normal_visualization_pass();
+    }
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(shaders[SHOW_SSAO]);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, depth_map_texture);
+
+    // Render quad
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glUseProgram(0);
+}
 
 // --------------------------
 
@@ -1117,6 +1229,49 @@ void Renderer::init_ping_pong_fbos()
 
 // --------------------------
 
+
+void Renderer::init_shadow_buffer(){
+    // Create a FBO
+    glGenFramebuffers(1, &this->depth_map_FBO);
+
+    // Create a texture into which we will render the depth map
+    glGenTextures(1, &this->depth_map_texture);
+    glBindTexture(GL_TEXTURE_2D, this->depth_map_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+            SCREEN_WIDTH * _SHADOW_SCALE_, SCREEN_HEIGHT * _SHADOW_SCALE_, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // Use FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, depth_map_FBO);
+    // Attach the texture as the depth buffer of the FBO
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_map_texture, 0);
+    // No color texture
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    // Reset framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Set the shadow map as texture unit 4 in deferred stage
+    glUseProgram(shaders[DEFERRED]);
+    glUniform1i(glGetUniformLocation(shaders[DEFERRED], "shadow_map"), 4);
+
+    // Check if init is ok
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::ostringstream error_msg;
+        error_msg << "GL enum: " << glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        Error::throw_error(Error::renderer_init_fail, error_msg.str());
+    }
+    // Restore program
+    glUseProgram(0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+
+// --------------------------
+
 void Renderer::init_quad()
 {
     GLfloat vertices[] = {
@@ -1148,6 +1303,8 @@ void Renderer::init_g_buffer()
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_normal_shininess"), 1);
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "g_albedo_specular"), 2);
     glUniform1i(glGetUniformLocation(shaders[DEFERRED], "ssao_blurred"), 3);
+    // nr 4 is shadow map!
+    // nr 5 is light space frag pos
     glUseProgram(0);
 
     glDisable(GL_BLEND);
@@ -1186,11 +1343,28 @@ void Renderer::init_g_buffer()
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D,
             g_albedo_specular, 0);
 
+    // In G buffer we need to initialize a light space fragPos
+    // This frag pos is needed to calc shadows in deferred stage
+    glUseProgram(shaders[GEOMETRY]);
+    glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
+
+    glGenTextures(1, &light_space_texture);
+    glBindTexture(GL_TEXTURE_2D, light_space_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F,
+            SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA32F, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_RGBA32F, GL_TEXTURE_2D,
+            light_space_texture, 0);
+
+
     /* Specify color attachments of the buffer */
-    GLuint attachments[3] = {GL_COLOR_ATTACHMENT0,
+    GLuint attachments[4] = {GL_COLOR_ATTACHMENT0,
         GL_COLOR_ATTACHMENT1,
         GL_COLOR_ATTACHMENT2};
-    glDrawBuffers(3, attachments);
+    glDrawBuffers(4, attachments);
 
     /* Attach a depth buffer */
     GLuint depth_buffer;
