@@ -15,6 +15,8 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <set>
+#include <vector>
 
 #include "Parser.hpp"
 #include "Error.hpp"

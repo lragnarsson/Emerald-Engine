@@ -9,12 +9,15 @@ string Parser::get_scene_file_from_command_line(int argc, char *argv[])
     error_information += argv[0];
     error_information += " [/path/to/scene/file]";
 
-    if (argc > 3) {
+    if (argc > 4) {
         Error::throw_error(Error::argument_error, error_information);
     }
+    
+    for ( int i = 0; i < argc; i++ ){
+        if ( string(argv[i]) == "--scene-file" or string(argv[i]) == "-sf" ){
+            return string(argv[i+1]);
+        }
 
-    if (argc == 2) {
-        return string(argv[1]);
     }
 
     #ifdef _DEFAULT_SCENE_FILE_
