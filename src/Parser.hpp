@@ -22,7 +22,7 @@ public:
     static void print_help(std::string exec_name);
     static void check_if_user_needs_help(int argc, char *argv[]);
 private:
-
+    static const std::vector<std::string> allowed_args;
 };
 
 #endif
