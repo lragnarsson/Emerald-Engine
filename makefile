@@ -12,9 +12,13 @@ ifndef DEVELOP
 	ifndef SCREEN_HEIGHT
 		SCREEN_HEIGHT = "SCREEN_HEIGHT=$(shell ./utils/screen_res.bash height)"
 	endif
-else
-	SCREEN_WIDTH="SCREEN_WIDTH=1024"
-	SCREEN_HEIGHT="SCREEN_HEIGHT=600"
+else	
+	ifndef SCREEN_WIDTH
+		SCREEN_WIDTH="SCREEN_WIDTH=1024"
+	endif
+	ifndef SCREEN_HEIGHT
+		SCREEN_HEIGHT="SCREEN_HEIGHT=600"
+	endif
 endif
 
 FRUSTUM_NEAR="_NEAR_=0.1f"
