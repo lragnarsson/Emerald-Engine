@@ -15,8 +15,13 @@ bool sdl_init(const GLuint screen_width, const GLuint screen_height,
                 screen_width, screen_height, SDL_WINDOW_OPENGL);
     }
     else {
+#ifdef __APPLE__
+        main_window = SDL_CreateWindow("TSBK07 Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                screen_width, screen_height, SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL);
+#else
         main_window = SDL_CreateWindow("TSBK07 Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                 screen_width, screen_height, SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_OPENGL);
+#endif
     }
     if (!main_window) {
         std::cerr << "Unable to create window\n";
