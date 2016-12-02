@@ -175,13 +175,6 @@ void Renderer::propagate_time(bool forward)
     skydome->propagate_time(delta);
 }
 
-void Renderer::update_shadow_map(Camera &camera)
-{
-
-    this->skydome->update_light_space(camera);
-    this->trigger_shadow_map = true;
-}
-
 void Renderer::increase_up_interp()
 {
     if (this->up_interp >= 0.9f)
@@ -208,6 +201,9 @@ void Renderer::toggle_show_normals()
 // --------------------------
 
 void Renderer::shadow_pass(const Camera &camera){
+    // Update light space
+    this->skydome->update_light_space(camera);
+
     glUseProgram(shaders[SHADOW_BUFFER]);
     // Attach shadow_map FBO
     glBindFramebuffer(GL_FRAMEBUFFER, this->depth_map_FBO);
@@ -274,11 +270,7 @@ void Renderer::shadow_pass(const Camera &camera){
 void Renderer::render_deferred(const Camera &camera)
 {
     /* SHADOW MAP */
-    if (this->trigger_shadow_map){
-
-        shadow_pass(camera);
-        this->trigger_shadow_map = false;
-    }
+    shadow_pass(camera);
 
     /* GEOMETRY PASS */
     geometry_pass();

@@ -186,7 +186,7 @@ void Skydome::calculate_sun()
 
 // ---------------
 // Shadow mapping
-void Skydome::update_light_space(Camera &camera){
+void Skydome::update_light_space(const Camera &camera){
 
     vec3 camera_pos = camera.get_pos();
     vec3 camera_front = camera.front;
@@ -199,9 +199,9 @@ void Skydome::update_light_space(Camera &camera){
     for (auto terrain : Terrain::get_loaded_terrain() ){
         if ( terrain->point_in_terrain(look_at.x, look_at.z) ){
             float height = terrain->get_height(look_at.x, look_at.z);
-            if ( height + 15.f > look_at.y ){
-                look_at.y = height + 15.0;
-            }
+            if (look_at.y < height)
+                look_at.y = height;
+            break;
         }
     }
 
