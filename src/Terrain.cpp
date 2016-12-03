@@ -23,9 +23,9 @@ Terrain::Terrain()
 
 Terrain::Terrain(std::string directory, float plane_scale, float height_scale, unsigned chunk_size)
 {   this->rot_matrix = glm::mat4(1.f);
-    this->world_coord = glm::vec3(0.f, 0.f, 0.f);
-    this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
-    this->m2w_matrix = move_matrix  * rot_matrix;
+    this->scale = plane_scale;
+    this->height_scale = height_scale;
+    this->scale_matrix = glm::scale(glm::mat4(1.f), glm::vec3(plane_scale, height_scale, plane_scale));
     this->clamp_textures = false;
 
     load_heightmap(directory, plane_scale, height_scale, chunk_size);
@@ -180,9 +180,9 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
                     float height = get_pixel_height(x, z, heightmap);
 
                     // Create vertices (points in 3D space)
-                    m->vertices.push_back(x*plane_scale);
-                    m->vertices.push_back(height*height_scale);
-                    m->vertices.push_back(z*plane_scale);
+                    m->vertices.push_back(x);
+                    m->vertices.push_back(height);
+                    m->vertices.push_back(z);
 
                     // Create a normal for each vertice
                     vec3 normal = get_normal(x, z, heightmap, plane_scale, height_scale);
@@ -237,11 +237,9 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
 
 
     // Translate terrain to the middle
-    this->scale = plane_scale;
-    this->height_scale = height_scale;
     this->world_coord = glm::vec3(-heightmap->w*plane_scale/2.f, 0.f, -heightmap->h*plane_scale/2.f);
     this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
-    this->m2w_matrix = move_matrix  * rot_matrix;
+    this->m2w_matrix = move_matrix  * rot_matrix * scale_matrix;
     // Generate bounding spheres
     this->generate_bounding_sphere();
     // Save image
@@ -339,12 +337,16 @@ vec3 Terrain::get_tangent(int x, int z, SDL_Surface* image, float ps, float hs){
 
 void Terrain::generate_bounding_sphere()
 {
-    GLfloat v = this->meshes[0]->vertices[0];
-    GLfloat x_max = v, y_max = v, z_max = v, x_min = v, y_min = v, z_min = v;
+    GLfloat x = this->meshes[0]->vertices[0];
+    GLfloat y = this->meshes[0]->vertices[1];
+    GLfloat z = this->meshes[0]->vertices[2];
+    GLfloat x_max = x, y_max = y, z_max = z, x_min = x, y_min = y, z_min = z;
 
     for (auto mesh : this->meshes) {
-        GLfloat v_local = mesh->vertices[0];
-        GLfloat x_local_max = v_local, y_local_max = v_local, z_local_max = v_local, x_local_min = v_local, y_local_min = v_local, z_local_min = v_local;
+        GLfloat x_local = mesh->vertices[0];
+        GLfloat y_local = mesh->vertices[1];
+        GLfloat z_local = mesh->vertices[2];
+        GLfloat x_local_max = x_local, y_local_max = y_local, z_local_max = z_local, x_local_min = x_local, y_local_min = y_local, z_local_min = z_local;
         for (int i=0; i < mesh->vertices.size() - 2; i+=3) {
             // Maxes
             if (mesh->vertices[i] > x_max){
@@ -394,18 +396,19 @@ void Terrain::generate_bounding_sphere()
         glm::vec3 max_corner = glm::vec3(x_local_max, y_local_max, z_local_max);
         glm::vec3 min_corner = glm::vec3(x_local_min, y_local_min, z_local_min);
 
-        glm::vec3 r_vector = 0.5f * (max_corner - min_corner);
-        mesh->bounding_sphere_radius = glm::length(r_vector);
-        mesh->bounding_sphere_center = min_corner + r_vector;
+        glm::vec3 r_vector_model = 0.5f * (max_corner - min_corner);
+        glm::vec3 r_vector_world = glm::vec3(this->scale_matrix * glm::vec4(r_vector_model, 1.0f));
+        mesh->bounding_sphere_radius = glm::length(r_vector_world);
+        mesh->bounding_sphere_center = min_corner + r_vector_model;
     }
     // Make sure entire model has bounding sphere
     glm::vec3 max_corner = glm::vec3(x_max, y_max, z_max);
     glm::vec3 min_corner = glm::vec3(x_min, y_min, z_min);
 
-    glm::vec3 r_vector = 0.5f * (max_corner - min_corner);
-    this->bounding_sphere_radius = glm::length(r_vector);
-    this->bounding_sphere_center = min_corner + r_vector;
-
+    glm::vec3 r_vector_model = 0.5f * (max_corner - min_corner);
+    glm::vec3 r_vector_world = glm::vec3(this->scale_matrix * glm::vec4(r_vector_model, 1.0f));
+    this->bounding_sphere_radius = glm::length(r_vector_world);
+    this->bounding_sphere_center = min_corner + r_vector_model;
 }
 
 // -----------
@@ -432,7 +435,7 @@ unsigned Terrain::cull_me(Camera* camera){
     if (draw_me){
         for (auto mesh : this->get_meshes()) {
             bool draw_me = camera->sphere_in_frustum(mesh->get_center_point_world(this->m2w_matrix), \
-                    mesh->bounding_sphere_radius);
+                                                     mesh->bounding_sphere_radius);
             mesh->draw_me = draw_me;
             if (draw_me)
                 drawn_meshes++;

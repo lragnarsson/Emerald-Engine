@@ -20,7 +20,7 @@ uniform mat4 view;
 uniform float upInterp; // Interpolation between up-vector and vertex own normal vector
 uniform int n_lines;
 
-const float MAGNITUDE = 2.0f; // Length of generated lines
+const float MAGNITUDE = 0.5f; // Length of generated lines
 
 
 void GenerateLine(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal)
