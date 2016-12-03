@@ -48,9 +48,9 @@ res/models/terrain | 4 0.2 | 10
 [models]
 # Models are loaded using the following syntax:
 # /path/to/model | rotX rotY rotZ | Xpos Ypos Zpos | scale | animation_path_id start_animation | nr_of_lights
-#res/models/nanosuit/nanosuit.obj 0 5 0 | 20 0 -5 | 1 | -1 0 0
-#res/models/muro/muro.obj 0 5 0 | 20 0 5 | 0.08 |-1 0 0
-res/models/sponza/sponza.obj 0 0 0 | 0 0 0 | 0.1 | -1 -10 0
+#res/models/nanosuit/nanosuit.obj | abs | 0 5 0 | 20 0 -5 | 1 | -1 0 0
+#res/models/muro/muro.obj | abs | 0 5 0 | 20 0 5 | 0.08 |-1 0 0
+res/models/sponza/sponza.obj | abs | 0 0 0 | 0 0 0 | 0.1 | -1 -10 0
 
 # This will start a new section for loading flat-shaded models.
 [flat]
@@ -59,53 +59,53 @@ res/models/sponza/sponza.obj 0 0 0 | 0 0 0 | 0.1 | -1 -10 0
 
 
 # lightswith fixes positions
-res/models/sphere/sphere.obj 0 0 0 | 50 5 -1 | 0.5 | -1 0 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | 50 5 -1 | 0.5 | -1 0 | 1
 0 0 0 | 1 1 1
-res/models/sphere/sphere.obj 0 0 0 | -100 20 50 | 0.5 | -1 0 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -100 20 50 | 0.5 | -1 0 | 1
 0 0 0 | 1 1 1
-res/models/sphere/sphere.obj 0 0 0 | -100 20 -50 | 0.5 | -1 0 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -100 20 -50 | 0.5 | -1 0 | 1
 0 0 0 | 1 1 1
-res/models/sphere/sphere.obj 0 0 0 | 100 20 -50 | 0.5 | -1 0 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | 100 20 -50 | 0.5 | -1 0 | 1
 0 0 0 | 1 1 1
-res/models/sphere/sphere.obj 0 0 0 | 100 20 50 | 0.5 | -1 0 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | 100 20 50 | 0.5 | -1 0 | 1
 0 0 0 | 1 1 1
 
 # lightsalong first spline
-res/models/sphere/sphere.obj 0 0 0 | 1 1 1 | 0.5 | 0 0 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | 1 1 1 | 0.5 | 0 0 | 1
 0 0 0 | 1.0 1.0 0.2
-res/models/sphere/sphere.obj 0 0 0 | 3 10 1 | 0.5 | 0 10 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | 3 10 1 | 0.5 | 0 10 | 1
 0 0 0 | 0.2 0.8 0.1
-res/models/sphere/sphere.obj 0 0 0 | -2 8 -10 | 0.5 | 0 20 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -2 8 -10 | 0.5 | 0 20 | 1
 0 0 0 | 0.8 0.1 0.1
-res/models/sphere/sphere.obj 0 0 0 | -2 7 -7 | 0.5 | 0 30 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -2 7 -7 | 0.5 | 0 30 | 1
 0 0 0 | 0.8 0.1 0.5
-res/models/sphere/sphere.obj 0 0 0 | -5 7 -10 | 0.5 | 0 40 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -5 7 -10 | 0.5 | 0 40 | 1
 0 0 0 | 1 1 0.2
-res/models/sphere/sphere.obj 0 0 0 | -1 10 -8 | 0.5 | 0 50 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 0 50 | 1
 0 0 0 | 0.1 1 0.1
-res/models/sphere/sphere.obj 0 0 0 | -5 7 -10 | 0.5 | 0 60 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -5 7 -10 | 0.5 | 0 60 | 1
 0 0 0 | 0.2 0.2 1
-res/models/sphere/sphere.obj 0 0 0 | -1 10 -8 | 0.5 | 0 70 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 0 70 | 1
 0 0 0 | 1 0.1 0.1
 
 # lights along second spline
 
 # lightsalong second spline
-res/models/sphere/sphere.obj 0 0 0 | -1 10 -8 | 0.5 | 3 0 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 3 0 | 1
 0 0 0 | 0.7 0.2 0.2
-res/models/sphere/sphere.obj 0 0 0 | -1 10 -8 | 0.5 | 3 10 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 3 10 | 1
 0 0 0 | 0.7 0.2 0.2
-res/models/sphere/sphere.obj 0 0 0 | -1 10 -8 | 0.5 | 3 20 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 3 20 | 1
 0 0 0 | 0.7 0.2 0.2
-res/models/sphere/sphere.obj 0 0 0 | -1 10 -8 | 0.5 | 3 30 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 3 30 | 1
 0 0 0 | 0.7 0.2 0.2
-res/models/sphere/sphere.obj 0 0 0 | -1 10 -8 | 0.5 | 3 40 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 3 40 | 1
 0 0 0 | 0.7 0.2 0.2
-res/models/sphere/sphere.obj 0 0 0 | -1 10 -8 | 0.5 | 3 50 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 3 50 | 1
 0 0 0 | 0.7 0.2 0.2
-res/models/sphere/sphere.obj 0 0 0 | -1 10 -8 | 0.5 | 3 60 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 3 60 | 1
 0 0 0 | 0.7 0.2 0.2
-res/models/sphere/sphere.obj 0 0 0 | -1 10 -8 | 0.5 | 3 70 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 3 70 | 1
 0 0 0 | 0.7 0.2 0.2
-res/models/sphere/sphere.obj 0 0 0 | -1 10 -8 | 0.5 | 3 80 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 3 80 | 1
 0 0 0 | 0.7 0.2 0.2
