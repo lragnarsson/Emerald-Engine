@@ -1,5 +1,4 @@
 #include "Input.hpp"
-#include "Profiler.hpp"
 
 void init_input()
 {
@@ -12,6 +11,7 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
 {
     SDL_Event event;
     bool handled;
+    bool update_shadow = false;
 
     const Uint8* keystate = SDL_GetKeyboardState(NULL);
 
@@ -20,32 +20,41 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
             camera.toggle_free_move();
         }
         camera.set_pos(camera.get_pos() + camera.speed * renderer.get_time_diff() * camera.front);
+        update_shadow = true;
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_s)]) {
         if (!camera.can_move_free()) {
             camera.toggle_free_move();
         }
         camera.set_pos(camera.get_pos() - camera.speed * renderer.get_time_diff() * camera.front);
+        update_shadow = true;
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_a)]) {
         if (!camera.can_move_free()) {
             camera.toggle_free_move();
         }
         camera.set_pos(camera.get_pos() - glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed * renderer.get_time_diff());
+        update_shadow = true;
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_d)]) {
         if (!camera.can_move_free()) {
             camera.toggle_free_move();
         }
         camera.set_pos(camera.get_pos() + glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed * renderer.get_time_diff());
+        update_shadow = true;
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_LEFT)]) {
         renderer.propagate_time(false);
+        update_shadow = true;
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_RIGHT)]) {
         renderer.propagate_time(true);
+        update_shadow = true;
     }
 
+    if (update_shadow){
+        renderer.update_shadow_map(camera);
+    }
 
     while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT)
@@ -78,6 +87,9 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     break;
                 case SDLK_7:
                     renderer.set_mode(SSAO_MODE);
+                    break;
+                case SDLK_8:
+                    renderer.set_mode(SHADOW_MODE);
                     break;
                 case SDLK_b:
                     renderer.draw_bounding_spheres = !renderer.draw_bounding_spheres;
@@ -154,6 +166,12 @@ void handle_mouse_input(Camera &camera, Renderer &renderer)
     unsigned int button_state;
 
     button_state = SDL_GetRelativeMouseState(&dx, &dy);
+
+    // Update shadow map if mouse is moved
+    int epsilon = 1;
+    if ( dx > epsilon or dy > epsilon){
+        renderer.update_shadow_map(camera);
+    }
 
     int distance = std::abs(dx) + std::abs(dy);
     if (!camera.can_look_free() && distance > 2) {

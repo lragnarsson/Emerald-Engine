@@ -27,12 +27,52 @@ uniform sampler2D g_position;
 uniform sampler2D g_normal_shininess;
 uniform sampler2D g_albedo_specular;
 uniform sampler2D ssao_blurred;
+uniform sampler2D shadow_map;
 
 uniform vec3 sun_direction;
 uniform vec3 sun_color;
 uniform bool sun_up;
+uniform mat4 light_space_matrix;
 // camera position is always 0,0,0 in view space
 
+// ------------------
+// Is this fragment in shadow or not?
+
+float shadow_calculation(vec4 frag_pos_light_space, float bias)
+{
+    // perform perspective divide
+    vec3 proj_coords = frag_pos_light_space.xyz / frag_pos_light_space.w;
+    // Transform to [0,1] range
+    proj_coords = proj_coords * 0.5 + 0.5;
+    // Get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closest_depth = texture(shadow_map, proj_coords.xy).r; 
+    // Get depth of current fragment from light's perspective
+    float current_depth = proj_coords.z;
+    
+    vec2 texel_size = 1.0 / textureSize(shadow_map, 0);
+    int core_size = 2;
+    float shadow = 0;
+
+    for(int x = -core_size; x <= core_size; ++x)
+    {
+        for(int y = -core_size; y <= core_size; ++y)
+        {
+            float pcf_depth = texture(shadow_map, proj_coords.xy + vec2(x, y) * texel_size).r; 
+            shadow += current_depth - bias < pcf_depth ? 1.0 : 0.2;        
+        }    
+    }
+    shadow /= (2 * core_size) * (2 * core_size);
+
+    // If outside of shadow frustum, just put light there
+    if(proj_coords.z > 1.0)
+        shadow = 1.0;
+    // Check whether current frag pos is in shadow
+    //float shadow = current_depth - bias < closest_depth ? 1.0 : 0.0;
+
+    return shadow;
+}  
+
+// ------------------
 
 void main()
 {
@@ -45,6 +85,8 @@ void main()
     float specular = texture(g_albedo_specular, TexCoord).a;
     float occlusion = texture(ssao_blurred, TexCoord).r; // Only red
     vec3 view_direction = normalize(- position);
+    float shadow_bias = max(0.012 * (1.0 - dot(normal, sun_direction)), 0.005);
+    float shadow = shadow_calculation(light_space_matrix * vec4(position, 1.f), shadow_bias);
 
     // Ambient
     vec3 light = 0.1 * occlusion * albedo;
@@ -75,7 +117,7 @@ void main()
         vec3 halfway_dir = normalize(sun_direction + view_direction);
         float s = pow(max(dot(normal, halfway_dir), 0.0), shininess);
         vec3 specular_light = s * sun_color * albedo * albedo;
-        light += diffuse_light + specular_light;
+        light += shadow * diffuse_light + specular_light;
     }
 
 
