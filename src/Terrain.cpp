@@ -143,7 +143,6 @@ float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
 
 void Terrain::load_heightmap(std::string directory, float plane_scale, float height_scale, unsigned chunk_size)
 {
-    std::cout << "load" << std::endl;
     std::string heightmap_file = directory + "/" + "heightmap.png";
     SDL_Surface* heightmap = IMG_Load(heightmap_file.c_str());
 

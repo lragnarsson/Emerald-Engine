@@ -38,8 +38,9 @@ res/models/terrain | 4 0.2 | 10
 
 [models]
 # Models are loaded using the following syntax:
-# /path/to/model | rotX rotY rotZ | Xpos Ypos Zpos | scale | animation_path_id start_animation | nr_of_lights
-res/models/nanosuit/nanosuit.obj 0 0 0 | 20 5 -5 | 1 | -1 0 0
+# /path/to/model | rel/abs | rotX rotY rotZ | Xpos Ypos Zpos | scale | animation_path_id start_animation | nr_of_lights
+# Were rel means relative to ground height at that location and abs means absolute world coord
+res/models/nanosuit/nanosuit.obj | rel | 0 0 0 | 20 -5 -5 | 1 | -1 0 0
 
 # This will start a new section for loading flat-shaded models.
 [flat]
@@ -48,33 +49,33 @@ res/models/nanosuit/nanosuit.obj 0 0 0 | 20 5 -5 | 1 | -1 0 0
 
 
 # Cubes with fixes positions
-res/models/cube/cube.obj 0 0 0 | 50 5 -1 | 0.5 | -1 0 | 1
+res/models/cube/cube.obj | abs | 0 0 0 | 50 5 -1 | 0.5 | -1 0 | 1
 0 0 0 | 1 1 1
-res/models/cube/cube.obj 0 0 0 | -100 20 50 | 0.5 | -1 0 | 1
+res/models/cube/cube.obj | abs | 0 0 0 | -100 20 50 | 0.5 | -1 0 | 1
 0 0 0 | 1 1 1
-res/models/cube/cube.obj 0 0 0 | -100 20 -50 | 0.5 | -1 0 | 1
+res/models/cube/cube.obj | abs | 0 0 0 | -100 20 -50 | 0.5 | -1 0 | 1
 0 0 0 | 1 1 1
-res/models/cube/cube.obj 0 0 0 | 100 20 -50 | 0.5 | -1 0 | 1
+res/models/cube/cube.obj | abs | 0 0 0 | 100 20 -50 | 0.5 | -1 0 | 1
 0 0 0 | 1 1 1
-res/models/cube/cube.obj 0 0 0 | 100 20 50 | 0.5 | -1 0 | 1
+res/models/cube/cube.obj | abs | 0 0 0 | 100 20 50 | 0.5 | -1 0 | 1
 0 0 0 | 1 1 1
 
 # Cubes along first spline
-res/models/cube/cube.obj 0 0 0 | 1 1 1 | 0.5 | 0 0 | 1
+res/models/cube/cube.obj | abs | 0 0 0 | 1 1 1 | 0.5 | 0 0 | 1
 0 0 0 | 1.0 1.0 0.2
-res/models/cube/cube.obj 0 0 0 | 3 10 1 | 0.5 | 0 10 | 1
+res/models/cube/cube.obj | abs | 0 0 0 | 3 10 1 | 0.5 | 0 10 | 1
 0 0 0 | 0.2 0.8 0.1
-res/models/cube/cube.obj 0 0 0 | -2 8 -10 | 0.5 | 0 20 | 1
+res/models/cube/cube.obj | abs | 0 0 0 | -2 8 -10 | 0.5 | 0 20 | 1
 0 0 0 | 0.8 0.1 0.1
-res/models/cube/cube.obj 0 0 0 | -2 7 -7 | 0.5 | 0 30 | 1
+res/models/cube/cube.obj | abs | 0 0 0 | -2 7 -7 | 0.5 | 0 30 | 1
 0 0 0 | 0.8 0.1 0.5
-res/models/cube/cube.obj 0 0 0 | -5 7 -10 | 0.5 | 0 40 | 1
+res/models/cube/cube.obj | abs | 0 0 0 | -5 7 -10 | 0.5 | 0 40 | 1
 0 0 0 | 1 1 0.2
-res/models/cube/cube.obj 0 0 0 | -1 10 -8 | 0.5 | 0 50 | 1
+res/models/cube/cube.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 0 50 | 1
 0 0 0 | 0.1 1 0.1
-res/models/cube/cube.obj 0 0 0 | -5 7 -10 | 0.5 | 0 60 | 1
+res/models/cube/cube.obj | abs | 0 0 0 | -5 7 -10 | 0.5 | 0 60 | 1
 0 0 0 | 0.2 0.2 1
-res/models/cube/cube.obj 0 0 0 | -1 10 -8 | 0.5 | 0 70 | 1
+res/models/cube/cube.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 0 70 | 1
 0 0 0 | 1 0.1 0.1
 
 # Cubes along second spline
