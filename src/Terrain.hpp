@@ -40,8 +40,9 @@ public:
 
     bool draw_me = true, clamp_textures = false;
     glm::vec3 world_coord;
-    glm::mat4 m2w_matrix, move_matrix, rot_matrix;
+    glm::mat4 m2w_matrix, move_matrix, rot_matrix, scale_matrix;
     float bounding_sphere_radius = -1.f, scale = 1.f, height_scale = 1.f;
+    static Texture *wind_map;
 
     const std::vector<Mesh*> get_meshes();
     void load_heightmap(std::string heightmap_file, float plane_scale, float height_scale, unsigned chunk_size);
@@ -69,7 +70,7 @@ private:
     glm::vec3 get_normal(int x, int z, SDL_Surface* image, float plane_scale, float height_scale);
     glm::vec3 get_tangent(int x, int z, SDL_Surface* image, float plane_scale, float height_scale);
     void generate_bounding_sphere();
-
+    void load_wind(std::string full_path);
 };
 
 

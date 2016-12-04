@@ -19,7 +19,7 @@ const vec3 Skydome::horizon_dusk = {0.9f, 0.4f, 0.1f};
 const vec3 Skydome::zenith_midnight = {0.f, 0.0f, 0.01f};
 const vec3 Skydome::horizon_midnight = {0.f, 0.01f, 0.05f};
 
-const float Skydome::altitude_margin = -0.055f;
+const float Skydome::altitude_margin = -0.12f;
 
 // Calculate the viewing are for light (light projection) used for shadow map
 const mat4 Skydome::light_projection = glm::ortho(-_FAR_/2.f, _FAR_/2.f, -_FAR_/10.f, _FAR_/10.f, _NEAR_, _FAR_/1.3f);
@@ -37,6 +37,7 @@ void Skydome::init()
 
 void Skydome::draw(const Camera &camera)
 {
+    glCullFace(GL_FRONT);
     calculate_sky();
     glDepthRange(0.9999f, 1.f);
 
@@ -66,6 +67,7 @@ void Skydome::draw(const Camera &camera)
 
     glDepthRange(0.f, 1.f);
     glUseProgram(0);
+    glCullFace(GL_BACK);
 }
 
 
@@ -74,14 +76,15 @@ void Skydome::upload_sun(const GLuint shader, const Camera &camera)
     calculate_sun();
     glUseProgram(shader);
     // Translate world space direction to view space:
+    GLuint sun_up = altitude > altitude_margin;
     mat4 m2w = translate(mat4(1.f), camera.get_pos());
     vec3 view_space_dir = vec3(camera.get_view_matrix() * m2w *
                                vec4(this->sun_direction, 1.f));
     glUniform3fv(glGetUniformLocation(shader, "sun_direction"),
                  1, value_ptr(view_space_dir));
     glUniform3fv(glGetUniformLocation(shader, "sun_color"),
-                 1, value_ptr(this->sun_color));
-
+                 1, value_ptr(normalize(this->sun_color)));
+    glUniform1i(glGetUniformLocation(shader, "sun_up"), sun_up);
     glUseProgram(0);
 }
 
@@ -108,6 +111,7 @@ void Skydome::init_uniforms()
 {
     // Upload constant uniforms:
     mat4 projection_matrix;
+
     projection_matrix = perspective(Y_FOV, ASPECT_RATIO, NEAR, FAR);
     glUseProgram(this->shader);
     glUniformMatrix4fv(glGetUniformLocation(this->shader, "projection"),

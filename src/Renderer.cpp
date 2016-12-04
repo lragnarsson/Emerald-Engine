@@ -24,8 +24,11 @@ void Renderer::init()
                                       "build/shaders/show_red_component.frag");
     shaders[HDR_BLOOM] = load_shaders("build/shaders/identity.vert",
                                       "build/shaders/hdr_bloom.frag");
+    shaders[GRASS_LOD1] = load_shaders("build/shaders/grass_lod1.vert",
+                                       "build/shaders/grass_lod1.geom",
+                                       "build/shaders/grass_lod1.frag");
     shaders[SHADOW_BUFFER] = load_shaders("build/shaders/shadow.vert",
-                                      "build/shaders/shadow.frag");
+                                          "build/shaders/shadow.frag");
 
 
     init_g_buffer();
@@ -65,19 +68,19 @@ void Renderer::render(const Camera &camera)
         render_deferred(camera);
         break;
     case POSITION_MODE:
-        render_g_position();
+        render_g_position(camera);
         break;
     case NORMAL_MODE:
-        render_g_normal();
+        render_g_normal(camera);
         break;
     case ALBEDO_MODE:
-        render_g_albedo();
+        render_g_albedo(camera);
         break;
     case SPECULAR_MODE:
-        render_g_specular();
+        render_g_specular(camera);
         break;
     case SSAO_MODE:
-        render_ssao();
+        render_ssao(camera);
         break;
     case SHADOW_MODE:
         render_shadow_map(camera);
@@ -198,6 +201,21 @@ void Renderer::decrease_up_interp()
         this->up_interp -= 0.1f;
 }
 
+void Renderer::increase_grass_amount()
+{
+    n_geometry_lines++;
+    if (this->n_geometry_lines > 20)
+        this->n_geometry_lines = 20;
+}
+
+void Renderer::decrease_grass_amount()
+{
+    if (this->n_geometry_lines > 0)
+        n_geometry_lines--;
+    if (this->n_geometry_lines < 0)
+        this->n_geometry_lines = 0;
+}
+
 void Renderer::toggle_show_normals()
 {
     this->show_normals = !this->show_normals;
@@ -283,9 +301,10 @@ void Renderer::render_deferred(const Camera &camera)
     /* GEOMETRY PASS */
     geometry_pass();
 
+    grass_generation_pass();
     /* VISUALIZE NORMALS: EXPERIMENTAL STUFF */
     if (this->show_normals) {
-        normal_visualization_pass();
+        normal_visualization_pass(camera.get_pos());
     }
 
     // SSAO PASS
@@ -484,7 +503,7 @@ void Renderer::post_processing()
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, post_proc_tex);
 
-    glUniform1f(glGetUniformLocation(shaders[HDR_BLOOM], "exposure"), 0.7f);
+    glUniform1f(glGetUniformLocation(shaders[HDR_BLOOM], "exposure"), 0.8f);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -728,6 +747,35 @@ void Renderer::render_bounding_spheres()
         glBindVertexArray(0);
     }
 
+    for (auto terrain : Terrain::get_loaded_terrain()) {
+        for (auto tmesh: terrain->get_meshes()) {
+            mat4 bounding_scale = scale(mat4(1.f), vec3(tmesh->bounding_sphere_radius) / 1.5f);
+
+            mat4 bounding_move = translate(mat4(1.f), tmesh->get_center_point_world(terrain->m2w_matrix));
+
+            GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
+            glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
+                               value_ptr(bounding_move *  bounding_scale));
+
+            // DRAW
+            glBindVertexArray(mesh->get_VAO());
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
+        }
+        // Draw bounding sphere for entire terrain
+        mat4 bounding_scale = scale(mat4(1.f), vec3(terrain->bounding_sphere_radius) / 1.5f);
+        mat4 bounding_move = translate(mat4(1.f), terrain->get_center_point_world());
+
+        GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
+                           value_ptr(bounding_move * bounding_scale));
+
+        // DRAW
+        glBindVertexArray(mesh->get_VAO());
+        glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+    }
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
@@ -826,14 +874,15 @@ void Renderer::geometry_pass()
 
 
 // --------------------------
-void Renderer::normal_visualization_pass()
+
+void Renderer::normal_visualization_pass(const vec3 cam_pos)
 {
     Profiler::start_timer("Normal visualization pass");
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
 
     glUseProgram(shaders[GEOMETRY_NORMALS]);
     glUniform1f(glGetUniformLocation(shaders[GEOMETRY_NORMALS], "upInterp"), this->up_interp);
-
+    glUniform1i(glGetUniformLocation(shaders[GEOMETRY_NORMALS], "n_lines"), this->n_geometry_lines);
     for (auto model : Model::get_loaded_models()) {
         if (!model->draw_me) {
             continue;
@@ -842,6 +891,9 @@ void Renderer::normal_visualization_pass()
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
 
         for (auto mesh : model->get_meshes()) {
+            if (!mesh->draw_me) {
+                continue;
+            }
             glActiveTexture(GL_TEXTURE0);
             GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY_NORMALS], "diffuse_map");
             glUniform1i(diffuse_loc, 0);
@@ -863,6 +915,15 @@ void Renderer::normal_visualization_pass()
 
         for (auto mesh : terrain->get_meshes()) {
             if (!mesh->draw_me) {
+                continue;
+            }
+            glm::vec3 delta = cam_pos - mesh->get_center_point_world(terrain->m2w_matrix);
+            delta.y = 0;
+            float distance_to_mesh = glm::length(delta);
+            // Skip meshes outside grass_lod2 interval
+            if (distance_to_mesh < grass_lod1_distance ||
+                distance_to_mesh > grass_lod2_distance) {
+                // TODO: This value depends heavily on the size of meshes. Do this properly
                 continue;
             }
             glActiveTexture(GL_TEXTURE0);
@@ -888,14 +949,84 @@ void Renderer::normal_visualization_pass()
 
     Profiler::stop_timer("Normal visualization pass");
 }
+
 // --------------------------
 
-void Renderer::render_g_position()
+void Renderer::grass_generation_pass()
+{
+    std::vector<Terrain*> loaded_terrain = Terrain::get_loaded_terrain();
+    if (loaded_terrain.size() == 0)
+        return;
+
+    Profiler::start_timer("Grass generation pass");
+    glDisable(GL_CULL_FACE);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
+
+    glUseProgram(shaders[GRASS_LOD1]);
+    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "upInterp"), this->up_interp);
+    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "shininess"), 20);
+    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "wind_strength"), 1.f);
+    glUniform3fv(glGetUniformLocation(shaders[GRASS_LOD1], "wind_direction"),
+                 1, value_ptr(vec3(0.3f, 0.f, -0.7f)));
+    glUniform2fv(glGetUniformLocation(shaders[GRASS_LOD1], "time_offset"),
+                 1, value_ptr(((float)SDL_GetTicks()) / 100000.f * vec2(0.f, -1.f)));
+
+    glActiveTexture(GL_TEXTURE0);
+    GLuint wind_loc = glGetUniformLocation(shaders[GRASS_LOD1], "wind_map");
+    glUniform1i(wind_loc, 0);
+
+    glBindTexture(GL_TEXTURE_2D, Terrain::wind_map->id);
+
+    for (auto terrain : loaded_terrain) {
+        if (!terrain->draw_me) {
+            continue;
+        }
+        GLuint m2w_location = glGetUniformLocation(shaders[GRASS_LOD1], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(terrain->m2w_matrix));
+
+        for (auto mesh : terrain->get_meshes()) {
+            if (!mesh->draw_me) {
+                continue;
+            }
+            glm::vec3 delta = cam_pos - mesh->get_center_point_world(terrain->m2w_matrix);
+            delta.y = 0;
+            if (glm::length(delta) > this->grass_lod1_distance) {
+                // TODO: This value depends heavily on the size of meshes. Do this properly
+                continue;
+            }
+
+            glActiveTexture(GL_TEXTURE0 + 1);
+            GLuint diffuse_loc = glGetUniformLocation(shaders[GRASS_LOD1], "diffuse_map");
+            glUniform1i(diffuse_loc, 1);
+            glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
+
+            glBindVertexArray(mesh->get_VAO());
+
+            /* DRAW GEOMETRY */
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        }
+    }
+
+    glBindVertexArray(0);
+    glActiveTexture(GL_TEXTURE0 );
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glUseProgram(0);
+
+    glEnable(GL_CULL_FACE);
+
+    Profiler::stop_timer("Grass generation pass");
+}
+
+
+void Renderer::render_g_position(const Camera &camera)
 {
     geometry_pass();
 
+    grass_generation_pass();
     if (this->show_normals) {
-        normal_visualization_pass();
+        normal_visualization_pass(camera.get_pos());
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -913,12 +1044,13 @@ void Renderer::render_g_position()
 
 // --------------------------
 
-void Renderer::render_g_normal()
+void Renderer::render_g_normal(const Camera &camera)
 {
     geometry_pass();
 
+    grass_generation_pass();
     if (this->show_normals) {
-        normal_visualization_pass();
+        normal_visualization_pass(camera.get_pos());
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -936,12 +1068,12 @@ void Renderer::render_g_normal()
 
 // --------------------------
 
-void Renderer::render_g_albedo()
+void Renderer::render_g_albedo(const Camera &camera)
 {
     geometry_pass();
-
+    grass_generation_pass();
     if (this->show_normals) {
-        normal_visualization_pass();
+        normal_visualization_pass(camera.get_pos());
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -959,12 +1091,15 @@ void Renderer::render_g_albedo()
 
 // --------------------------
 
-void Renderer::render_g_specular()
+void Renderer::render_g_specular(const Camera &camera)
 {
     geometry_pass();
 
+    // Moved into else for debug.
     if (this->show_normals) {
-        normal_visualization_pass();
+        normal_visualization_pass(camera.get_pos());
+    } else {
+        grass_generation_pass();
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -982,12 +1117,12 @@ void Renderer::render_g_specular()
 
 // --------------------------
 
-void Renderer::render_ssao()
+void Renderer::render_ssao(const Camera &camera)
 {
     geometry_pass();
-
+    grass_generation_pass();
     if (this->show_normals) {
-        normal_visualization_pass();
+        normal_visualization_pass(camera.get_pos());
     }
 
     ssao_pass();
@@ -1011,7 +1146,7 @@ void Renderer::render_shadow_map(const Camera &camera)
     shadow_pass(camera);
     geometry_pass();
     if (this->show_normals) {
-        normal_visualization_pass();
+        normal_visualization_pass(camera.get_pos());
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
