@@ -93,7 +93,7 @@ void culling()
 void handle_input()
 {
     Profiler::start_timer("Input");
-    handle_keyboard_input(camera, renderer);
+    handle_keyboard_input(camera, renderer, main_window);
     handle_mouse_input(camera, renderer);
     Profiler::stop_timer("Input");
 }

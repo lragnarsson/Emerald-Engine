@@ -15,9 +15,20 @@ screen_height=0
 
 # Mac
 if [ $my_uname == "Darwin" -a "$mode" == "width" ]; then
-    screen_width=$(/usr/bin/osascript -e 'tell application "Finder" to get bounds of window of desktop' |sed 's/\,//g' | awk '{print $3}')
+    screen_width=$(system_profiler SPDisplaysDataType |grep Resolution | awk '{print $2}')
+    # If multiple displays this will contain more than one ord 
+    if [ $(echo "$screen_width" | wc -w) -gt 1 ];then
+        # If more than one display, pick secondary (external on MacBooks)
+        screen_width=$(echo $screen_width | awk '{print $2}')
+    fi
+
 elif [ $my_uname == "Darwin" -a "$mode" == "height" ]; then
-    screen_height=$(/usr/bin/osascript -e 'tell application "Finder" to get bounds of window of desktop' |sed 's/\,//g' | awk '{print $4}')
+    screen_height=$(system_profiler SPDisplaysDataType |grep Resolution | awk '{print $4}')
+    # If multiple displays this will contain space
+    if [ $(echo "$screen_height" | wc -w) -gt 1 ];then
+        # If more than one display, pick secondary (external on MacBooks)
+        screen_height=$(echo $screen_height | awk '{print $2}')
+    fi
 
 # Linux
 elif [ $my_uname == "Linux" -a "$mode" == "width" ]; then
