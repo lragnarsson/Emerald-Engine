@@ -31,6 +31,7 @@ uniform sampler2D shadow_map;
 
 uniform vec3 sun_direction;
 uniform vec3 sun_color;
+uniform bool sun_up;
 uniform mat4 light_space_matrix;
 // camera position is always 0,0,0 in view space
 
@@ -76,6 +77,7 @@ float shadow_calculation(vec4 frag_pos_light_space, float bias)
 void main()
 {
     const vec3 eye_colors = vec3(0.2126, 0.7152, 0.0722);
+
     vec3 position = texture(g_position, TexCoord).rgb;
     vec3 normal = texture(g_normal_shininess, TexCoord).rgb;
     float shininess = texture(g_normal_shininess, TexCoord).a;
@@ -87,14 +89,14 @@ void main()
     float shadow = shadow_calculation(light_space_matrix * vec4(position, 1.f), shadow_bias);
 
     // Ambient
-    vec3 light = 0.03 * occlusion * albedo;
+    vec3 light = 0.1 * occlusion * albedo;
 
     // Point lights:
     for(int i=0; i < num_lights; i++) {
-        float distance = length(lights[i].position - position);
-        float attenuation = 1.0 / (_ATT_CON_ + _ATT_LIN_ * distance + _ATT_QUAD_ * distance * distance);
         vec3 light_dir = normalize(lights[i].position - position);
 
+        float distance = length(lights[i].position - position);
+        float attenuation = 1.0 / (_ATT_CON_ + _ATT_LIN_ * distance + _ATT_QUAD_ * distance * distance);
         // Diffuse
         float d = max(dot(normalize(normal), light_dir), 0.0);
         vec3 diffuse_light = occlusion * d * lights[i].color * albedo;
@@ -109,12 +111,14 @@ void main()
     }
 
     // Directional light source (sun):
-    float d = max(dot(normalize(normal), sun_direction), 0.0);
-    vec3 diffuse_light = occlusion * d * sun_color * albedo;
-    vec3 halfway_dir = normalize(sun_direction + view_direction);
-    float s = pow(max(dot(normal, halfway_dir), 0.0), shininess);
-    vec3 specular_light = s * sun_color * albedo;
-    light += shadow * (diffuse_light + specular_light);
+    if (sun_up) {
+        float d = max(dot(normalize(normal), sun_direction), 0.0);
+        vec3 diffuse_light = occlusion * d * sun_color * albedo * albedo * albedo;
+        vec3 halfway_dir = normalize(sun_direction + view_direction);
+        float s = pow(max(dot(normal, halfway_dir), 0.0), shininess);
+        vec3 specular_light = s * sun_color * albedo * albedo;
+        light += shadow * diffuse_light + specular_light;
+    }
 
 
     OutColor = vec4(light, 1.0);

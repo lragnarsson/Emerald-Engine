@@ -63,14 +63,16 @@ public:
     ~Mesh() { };
     void clear_mem();
 
-    /* Upload vertices, normals etc to the GPU */
     void upload_mesh_data();
     GLuint get_VAO();
-    void load_texture(const string filename, const string basepath,
-                      const bool clamp, const texture_type tex_type);
+    void set_texture(const string full_path, const bool clamp,
+                     const texture_type tex_type);
+    static Texture *load_texture(const string full_path, const bool clamp,
+                                 const texture_type tex_type);
     void generate_bounding_sphere();
     glm::vec3 get_center_point_world(glm::mat4 m2w_matrix);
     glm::vec3 get_center_point();
+
 private:
     static vector<Texture*> loaded_textures;
     GLuint VAO, EBO;

@@ -72,29 +72,41 @@ GLuint Mesh::get_VAO()
 
 // --------------------
 
-void Mesh::load_texture(const string filename, const string basepath,
-                        const bool clamp, const texture_type tex_type)
+void Mesh::set_texture(const string full_path, const bool clamp,
+                       const texture_type tex_type)
 {
-    string full_path = basepath + "/" + filename;
-
+    Texture *texture;
+    bool already_loaded = false;
+    // Check if texture has been loaded already:
     for (int i = 0; i < Mesh::loaded_textures.size(); i++) {
-        // Check if texture has been loaded already:
         if (!full_path.compare(Mesh::loaded_textures[i]->full_path)) {
-            switch (tex_type) {
-            case DIFFUSE:
-                this->diffuse_map = Mesh::loaded_textures[i];
-                break;
-            case SPECULAR:
-                this->specular_map = Mesh::loaded_textures[i];
-                break;
-            case NORMAL:
-                this->normal_map = Mesh::loaded_textures[i];
-                break;
-            }
-            return;
+            texture = Mesh::loaded_textures[i];
+            already_loaded = true;
         }
     }
 
+    if (!already_loaded) {
+        texture = Mesh::load_texture(full_path, clamp, tex_type);
+    }
+
+    switch (tex_type) {
+    case DIFFUSE:
+        this->diffuse_map = texture;
+        break;
+    case SPECULAR:
+        this->specular_map = texture;
+        break;
+    case NORMAL:
+        this->normal_map = texture;
+        break;
+    }
+}
+
+// -----------------
+
+Texture *Mesh::load_texture(const string full_path, const bool clamp,
+                            const texture_type tex_type)
+{
     SDL_Surface* surface = IMG_Load(full_path.c_str());
     if (surface == NULL) {
         Error::throw_error(Error::cant_load_image, SDL_GetError());
@@ -130,20 +142,10 @@ void Mesh::load_texture(const string filename, const string basepath,
 
     Mesh::loaded_textures.push_back(texture);
 
-    switch (tex_type) {
-    case DIFFUSE:
-        this->diffuse_map = texture;
-        break;
-    case SPECULAR:
-        this->specular_map = texture;
-        break;
-    case NORMAL:
-        this->normal_map = texture;
-        break;
-    }
+    return texture;
 }
 
-// -----------------
+// ------------------
 // Culling
 
 glm::vec3 Mesh::get_center_point_world(glm::mat4 m2w_matrix)
