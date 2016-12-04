@@ -36,8 +36,8 @@
 # Terrain is a special kind of model that acts as ground.
 # It has a planar scale as well as a height scale and is loaded like
 # path/to/folder/with/heightmap/and/textures | planar_scale height_scale | chunk_size
-[terrain]
-res/models/terrain | 4 0.2 | 10
+#[terrain]
+#res/models/terrain | 4 0.2 | 10
 
 
 [lights]

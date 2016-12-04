@@ -93,7 +93,7 @@ void culling()
 void handle_input()
 {
     Profiler::start_timer("Input");
-    handle_keyboard_input(camera, renderer);
+    handle_keyboard_input(camera, renderer, main_window);
     handle_mouse_input(camera, renderer);
     Profiler::stop_timer("Input");
 }
@@ -175,7 +175,9 @@ void print_welcome()
 
 void init(int argc, char *argv[])
 {
-    if (!sdl_init(SCREEN_WIDTH, SCREEN_HEIGHT, main_window, main_context)) {
+    Parser::check_if_user_needs_help(argc, argv);
+
+    if (!sdl_init(SCREEN_WIDTH, SCREEN_HEIGHT, Parser::get_display_mode_from_command_line(argc, argv), main_window, main_context)) {
         Error::throw_error(Error::display_init_fail);
     }
     init_input();

@@ -12,7 +12,7 @@
 
 
 void init_input();
-void handle_keyboard_input(Camera &camera, Renderer &renderer);
+void handle_keyboard_input(Camera &camera, Renderer &renderer, SDL_Window* window);
 void handle_mouse_input(Camera &camera, Renderer &renderer);
 
 #endif
