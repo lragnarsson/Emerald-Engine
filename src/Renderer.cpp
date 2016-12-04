@@ -24,9 +24,12 @@ void Renderer::init()
                                       "build/shaders/show_red_component.frag");
     shaders[HDR_BLOOM] = load_shaders("build/shaders/identity.vert",
                                       "build/shaders/hdr_bloom.frag");
-    shaders[GRASS_LOD1] = load_shaders("build/shaders/grass_lod1.vert",
+    shaders[GRASS_LOD1] = load_shaders("build/shaders/grass.vert",
                                        "build/shaders/grass_lod1.geom",
-                                       "build/shaders/grass_lod1.frag");
+                                       "build/shaders/grass.frag");
+    shaders[GRASS_LOD2] = load_shaders("build/shaders/grass.vert",
+                                       "build/shaders/grass_lod2.geom",
+                                       "build/shaders/grass.frag");
     shaders[SHADOW_BUFFER] = load_shaders("build/shaders/shadow.vert",
                                           "build/shaders/shadow.frag");
 
@@ -903,15 +906,6 @@ void Renderer::normal_visualization_pass(const vec3 cam_pos)
             if (!mesh->draw_me) {
                 continue;
             }
-            glm::vec3 delta = cam_pos - mesh->get_center_point_world(terrain->m2w_matrix);
-            delta.y = 0;
-            float distance_to_mesh = glm::length(delta);
-            // Skip meshes outside grass_lod2 interval
-            if (distance_to_mesh < grass_lod1_distance ||
-                distance_to_mesh > grass_lod2_distance) {
-                // TODO: This value depends heavily on the size of meshes. Do this properly
-                continue;
-            }
             glActiveTexture(GL_TEXTURE0);
             GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY_NORMALS], "diffuse_map");
             glUniform1i(diffuse_loc, 0);
@@ -949,6 +943,7 @@ void Renderer::grass_generation_pass()
 
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
 
+    // Grass LOD 1 pass
     glUseProgram(shaders[GRASS_LOD1]);
     glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "upInterp"), this->up_interp);
     glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "shininess"), 20);
@@ -994,6 +989,54 @@ void Renderer::grass_generation_pass()
         }
     }
 
+    // Grass LOD 2 pass
+    glUseProgram(shaders[GRASS_LOD2]);
+    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD2], "upInterp"), this->up_interp);
+    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD2], "shininess"), 20);
+    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD2], "wind_strength"), 1.f);
+    glUniform3fv(glGetUniformLocation(shaders[GRASS_LOD2], "wind_direction"),
+                 1, value_ptr(vec3(0.3f, 0.f, -0.7f)));
+    glUniform2fv(glGetUniformLocation(shaders[GRASS_LOD2], "time_offset"),
+                 1, value_ptr(((float)SDL_GetTicks()) / 100000.f * vec2(0.f, -1.f)));
+
+    glActiveTexture(GL_TEXTURE0);
+    wind_loc = glGetUniformLocation(shaders[GRASS_LOD2], "wind_map");
+    glUniform1i(wind_loc, 0);
+
+    glBindTexture(GL_TEXTURE_2D, Terrain::wind_map->id);
+
+    for (auto terrain : loaded_terrain) {
+        if (!terrain->draw_me) {
+            continue;
+        }
+        GLuint m2w_location = glGetUniformLocation(shaders[GRASS_LOD2], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(terrain->m2w_matrix));
+
+        for (auto mesh : terrain->get_meshes()) {
+            if (!mesh->draw_me) {
+                continue;
+            }
+            glm::vec3 delta = cam_pos - mesh->get_center_point_world(terrain->m2w_matrix);
+            delta.y = 0;
+            float distance_to_mesh = glm::length(delta);
+            if (distance_to_mesh < grass_lod1_distance ||
+                distance_to_mesh > grass_lod2_distance) {
+                // TODO: This value depends heavily on the size of meshes. Do this properly
+                continue;
+            }
+
+            glActiveTexture(GL_TEXTURE0 + 1);
+            GLuint diffuse_loc = glGetUniformLocation(shaders[GRASS_LOD2], "diffuse_map");
+            glUniform1i(diffuse_loc, 1);
+            glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
+
+            glBindVertexArray(mesh->get_VAO());
+
+            /* DRAW GEOMETRY */
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        }
+    }
+    
     glBindVertexArray(0);
     glActiveTexture(GL_TEXTURE0 );
     glBindTexture(GL_TEXTURE_2D, 0);

@@ -97,6 +97,7 @@ private:
         HDR_BLOOM,
         SHADOW_BUFFER,
         GRASS_LOD1,
+        GRASS_LOD2,
         NUM_SHADERS
     };
 
@@ -143,7 +144,7 @@ private:
     int n_geometry_lines = 3;
 
     // Grass settings
-    float grass_lod1_distance = 50.0;
+    float grass_lod1_distance = 10.0;
     float grass_lod2_distance = 80.0;
 
     void init_g_buffer();
