@@ -122,8 +122,8 @@ void main()
         vec3 diffuse_light = occlusion * d * sun_color * albedo;
         vec3 halfway_dir = normalize(sun_direction + view_direction);
         float s = pow(max(dot(normal, halfway_dir), 0.0), shininess);
-        vec3 specular_light = s * sun_color * albedo;
-        light += shadow * (diffuse_light + specular_light);
+        vec3 specular_light = s * sun_color * albedo * albedo;
+        light += shadow * diffuse_light + specular_light;
     }
 
     OutColor = vec4(light, 1.0);

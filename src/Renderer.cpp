@@ -733,6 +733,35 @@ void Renderer::render_bounding_spheres()
         glBindVertexArray(0);
     }
 
+    for (auto terrain : Terrain::get_loaded_terrain()) {
+        for (auto tmesh: terrain->get_meshes()) {
+            mat4 bounding_scale = scale(mat4(1.f), vec3(tmesh->bounding_sphere_radius) / 1.5f);
+
+            mat4 bounding_move = translate(mat4(1.f), tmesh->get_center_point_world(terrain->m2w_matrix));
+
+            GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
+            glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
+                               value_ptr(bounding_move *  bounding_scale));
+
+            // DRAW
+            glBindVertexArray(mesh->get_VAO());
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
+        }
+        // Draw bounding sphere for entire terrain
+        mat4 bounding_scale = scale(mat4(1.f), vec3(terrain->bounding_sphere_radius) / 1.5f);
+        mat4 bounding_move = translate(mat4(1.f), terrain->get_center_point_world());
+
+        GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
+                           value_ptr(bounding_move * bounding_scale));
+
+        // DRAW
+        glBindVertexArray(mesh->get_VAO());
+        glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+    }
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
@@ -874,8 +903,12 @@ void Renderer::normal_visualization_pass(const vec3 cam_pos)
             if (!mesh->draw_me) {
                 continue;
             }
-            printf("Distance to mesh center: %f\n", glm::length(cam_pos - mesh->get_center_point_world(terrain->m2w_matrix)));
-            if (glm::length(cam_pos - mesh->get_center_point_world(terrain->m2w_matrix)) > 1000.0) {
+            glm::vec3 delta = cam_pos - mesh->get_center_point_world(terrain->m2w_matrix);
+            delta.y = 0;
+            float distance_to_mesh = glm::length(delta);
+            // Skip meshes outside grass_lod2 interval
+            if (distance_to_mesh < grass_lod1_distance ||
+                distance_to_mesh > grass_lod2_distance) {
                 // TODO: This value depends heavily on the size of meshes. Do this properly
                 continue;
             }
@@ -942,6 +975,13 @@ void Renderer::grass_generation_pass()
             if (!mesh->draw_me) {
                 continue;
             }
+            glm::vec3 delta = cam_pos - mesh->get_center_point_world(terrain->m2w_matrix);
+            delta.y = 0;
+            if (glm::length(delta) > this->grass_lod1_distance) {
+                // TODO: This value depends heavily on the size of meshes. Do this properly
+                continue;
+            }
+
             glActiveTexture(GL_TEXTURE0 + 1);
             GLuint diffuse_loc = glGetUniformLocation(shaders[GRASS_LOD1], "diffuse_map");
             glUniform1i(diffuse_loc, 1);

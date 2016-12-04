@@ -102,6 +102,7 @@ private:
 
     render_mode mode;
     GLuint shaders[NUM_SHADERS];
+
     // Frame buffers
     GLuint g_buffer, ssao_fbo, hdr_fbo, post_proc_fbo, ping_pong_fbo_red, ping_pong_fbo_rgb, depth_map_FBO;
     // Textures
@@ -140,6 +141,10 @@ private:
     bool show_normals = false;
     float up_interp = 0.8; // between [0,1]
     int n_geometry_lines = 3;
+
+    // Grass settings
+    float grass_lod1_distance = 50.0;
+    float grass_lod2_distance = 80.0;
 
     void init_g_buffer();
     void init_hdr_fbo();

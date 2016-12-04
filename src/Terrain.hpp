@@ -40,7 +40,7 @@ public:
 
     bool draw_me = true, clamp_textures = false;
     glm::vec3 world_coord;
-    glm::mat4 m2w_matrix, move_matrix, rot_matrix;
+    glm::mat4 m2w_matrix, move_matrix, rot_matrix, scale_matrix;
     float bounding_sphere_radius = -1.f, scale = 1.f, height_scale = 1.f;
     static Texture *wind_map;
 

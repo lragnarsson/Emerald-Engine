@@ -150,7 +150,7 @@ void Loader::load_model(ifstream* read_file, int* current_line, vector<string>& 
     Model* this_model;
 
 
-    for (size_t i = 1; i < model_line.size()-2; i++) {
+    for (size_t i = 2; i < model_line.size()-2; i++) {
         numbers.push_back(stof(model_line[i]));
     }
     animation_id = stoi(model_line.at(model_line.size()-3));
@@ -164,14 +164,30 @@ void Loader::load_model(ifstream* read_file, int* current_line, vector<string>& 
 
     glm::mat4 total_rot = rotX * rotY * rotZ;
 
-    // Create model
-    this_model = new Model(model_line[0], total_rot, glm::vec3(numbers[3], numbers[4], numbers[5]), numbers[6], flat);
+    if (model_line[1] == "rel"){
+        glm::vec3 position(numbers[3], numbers[4], numbers[5]);
+
+        for ( auto terrain : Terrain::get_loaded_terrain() ){
+            if ( terrain->point_in_terrain(position.x, position.z) ) {
+                position.y = terrain->get_height(position.x, position.z) + position.y;
+                break;
+            }
+        }
+        // Create model
+        this_model = new Model(model_line[0], total_rot, position, numbers[6], flat);
+    }
+    else if (model_line[1] == "abs"){
+        this_model = new Model(model_line[0], total_rot, glm::vec3(numbers[3], numbers[4], numbers[5]), numbers[6], flat);
+    }
+    else {
+        Error::throw_error(Error::invalid_file_syntax, "On line " + to_string(*current_line) + ": Please set position for model as rel or abs!");
+    }
 
     // Attach animation path if any:
     if (animation_id != -1) {
-        #ifdef _DEBUG_LOADER_
+#ifdef _DEBUG_LOADER_
         cout << "Attaching animation path with id " << animation_id << " and startpoint " << animation_start_point << endl;
-        #endif
+#endif
         this_model->attach_animation_path(animation_id, animation_start_point);
     }
 
