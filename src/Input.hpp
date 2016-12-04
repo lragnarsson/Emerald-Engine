@@ -8,6 +8,7 @@
 #include <AntTweakBar.h>
 #include "Renderer.hpp"
 #include "Camera.hpp"
+#include "Profiler.hpp"
 
 
 void init_input();

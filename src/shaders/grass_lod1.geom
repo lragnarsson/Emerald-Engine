@@ -24,8 +24,8 @@ uniform vec3 wind_direction;
 uniform float wind_strength;
 uniform vec2 time_offset;
 
-const float MAGNITUDE = 0.05f; // Height scale for grass
-const float GRASS_SCALE = 2.f; // Uniform scale for grass
+const float MAGNITUDE = 0.1f; // Height scale for grass
+const float GRASS_SCALE = 3.f; // Uniform scale for grass
 
 // Vertices for tall straight grass:
 const float GRASS_1_X[9] = float[9](-0.329877, 0.329877, -0.212571, 0.212571, -0.173286, 0.173286, -0.151465, 0.151465, 0.000000);
@@ -40,6 +40,7 @@ const float COORDS_U[6] = float[6](0.125000, 0.125000, 0.437500, 0.125000, 0.437
 const float COORDS_V[6] = float[6](0.750000, 0.437500, 0.437500, 0.125000, 0.125000, 0.125000);
 const int N_GRASS_STRAWS = 6;
 
+// TODO: precompute things like interpolation values.
 void generate_grass(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal,
                     vec3 base_1, vec3 base_2, const float[7] grass_x, const float[7] grass_y)
 {
@@ -57,9 +58,10 @@ void generate_grass(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal,
     vec4 interpNormal = mix(clip_space_normal, ws_up_in_cs, upInterp);
 
     vec2 wind_coord = fract(texCoord + wind_strength * time_offset);
-    vec3 gradient = vec3(view * vec4(wind_strength * 0.3 * (wind_direction +
-                                                            texture(wind_map, wind_coord).rgb), 0));
+    vec3 gradient = vec3(view * vec4(wind_strength * (wind_direction +
+                                                      texture(wind_map, wind_coord).rgb), 0));
     gradient = gradient - dot(inNormal, gradient); // Project onto xz-plane
+    gradient = gradient + vec3(0, -0.1, 0); // gravity pulling down
     gradient = vec3(view * vec4(gradient, 0));
 
     for (int i=0; i < 7; i++) {

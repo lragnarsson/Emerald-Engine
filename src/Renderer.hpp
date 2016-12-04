@@ -34,7 +34,8 @@ enum render_mode {
     NORMAL_MODE,
     ALBEDO_MODE,
     SPECULAR_MODE,
-    SSAO_MODE
+    SSAO_MODE,
+    SHADOW_MODE
 };
 
 enum filter_type {
@@ -70,7 +71,7 @@ public:
     void toggle_tweak_bar();
     void copy_tweak_bar_cam_values(const Camera& camera);
     float get_time_diff();
-    void propagate_time(bool forward);
+    void propagate_time(const bool forward);
     void increase_up_interp();
     void decrease_up_interp();
     void increase_grass_amount();
@@ -79,30 +80,32 @@ public:
 
 private:
     enum shader {
-      FORWARD,
-      GEOMETRY,
-      GEOMETRY_NORMALS,
-      DEFERRED,
-      FLAT,
-      FLAT_TEXTURE,
-      SSAO,
-      BLUR_RED_5_X,
-      BLUR_RED_5_Y,
-      BLUR_RGB_11_X,
-      BLUR_RGB_11_Y,
-      SHOW_RGB_COMPONENT,
-      SHOW_ALPHA_COMPONENT,
-      SHOW_SSAO,
-      HDR_BLOOM,
-      GRASS_LOD1
+        FORWARD=0,
+        GEOMETRY,
+        GEOMETRY_NORMALS,
+        DEFERRED,
+        FLAT,
+        FLAT_TEXTURE,
+        SSAO,
+        BLUR_RED_5_X,
+        BLUR_RED_5_Y,
+        BLUR_RGB_11_X,
+        BLUR_RGB_11_Y,
+        SHOW_RGB_COMPONENT,
+        SHOW_ALPHA_COMPONENT,
+        SHOW_SSAO,
+        HDR_BLOOM,
+        SHADOW_BUFFER,
+        GRASS_LOD1,
+        NUM_SHADERS
     };
 
     render_mode mode;
-    GLuint shaders[16];
+    GLuint shaders[NUM_SHADERS];
     // Frame buffers
-    GLuint g_buffer, ssao_fbo, hdr_fbo, post_proc_fbo, ping_pong_fbo_red, ping_pong_fbo_rgb;
+    GLuint g_buffer, ssao_fbo, hdr_fbo, post_proc_fbo, ping_pong_fbo_red, ping_pong_fbo_rgb, depth_map_FBO;
     // Textures
-    GLuint g_position, g_normal_shininess, g_albedo_specular, ssao_tex, color_tex, bright_tex, post_proc_tex,  ping_pong_tex_red, ping_pong_tex_rgb;
+    GLuint g_position, g_normal_shininess, g_albedo_specular, ssao_tex, color_tex, bright_tex, post_proc_tex,  ping_pong_tex_red, ping_pong_tex_rgb, depth_map_texture, light_space_texture;
     GLuint quad_vao, quad_vbo;
     mat4 w2v_matrix;
     Model *sphere;
@@ -150,11 +153,13 @@ private:
     void init_show_ssao_shader();
     void init_blur_shaders();
     void init_hdr_bloom_shader();
+    void init_shadow_buffer();
 
     void upload_camera_uniforms(const Camera &camera);
     void draw_tweak_bar();
 
     void render_deferred(const Camera &camera);
+    void shadow_pass(const Camera &camera);
     void render_forward();
     void render_flat();
     void render_bounding_spheres();
@@ -177,6 +182,7 @@ private:
     void render_g_albedo(const Camera &camer);
     void render_g_specular(const Camera &camer);
     void render_ssao(const Camera &camer);
+    void render_shadow_map(const Camera &camera);
 };
 
 #endif

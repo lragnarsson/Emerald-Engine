@@ -1,5 +1,5 @@
 #include "Input.hpp"
-#include "Profiler.hpp"
+
 
 void init_input()
 {
@@ -12,6 +12,7 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
 {
     SDL_Event event;
     bool handled;
+    bool update_shadow = false;
 
     const Uint8* keystate = SDL_GetKeyboardState(NULL);
 
@@ -46,7 +47,6 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
         renderer.propagate_time(true);
     }
 
-
     while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT)
                 renderer.running = false;
@@ -78,6 +78,9 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     break;
                 case SDLK_7:
                     renderer.set_mode(SSAO_MODE);
+                    break;
+                case SDLK_8:
+                    renderer.set_mode(SHADOW_MODE);
                     break;
                 case SDLK_b:
                     renderer.draw_bounding_spheres = !renderer.draw_bounding_spheres;
@@ -152,7 +155,6 @@ void handle_mouse_input(Camera &camera, Renderer &renderer)
 {
     int dx,dy;
     unsigned int button_state;
-
     button_state = SDL_GetRelativeMouseState(&dx, &dy);
 
     int distance = std::abs(dx) + std::abs(dy);
