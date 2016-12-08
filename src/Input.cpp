@@ -8,11 +8,12 @@ void init_input()
     SDL_SetRelativeMouseMode(SDL_TRUE);
 }
 
-void handle_keyboard_input(Camera &camera, Renderer &renderer)
+void handle_keyboard_input(Camera &camera, Renderer &renderer, SDL_Window* window)
 {
     SDL_Event event;
     bool handled;
     bool update_shadow = false;
+    uint32 window_flags = SDL_GetWindowFlags(window);
 
     const Uint8* keystate = SDL_GetKeyboardState(NULL);
 
@@ -107,6 +108,20 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer)
                     break;
                 case SDLK_y:
                     camera.toggle_height_lock();
+                    break;
+                case SDLK_l:
+                    if ( window_flags == SDL_WINDOW_OPENGL ) {
+#ifdef __APPLE__
+                        if ( SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN) < 0 )
+                            Error::throw_warning(Error::display_init_fail, "Cant enter full screen!");
+#else
+                        if ( SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP) < 0 )
+                            Error::throw_warning(Error::display_init_fail, "Cant enter full screen!");
+#endif
+                    }
+                    else {
+                        SDL_SetWindowFullscreen(window, 0);
+                    }
                     break;
                 case SDLK_f:
                     if (camera.has_move_path()) {
