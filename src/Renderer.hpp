@@ -74,8 +74,8 @@ public:
     void propagate_time(const bool forward);
     void increase_up_interp();
     void decrease_up_interp();
-    void increase_grass_amount();
-    void decrease_grass_amount();
+    void increase_grass_lod_distance();
+    void decrease_grass_lod_distance();
     void toggle_show_normals();
 
 private:

@@ -199,6 +199,26 @@ void Renderer::decrease_up_interp()
         this->up_interp -= 0.1f;
 }
 
+void Renderer::increase_grass_lod_distance()
+{
+    if (this->grass_lod1_distance > 1000.f)
+        this->grass_lod1_distance = 1000.f;
+    else
+        this->grass_lod1_distance += 5.f;
+    this->grass_lod2_distance = 2 * this->grass_lod1_distance;
+}
+
+void Renderer::decrease_grass_lod_distance()
+{
+    if (this->grass_lod1_distance <= 5.f)
+        this->grass_lod1_distance = 0.0f;
+    else
+        this->grass_lod1_distance -= 5.f;
+    this->grass_lod2_distance = 2 * this->grass_lod1_distance;
+}
+
+
+
 void Renderer::toggle_show_normals()
 {
     this->show_normals = !this->show_normals;
