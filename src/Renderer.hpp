@@ -82,10 +82,11 @@ private:
     enum shader {
         FORWARD=0,
         GEOMETRY,
-        GEOMETRY_NORMALS,
         DEFERRED,
         FLAT,
+        FLAT_NO_BLOOM,
         FLAT_TEXTURE,
+        FLAT_NORMALS,
         SSAO,
         BLUR_RED_5_X,
         BLUR_RED_5_Y,
@@ -139,9 +140,9 @@ private:
     vec3 cam_pos;
 
     // Normal visualization settings
+    const vec3 PINK = vec3(1.f, 0.f, 1.f);
     bool show_normals = false;
     float up_interp = 0.8; // between [0,1]
-    int n_geometry_lines = 3;
 
     // Grass settings
     float grass_lod1_distance = 10.0;

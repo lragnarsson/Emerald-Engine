@@ -155,12 +155,6 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer, SDL_Window* windo
                 case SDLK_v:
                     renderer.toggle_show_normals();
                     break;
-                case SDLK_h:
-                    renderer.increase_grass_amount();
-                    break;
-                case SDLK_g:
-                    renderer.decrease_grass_amount();
-                    break;
                 }
             }
     }

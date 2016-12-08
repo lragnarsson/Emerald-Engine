@@ -5,11 +5,12 @@ void Renderer::init()
 {
     shaders[FORWARD] = load_shaders("build/shaders/forward.vert", "build/shaders/forward.frag");
     shaders[GEOMETRY] = load_shaders("build/shaders/geometry.vert", "build/shaders/geometry.frag");
-    shaders[GEOMETRY_NORMALS] = load_shaders("build/shaders/geometry_visualize_normals.vert",
-                                             "build/shaders/geometry_visualize_normals.geom",
-                                             "build/shaders/geometry_visualize_normals.frag");
+    shaders[FLAT_NORMALS] = load_shaders("build/shaders/flat_normals.vert",
+                                             "build/shaders/flat_normals.geom",
+                                             "build/shaders/flat_no_bloom.frag");
     shaders[DEFERRED] = load_shaders("build/shaders/deferred.vert", "build/shaders/deferred.frag");
     shaders[FLAT] = load_shaders("build/shaders/flat.vert", "build/shaders/flat.frag");
+    shaders[FLAT_NO_BLOOM] = load_shaders("build/shaders/flat.vert", "build/shaders/flat_no_bloom.frag");
     shaders[FLAT_TEXTURE] = load_shaders("build/shaders/flat_texture.vert", "build/shaders/flat_texture.frag");
     shaders[SSAO] = load_shaders("build/shaders/identity.vert", "build/shaders/ssao.frag");
     shaders[BLUR_RED_5_X] = load_shaders("build/shaders/identity.vert", "build/shaders/blur_red_5_x.frag");
@@ -198,21 +199,6 @@ void Renderer::decrease_up_interp()
         this->up_interp -= 0.1f;
 }
 
-void Renderer::increase_grass_amount()
-{
-    n_geometry_lines++;
-    if (this->n_geometry_lines > 20)
-        this->n_geometry_lines = 20;
-}
-
-void Renderer::decrease_grass_amount()
-{
-    if (this->n_geometry_lines > 0)
-        n_geometry_lines--;
-    if (this->n_geometry_lines < 0)
-        this->n_geometry_lines = 0;
-}
-
 void Renderer::toggle_show_normals()
 {
     this->show_normals = !this->show_normals;
@@ -295,10 +281,6 @@ void Renderer::render_deferred(const Camera &camera)
     geometry_pass();
     grass_generation_pass();
 
-    /* VISUALIZE NORMALS: EXPERIMENTAL STUFF */
-    if (this->show_normals) {
-        normal_visualization_pass(camera.get_pos());
-    }
 
     if (this->ssao_on) {
         ssao_pass();
@@ -339,6 +321,11 @@ void Renderer::render_deferred(const Camera &camera)
 
     // Draw flat objects with forward shading and skydome:
     render_flat();
+
+    // Draw normals with flat forwads shader
+    if (this->show_normals) {
+        normal_visualization_pass(camera.get_pos());
+    }
     skydome->draw(camera);
 
     post_processing();
@@ -700,16 +687,16 @@ void Renderer::render_bounding_spheres()
 {
     // TODO: use instancing for bounding spheres!
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glUseProgram(shaders[FLAT]);
+    glUseProgram(shaders[FLAT_NO_BLOOM]);
     Mesh* mesh = this->sphere->get_meshes()[0];
-    GLuint color = glGetUniformLocation(shaders[FLAT], "color");
+    GLuint color = glGetUniformLocation(shaders[FLAT_NO_BLOOM], "color");
     glUniform3fv(color, 1, value_ptr(vec3(1.f)));
 
     for (auto model : Model::get_loaded_flat_models()) {
         mat4 bounding_scale = scale(mat4(1.f), vec3(model->bounding_sphere_radius) / 1.5f);
         mat4 bounding_move = translate(mat4(1.f), model->scale * model->get_center_point());
 
-        GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
+        GLuint m2w_location = glGetUniformLocation(shaders[FLAT_NO_BLOOM], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
                 value_ptr(model->move_matrix * model->rot_matrix *
                     bounding_move * model->scale_matrix * bounding_scale));
@@ -725,7 +712,7 @@ void Renderer::render_bounding_spheres()
         mat4 bounding_move = model->scale * translate(mat4(1.f), model->scale *
                 model->get_center_point());
 
-        GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
+        GLuint m2w_location = glGetUniformLocation(shaders[FLAT_NO_BLOOM], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
                 value_ptr(model->move_matrix * model->rot_matrix *
                     bounding_move * model->scale_matrix * bounding_scale));
@@ -742,7 +729,7 @@ void Renderer::render_bounding_spheres()
 
             mat4 bounding_move = translate(mat4(1.f), tmesh->get_center_point_world(terrain->m2w_matrix));
 
-            GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
+            GLuint m2w_location = glGetUniformLocation(shaders[FLAT_NO_BLOOM], "model");
             glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
                                value_ptr(bounding_move *  bounding_scale));
 
@@ -755,7 +742,7 @@ void Renderer::render_bounding_spheres()
         mat4 bounding_scale = scale(mat4(1.f), vec3(terrain->bounding_sphere_radius) / 1.5f);
         mat4 bounding_move = translate(mat4(1.f), terrain->get_center_point_world());
 
-        GLuint m2w_location = glGetUniformLocation(shaders[FLAT], "model");
+        GLuint m2w_location = glGetUniformLocation(shaders[FLAT_NO_BLOOM], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
                            value_ptr(bounding_move * bounding_scale));
 
@@ -867,27 +854,22 @@ void Renderer::geometry_pass()
 void Renderer::normal_visualization_pass(const vec3 cam_pos)
 {
     Profiler::start_timer("Normal visualization pass");
-    glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
 
-    glUseProgram(shaders[GEOMETRY_NORMALS]);
-    glUniform1f(glGetUniformLocation(shaders[GEOMETRY_NORMALS], "upInterp"), this->up_interp);
-    glUniform1i(glGetUniformLocation(shaders[GEOMETRY_NORMALS], "n_lines"), this->n_geometry_lines);
+    glUseProgram(shaders[FLAT_NORMALS]);
+    GLuint color = glGetUniformLocation(shaders[FLAT_NORMALS], "color");
+    glUniform3fv(color, 1, glm::value_ptr(PINK));
+
     for (auto model : Model::get_loaded_models()) {
         if (!model->draw_me) {
             continue;
         }
-        GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY_NORMALS], "model");
+        GLuint m2w_location = glGetUniformLocation(shaders[FLAT_NORMALS], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(model->m2w_matrix));
 
         for (auto mesh : model->get_meshes()) {
             if (!mesh->draw_me) {
                 continue;
             }
-            glActiveTexture(GL_TEXTURE0);
-            GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY_NORMALS], "diffuse_map");
-            glUniform1i(diffuse_loc, 0);
-            glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
-
             glBindVertexArray(mesh->get_VAO());
 
             /* DRAW GEOMETRY */
@@ -899,18 +881,13 @@ void Renderer::normal_visualization_pass(const vec3 cam_pos)
         if (!terrain->draw_me) {
             continue;
         }
-        GLuint m2w_location = glGetUniformLocation(shaders[GEOMETRY_NORMALS], "model");
+        GLuint m2w_location = glGetUniformLocation(shaders[FLAT_NORMALS], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(terrain->m2w_matrix));
 
         for (auto mesh : terrain->get_meshes()) {
             if (!mesh->draw_me) {
                 continue;
             }
-            glActiveTexture(GL_TEXTURE0);
-            GLuint diffuse_loc = glGetUniformLocation(shaders[GEOMETRY_NORMALS], "diffuse_map");
-            glUniform1i(diffuse_loc, 0);
-            glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
-
             glBindVertexArray(mesh->get_VAO());
 
             /* DRAW GEOMETRY */
@@ -924,7 +901,6 @@ void Renderer::normal_visualization_pass(const vec3 cam_pos)
     glActiveTexture(GL_TEXTURE0 );
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(0);
 
     Profiler::stop_timer("Normal visualization pass");
@@ -1036,7 +1012,7 @@ void Renderer::grass_generation_pass()
             glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
         }
     }
-    
+
     glBindVertexArray(0);
     glActiveTexture(GL_TEXTURE0 );
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -1054,9 +1030,6 @@ void Renderer::render_g_position(const Camera &camera)
     geometry_pass();
 
     grass_generation_pass();
-    if (this->show_normals) {
-        normal_visualization_pass(camera.get_pos());
-    }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
@@ -1078,9 +1051,6 @@ void Renderer::render_g_normal(const Camera &camera)
     geometry_pass();
 
     grass_generation_pass();
-    if (this->show_normals) {
-        normal_visualization_pass(camera.get_pos());
-    }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
@@ -1101,9 +1071,6 @@ void Renderer::render_g_albedo(const Camera &camera)
 {
     geometry_pass();
     grass_generation_pass();
-    if (this->show_normals) {
-        normal_visualization_pass(camera.get_pos());
-    }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
@@ -1124,12 +1091,7 @@ void Renderer::render_g_specular(const Camera &camera)
 {
     geometry_pass();
 
-    // Moved into else for debug.
-    if (this->show_normals) {
-        normal_visualization_pass(camera.get_pos());
-    } else {
-        grass_generation_pass();
-    }
+    grass_generation_pass();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_ALPHA_COMPONENT]);
@@ -1150,9 +1112,6 @@ void Renderer::render_ssao(const Camera &camera)
 {
     geometry_pass();
     grass_generation_pass();
-    if (this->show_normals) {
-        normal_visualization_pass(camera.get_pos());
-    }
 
     ssao_pass();
 
@@ -1174,9 +1133,6 @@ void Renderer::render_shadow_map(const Camera &camera)
 {
     shadow_pass(camera);
     geometry_pass();
-    if (this->show_normals) {
-        normal_visualization_pass(camera.get_pos());
-    }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_SSAO]);
