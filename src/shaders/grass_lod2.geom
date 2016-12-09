@@ -1,6 +1,6 @@
 
 layout (triangles) in;
-layout (triangle_strip, max_vertices = 54) out;
+layout (triangle_strip, max_vertices = 27) out;
 
 in VS_OUT {
     vec2 TexCoord;
@@ -38,7 +38,7 @@ const float GRASS_3_Y[7] = float[7](3.250000, 2.000000, 0.000000, 0.000000, 3.25
 // u,v coordinates for grass locations inside triangle
 const float COORDS_U[6] = float[6](0.125000, 0.125000, 0.437500, 0.125000, 0.437500, 0.750000);
 const float COORDS_V[6] = float[6](0.750000, 0.437500, 0.437500, 0.125000, 0.125000, 0.125000);
-const int N_GRASS_STRAWS = 6;
+const int N_GRASS_STRAWS = 3;
 
 // TODO: precompute things like interpolation values.
 void generate_grass(vec4 clipPos, vec2 texCoord, vec3 fragPos, vec3 inNormal,
@@ -95,13 +95,13 @@ void main()
     vec3 normal = (gs_in[0].Normal + gs_in[1].Normal + gs_in[2].Normal) / 3;
 
     vec4 clip_pos;
-
+    
     bool tall = true;
-    for (int i=0; i<=N_GRASS_STRAWS; i++) {
+    for (int i=1; i<=N_GRASS_STRAWS; i++) {
         frag_pos = gs_in[0].FragPos + frag_pos_01 * COORDS_U[i] + frag_pos_02 * COORDS_V[i];
         tex_coord = tex_coord_base_01 * COORDS_U[i] + tex_coord_base_02 * COORDS_V[i];
         clip_pos = projection * vec4(frag_pos, 1.0f);
-
+        
         if (tall)
             generate_grass(clip_pos, tex_coord, frag_pos, normal,
                            frag_pos_base_01, frag_pos_base_02,
@@ -110,7 +110,7 @@ void main()
             generate_grass(clip_pos, tex_coord, frag_pos, normal,
                            frag_pos_base_01, frag_pos_base_02,
                            GRASS_3_X, GRASS_3_Y);
-
+        
         tall = !tall;
     }
 }

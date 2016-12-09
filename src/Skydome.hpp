@@ -34,8 +34,8 @@ public:
     void init();
     void draw(const Camera &camera);
     void upload_sun(const GLuint shader, const Camera &camera);
-    void propagate_time(float elapsed_time);
-    void update_light_space(Camera &camera);
+    void propagate_time(const float elapsed_time);
+    void update_light_space(const Camera &camera);
     void reset_time();
     glm::mat4 get_light_space_matrix();
 

@@ -30,7 +30,7 @@ vertices = ...
  end
  
 
- points = vertices(1,:) + coords * [base_vector_12; base_vector_13];
+ points = repmat(vertices(1,:), N, 1) + coords * [base_vector_12; base_vector_13];
  
  fig = figure(1);
  fig.Name = 'Grass distribution on triangle';

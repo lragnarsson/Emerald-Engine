@@ -1,5 +1,6 @@
 #include "Input.hpp"
 
+
 void init_input()
 {
     // Mouse init
@@ -21,40 +22,30 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer, SDL_Window* windo
             camera.toggle_free_move();
         }
         camera.set_pos(camera.get_pos() + camera.speed * renderer.get_time_diff() * camera.front);
-        update_shadow = true;
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_s)]) {
         if (!camera.can_move_free()) {
             camera.toggle_free_move();
         }
         camera.set_pos(camera.get_pos() - camera.speed * renderer.get_time_diff() * camera.front);
-        update_shadow = true;
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_a)]) {
         if (!camera.can_move_free()) {
             camera.toggle_free_move();
         }
         camera.set_pos(camera.get_pos() - glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed * renderer.get_time_diff());
-        update_shadow = true;
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_d)]) {
         if (!camera.can_move_free()) {
             camera.toggle_free_move();
         }
         camera.set_pos(camera.get_pos() + glm::normalize(glm::cross(camera.front, camera.up)) * camera.speed * renderer.get_time_diff());
-        update_shadow = true;
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_LEFT)]) {
         renderer.propagate_time(false);
-        update_shadow = true;
     }
     if(keystate[SDL_GetScancodeFromKey(SDLK_RIGHT)]) {
         renderer.propagate_time(true);
-        update_shadow = true;
-    }
-
-    if (update_shadow){
-        renderer.update_shadow_map(camera);
     }
 
     while (SDL_PollEvent(&event)) {
@@ -164,11 +155,11 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer, SDL_Window* windo
                 case SDLK_v:
                     renderer.toggle_show_normals();
                     break;
-                case SDLK_h:
-                    renderer.increase_grass_amount();
-                    break;
                 case SDLK_g:
-                    renderer.decrease_grass_amount();
+                    renderer.increase_grass_lod_distance();
+                    break;
+                case SDLK_h:
+                    renderer.decrease_grass_lod_distance();
                     break;
                 }
             }
@@ -179,14 +170,7 @@ void handle_mouse_input(Camera &camera, Renderer &renderer)
 {
     int dx,dy;
     unsigned int button_state;
-
     button_state = SDL_GetRelativeMouseState(&dx, &dy);
-
-    // Update shadow map if mouse is moved
-    int epsilon = 1;
-    if ( dx > epsilon or dy > epsilon){
-        renderer.update_shadow_map(camera);
-    }
 
     int distance = std::abs(dx) + std::abs(dy);
     if (!camera.can_look_free() && distance > 2) {

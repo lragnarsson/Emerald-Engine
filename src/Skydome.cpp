@@ -89,7 +89,7 @@ void Skydome::upload_sun(const GLuint shader, const Camera &camera)
 }
 
 
-void Skydome::propagate_time(float elapsed_time)
+void Skydome::propagate_time(const float elapsed_time)
 {
     time_of_day += elapsed_time * time_scale;
     if (time_of_day >= 24.f)
@@ -190,7 +190,7 @@ void Skydome::calculate_sun()
 
 // ---------------
 // Shadow mapping
-void Skydome::update_light_space(Camera &camera){
+void Skydome::update_light_space(const Camera &camera){
 
     vec3 camera_pos = camera.get_pos();
     vec3 camera_front = camera.front;
