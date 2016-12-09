@@ -77,6 +77,7 @@ public:
     void increase_grass_lod_distance();
     void decrease_grass_lod_distance();
     void toggle_show_normals();
+    void toggle_grass_single_color() {grass_single_color_on = !grass_single_color_on;}
 
 private:
     enum shader {
@@ -99,6 +100,8 @@ private:
         SHADOW_BUFFER,
         GRASS_LOD1,
         GRASS_LOD2,
+        GRASS_LOD1_SINGLE_COLOR,
+        GRASS_LOD2_SINGLE_COLOR,
         NUM_SHADERS
     };
 
@@ -147,6 +150,9 @@ private:
     // Grass settings
     float grass_lod1_distance = 10.0;
     float grass_lod2_distance = 80.0;
+    bool grass_single_color_on = true;
+    static const vec3 GRASS_LOD1_COLOR;
+    static const vec3 GRASS_LOD2_COLOR;
 
     void init_g_buffer();
     void init_hdr_fbo();

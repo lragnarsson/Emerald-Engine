@@ -161,6 +161,9 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer, SDL_Window* windo
                 case SDLK_h:
                     renderer.decrease_grass_lod_distance();
                     break;
+                case SDLK_c:
+                    renderer.toggle_grass_single_color();
+                    break;
                 }
             }
     }

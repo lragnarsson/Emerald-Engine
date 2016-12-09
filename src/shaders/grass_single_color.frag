@@ -6,10 +6,8 @@ layout (location = 0) out vec3 g_position;
 layout (location = 1) out vec4 g_normal_shininess;
 layout (location = 2) out vec4 g_albedo_specular;
 
+uniform vec3 color;
 uniform float shininess;
-
-uniform sampler2D wind_map;
-uniform sampler2D diffuse_map;
 
 const float SPECULAR = 1.0f;
 
@@ -19,7 +17,6 @@ void main()
 
     g_normal_shininess.rgb = Normal;
     g_normal_shininess.a = shininess;
-    g_albedo_specular.rgb = mix(texture(diffuse_map, TexCoord).rgb,
-                                vec3(0.32, 0.6, 0.15), 1);
+    g_albedo_specular.rgb = color;
     g_albedo_specular.a = SPECULAR;
 }
