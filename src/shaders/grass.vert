@@ -10,6 +10,7 @@ out VS_OUT {
     out vec2 TexCoord;
     out vec3 FragPos;   // view space position
     out vec3 Normal;    // view space normal
+    out vec3 worldPos;
 } vs_out;
 
 uniform mat4 model;
@@ -19,7 +20,9 @@ uniform mat4 projection;
 
 void main()
 {
-    vs_out.FragPos = vec3(view * model * vec4(in_Position, 1.0));
+    vec4 worldPos = model * vec4(in_Position, 1.0);
+    vs_out.worldPos = vec3(worldPos);
+    vs_out.FragPos = vec3(view * worldPos);
     gl_Position = projection * vec4(vs_out.FragPos, 1.0);
     vs_out.TexCoord = in_TexCoord;
 

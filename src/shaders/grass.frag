@@ -20,6 +20,6 @@ void main()
     g_normal_shininess.rgb = Normal;
     g_normal_shininess.a = shininess;
     g_albedo_specular.rgb = mix(texture(diffuse_map, TexCoord).rgb,
-                                vec3(0.4, 0.7, 0.2), 0.7);
+                                vec3(0.32, 0.6, 0.15), 1);
     g_albedo_specular.a = SPECULAR;
 }

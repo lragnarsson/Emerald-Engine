@@ -174,6 +174,13 @@ void Renderer::upload_camera_uniforms(const Camera &camera)
         glUniform3fv(glGetUniformLocation(shaderProgram, "camPos"),
                      1, value_ptr(camera.get_pos()));
     }
+
+    glUniformMatrix4fv(glGetUniformLocation(shaders[GRASS_LOD1], "view_inv"),
+                       1, GL_FALSE, value_ptr(inverse(camera.get_view_matrix())));
+
+    glUniformMatrix4fv(glGetUniformLocation(shaders[GRASS_LOD2], "view_inv"),
+                       1, GL_FALSE, value_ptr(inverse(camera.get_view_matrix())));
+
     glUseProgram(0);
 }
 
@@ -257,16 +264,10 @@ void Renderer::shadow_pass(const Camera &camera){
 
     // Render models into depth buffer
     for (auto model : Model::get_loaded_models()) {
-        if (!model->draw_me) {
-            continue;
-        }
         GLuint m2w_location = glGetUniformLocation(shaders[SHADOW_BUFFER], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(model->m2w_matrix));
 
         for (auto mesh : model->get_meshes()) {
-            if (!mesh->draw_me) {
-                continue;
-            }
             /* DRAW */
             glBindVertexArray(mesh->get_VAO());
             glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
@@ -275,16 +276,10 @@ void Renderer::shadow_pass(const Camera &camera){
 
     // Render terrain
     for (auto terrain : Terrain::get_loaded_terrain()) {
-        if (!terrain->draw_me) {
-            continue;
-        }
         GLuint m2w_location = glGetUniformLocation(shaders[SHADOW_BUFFER], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(terrain->m2w_matrix));
 
         for (auto mesh : terrain->get_meshes()) {
-            if (!mesh->draw_me) {
-                continue;
-            }
             /* DRAW */
             glBindVertexArray(mesh->get_VAO());
             glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);

@@ -153,7 +153,7 @@ private:
     bool grass_single_color_on = true;
     static const vec3 GRASS_LOD1_COLOR;
     static const vec3 GRASS_LOD2_COLOR;
-    
+
     void init_g_buffer();
     void init_hdr_fbo();
     void init_post_proc_fbo();
