@@ -1,5 +1,8 @@
 #include "Renderer.hpp"
 
+// Set some constants here to avoid make clean when changing
+const glm::vec3 Renderer::GRASS_LOD1_COLOR = {238.f/255.f, 173.f/255.f, 14.f/255.f}; // brown-yellow ish
+const glm::vec3 Renderer::GRASS_LOD2_COLOR = {72.f/255.f, 118.f/255.f, 1.f};         // royal blue
 
 void Renderer::init()
 {
@@ -31,6 +34,12 @@ void Renderer::init()
     shaders[GRASS_LOD2] = load_shaders("build/shaders/grass.vert",
                                        "build/shaders/grass_lod2.geom",
                                        "build/shaders/grass.frag");
+    shaders[GRASS_LOD1_SINGLE_COLOR] = load_shaders("build/shaders/grass.vert",
+                                                    "build/shaders/grass_lod1.geom",
+                                                    "build/shaders/grass_single_color.frag");
+    shaders[GRASS_LOD2_SINGLE_COLOR] = load_shaders("build/shaders/grass.vert",
+                                                    "build/shaders/grass_lod2.geom",
+                                                    "build/shaders/grass_single_color.frag");
     shaders[SHADOW_BUFFER] = load_shaders("build/shaders/shadow.vert",
                                           "build/shaders/shadow.frag");
 
@@ -940,17 +949,27 @@ void Renderer::grass_generation_pass()
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
 
     // Grass LOD 1 pass
-    glUseProgram(shaders[GRASS_LOD1]);
-    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "upInterp"), this->up_interp);
-    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "shininess"), 20);
-    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD1], "wind_strength"), 1.f);
-    glUniform3fv(glGetUniformLocation(shaders[GRASS_LOD1], "wind_direction"),
+    GLuint grass_shader;
+    if(grass_single_color_on) {
+        grass_shader = shaders[GRASS_LOD1_SINGLE_COLOR];
+    }
+    else {
+        grass_shader = shaders[GRASS_LOD1];
+    }
+
+    glUseProgram(grass_shader);
+    glUniform3fv(glGetUniformLocation(grass_shader, "color"),
+                 1, value_ptr(GRASS_LOD1_COLOR));
+    glUniform1f(glGetUniformLocation(grass_shader, "upInterp"), this->up_interp);
+    glUniform1f(glGetUniformLocation(grass_shader, "shininess"), 20);
+    glUniform1f(glGetUniformLocation(grass_shader, "wind_strength"), 1.f);
+    glUniform3fv(glGetUniformLocation(grass_shader, "wind_direction"),
                  1, value_ptr(vec3(0.3f, 0.f, -0.7f)));
-    glUniform2fv(glGetUniformLocation(shaders[GRASS_LOD1], "time_offset"),
+    glUniform2fv(glGetUniformLocation(grass_shader, "time_offset"),
                  1, value_ptr(((float)SDL_GetTicks()) / 100000.f * vec2(0.f, -1.f)));
 
     glActiveTexture(GL_TEXTURE0);
-    GLuint wind_loc = glGetUniformLocation(shaders[GRASS_LOD1], "wind_map");
+    GLuint wind_loc = glGetUniformLocation(grass_shader, "wind_map");
     glUniform1i(wind_loc, 0);
 
     glBindTexture(GL_TEXTURE_2D, Terrain::wind_map->id);
@@ -959,7 +978,7 @@ void Renderer::grass_generation_pass()
         if (!terrain->draw_me) {
             continue;
         }
-        GLuint m2w_location = glGetUniformLocation(shaders[GRASS_LOD1], "model");
+        GLuint m2w_location = glGetUniformLocation(grass_shader, "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(terrain->m2w_matrix));
 
         for (auto mesh : terrain->get_meshes()) {
@@ -974,7 +993,7 @@ void Renderer::grass_generation_pass()
             }
 
             glActiveTexture(GL_TEXTURE0 + 1);
-            GLuint diffuse_loc = glGetUniformLocation(shaders[GRASS_LOD1], "diffuse_map");
+            GLuint diffuse_loc = glGetUniformLocation(grass_shader, "diffuse_map");
             glUniform1i(diffuse_loc, 1);
             glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
 
@@ -986,17 +1005,26 @@ void Renderer::grass_generation_pass()
     }
 
     // Grass LOD 2 pass
-    glUseProgram(shaders[GRASS_LOD2]);
-    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD2], "upInterp"), this->up_interp);
-    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD2], "shininess"), 20);
-    glUniform1f(glGetUniformLocation(shaders[GRASS_LOD2], "wind_strength"), 1.f);
-    glUniform3fv(glGetUniformLocation(shaders[GRASS_LOD2], "wind_direction"),
+    if(grass_single_color_on) {
+        grass_shader = shaders[GRASS_LOD2_SINGLE_COLOR];
+    }
+    else {
+        grass_shader = shaders[GRASS_LOD2];
+    }
+
+    glUseProgram(grass_shader);
+    glUniform3fv(glGetUniformLocation(grass_shader, "color"),
+                 1, value_ptr(GRASS_LOD2_COLOR));
+    glUniform1f(glGetUniformLocation(grass_shader, "upInterp"), this->up_interp);
+    glUniform1f(glGetUniformLocation(grass_shader, "shininess"), 20);
+    glUniform1f(glGetUniformLocation(grass_shader, "wind_strength"), 1.f);
+    glUniform3fv(glGetUniformLocation(grass_shader, "wind_direction"),
                  1, value_ptr(vec3(0.3f, 0.f, -0.7f)));
-    glUniform2fv(glGetUniformLocation(shaders[GRASS_LOD2], "time_offset"),
+    glUniform2fv(glGetUniformLocation(grass_shader, "time_offset"),
                  1, value_ptr(((float)SDL_GetTicks()) / 100000.f * vec2(0.f, -1.f)));
 
     glActiveTexture(GL_TEXTURE0);
-    wind_loc = glGetUniformLocation(shaders[GRASS_LOD2], "wind_map");
+    wind_loc = glGetUniformLocation(grass_shader, "wind_map");
     glUniform1i(wind_loc, 0);
 
     glBindTexture(GL_TEXTURE_2D, Terrain::wind_map->id);
@@ -1005,7 +1033,7 @@ void Renderer::grass_generation_pass()
         if (!terrain->draw_me) {
             continue;
         }
-        GLuint m2w_location = glGetUniformLocation(shaders[GRASS_LOD2], "model");
+        GLuint m2w_location = glGetUniformLocation(grass_shader, "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(terrain->m2w_matrix));
 
         for (auto mesh : terrain->get_meshes()) {
@@ -1022,7 +1050,7 @@ void Renderer::grass_generation_pass()
             }
 
             glActiveTexture(GL_TEXTURE0 + 1);
-            GLuint diffuse_loc = glGetUniformLocation(shaders[GRASS_LOD2], "diffuse_map");
+            GLuint diffuse_loc = glGetUniformLocation(grass_shader, "diffuse_map");
             glUniform1i(diffuse_loc, 1);
             glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
 

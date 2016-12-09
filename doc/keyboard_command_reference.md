@@ -47,3 +47,6 @@
 | Visualize normals | V |
 | Increase normal alignment with up | I |
 | Decrease normal alignment with up | U |
+| Increase grass draw distance | G |
+| Decrease grass draw distance | H |
+| Show grass LOD's single color | C |
