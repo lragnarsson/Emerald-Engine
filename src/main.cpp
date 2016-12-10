@@ -16,6 +16,7 @@ void cull_models()
     uint models_drawn = 0;
     uint meshes_drawn = 0;
     unsigned meshes = 0;
+    Model::models_drawn = 0;
 
     // Cull models
     for (auto model : Model::get_loaded_models()) {
@@ -86,6 +87,7 @@ void culling()
     Light::cull_light_sources(camera);
     Light::upload_lights();
     cull_turned_off_flat_objects();
+    Model::upload_spheres(&camera);
 }
 
 // --------------------------

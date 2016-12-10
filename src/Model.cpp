@@ -1,7 +1,14 @@
 #include "Model.hpp"
 
+using namespace glm;
+
 /* --- MODEL ---*/
 std::vector<Model*> Model::loaded_models, Model::loaded_flat_models;
+std::vector<GLuint> Model::shader_programs;
+int Model::models_drawn;
+gpu_sphere Model::gpu_spheres[_MAX_MODELS_];
+GLuint Model::ubos[2];
+
 
 Model::Model(const std::string path)
 {
@@ -348,12 +355,17 @@ const std::vector<Mesh*> Model::get_meshes()
 
 unsigned Model::cull_me(Camera* camera){
     unsigned drawn_meshes = 0;
-    bool draw_me = camera->sphere_in_frustum(this->get_center_point_world(), \
+    bool draw_me = camera->sphere_in_frustum(this->get_center_point_world(),
                                              this->bounding_sphere_radius * this->scale);
     this->draw_me = draw_me;
 
     // If draw me - see if we can cull meshes
     if (draw_me){
+        gpu_spheres[Model::models_drawn].position = vec3(camera->get_view_matrix() *
+                                                         vec4(get_center_point_world(), 1));
+        gpu_spheres[Model::models_drawn].radius = bounding_sphere_radius * this->scale;
+        Model::models_drawn++;
+
         for (auto mesh : this->get_meshes()) {
             bool draw_me = camera->sphere_in_frustum(mesh->get_center_point_world(this->m2w_matrix), \
                                                      mesh->bounding_sphere_radius * this->scale);
@@ -364,4 +376,47 @@ unsigned Model::cull_me(Camera* camera){
     }
 
     return drawn_meshes;
+}
+
+
+void Model::init_ubos()
+{
+    for (auto shader : shader_programs) {
+        GLuint sphere_index = glGetUniformBlockIndex(shader, "sphere_block");
+        glUniformBlockBinding(shader, sphere_index, 0);
+        GLuint info_index = glGetUniformBlockIndex(shader, "sphere_info_block");
+        glUniformBlockBinding(shader, info_index, 1);
+    }
+
+    glGenBuffers(2, ubos);
+    glBindBuffer(GL_UNIFORM_BUFFER, ubos[0]);
+    glBufferData(GL_UNIFORM_BUFFER, sphere_size * _MAX_MODELS_,
+                 NULL, GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_UNIFORM_BUFFER, ubos[1]);
+    glBufferData(GL_UNIFORM_BUFFER, info_size, NULL, GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubos[0]);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 1, ubos[1]);
+}
+
+
+void Model::upload_spheres(Camera *camera)
+{
+    Model::gpu_spheres[Model::models_drawn].position = vec3(0);
+    Model::gpu_spheres[Model::models_drawn].radius = 10.f;
+    Model::models_drawn++;
+
+    glBindBuffer(GL_UNIFORM_BUFFER, ubos[0]);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0,
+                    sphere_size * models_drawn, gpu_spheres);
+
+    //std::cout << Model::models_drawn << std::endl;
+
+    glBindBuffer(GL_UNIFORM_BUFFER, ubos[1]);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, info_size, &Model::models_drawn);
+
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }

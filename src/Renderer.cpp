@@ -64,6 +64,12 @@ void Renderer::init()
 
     Light::shader_programs.push_back(shaders[DEFERRED]);
     Light::shader_programs.push_back(shaders[FORWARD]);
+
+    Model::shader_programs.push_back(shaders[GRASS_LOD1]);
+    Model::shader_programs.push_back(shaders[GRASS_LOD2]);
+    Model::shader_programs.push_back(shaders[GRASS_LOD1_SINGLE_COLOR]);
+    Model::shader_programs.push_back(shaders[GRASS_LOD2_SINGLE_COLOR]);
+    Model::init_ubos();
 }
 
 // --------------------------
@@ -174,12 +180,6 @@ void Renderer::upload_camera_uniforms(const Camera &camera)
         glUniform3fv(glGetUniformLocation(shaderProgram, "camPos"),
                      1, value_ptr(camera.get_pos()));
     }
-
-    glUniformMatrix4fv(glGetUniformLocation(shaders[GRASS_LOD1], "view_inv"),
-                       1, GL_FALSE, value_ptr(inverse(camera.get_view_matrix())));
-
-    glUniformMatrix4fv(glGetUniformLocation(shaders[GRASS_LOD2], "view_inv"),
-                       1, GL_FALSE, value_ptr(inverse(camera.get_view_matrix())));
 
     glUseProgram(0);
 }
@@ -723,7 +723,7 @@ void Renderer::render_bounding_spheres()
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT_NO_BLOOM], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
                 value_ptr(model->move_matrix * model->rot_matrix *
-                    bounding_move * model->scale_matrix * bounding_scale));
+                          bounding_move * model->scale_matrix * bounding_scale));
 
         // DRAW
         glBindVertexArray(mesh->get_VAO());
