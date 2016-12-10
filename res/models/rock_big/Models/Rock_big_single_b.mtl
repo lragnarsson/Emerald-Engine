@@ -1,0 +1,10 @@
+newmtl material
+	illum 2
+	Ka 0.588235318661 0.588235318661 0.588235318661
+	Kd 0.588235318661 0.588235318661 0.588235318661
+	Ks 0.000000000000 0.000000000000 0.000000000000
+	Ke 0.000000000000 0.000000000000 0.000000000000
+# Change to ...diffuse_desert.tga for a desert rock
+    map_Kd ../Textures/Rock_big_single_b_diffuse.tga
+	bump ../Textures/Rock_big_single_b_normals.tga
+    map_Ks ../Textures/Rock_big_single_b_SPEC.tga

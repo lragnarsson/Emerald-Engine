@@ -42,6 +42,14 @@ res/models/terrain | 1 0.08 | 8
 # Were rel means relative to ground height at that location and abs means absolute world coord
 res/models/nanosuit/nanosuit.obj | rel | 0 0 0 | 20 -5 -5 | 1 | -1 0 0
 
+# Trees
+res/models/Tree_Dry_1/Tree_Dry_1.obj | rel | 0 0 0 | 20 -5 20 | 0.005 | -1 0 0
+
+# Small rock
+res/models/Rock_6/Rock_6.obj | rel | 0 0 0 | 40 -5 0 | 10 | -1 0 0
+# Big rock
+res/models/Rock_big/Models/Rock_big_single_b_LOD0.obj | rel | 0 0 0 | 30 -5 -50 | 0.5 | -1 0 0
+
 # This will start a new section for loading flat-shaded models.
 [flat]
 # Light sources attatched to models are placed directly after given model and loaded according to:
