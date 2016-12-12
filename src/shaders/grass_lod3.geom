@@ -107,7 +107,7 @@ void main()
     highp float noise_u, noise_v;
 
     for (int i=0; i<=N_GRASS_STRAWS; i++) {
-        frag_pos = gs_in[0].FragPos + frag_pos_01 * COORDS_U[i] + frag_pos_02 * COORDS_V[i];
+        frag_pos = gs_in[0].FragPos + frag_pos_01 * COORDS_U[i + 2] + frag_pos_02 * COORDS_V[i + 2];
         tex_coord = tex_coord_base_01 * COORDS_U[i] + tex_coord_base_02 * COORDS_V[i];
 
         noise_u = 2 * rand((i+1) * gs_in[i % 3].worldPos.xy) - 1;

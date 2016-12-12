@@ -71,6 +71,7 @@ disp(['const float GRASS_1_Y[5] = float[5](', comma_sep(1:end-2), ');'])
 
 
 %% 7 vertex bent grass
+close all;
 N = 7;
 grass_2 = zeros(N,2);
 width = 1;
@@ -127,6 +128,7 @@ comma_sep = sprintf('%f, ' , grass_2(:,2)');
 disp(['const float GRASS_2_Y[5] = float[5](', comma_sep(1:end-2), ');'])
 
 %% 7 vertex double grass
+close all;
 N = 7;
 width = 2;
 height = 4;
@@ -154,16 +156,33 @@ grass_3 = [x0, y2;
            x4, y2;
            x5, y3]
 
+figure('Name', 'Chubby grass 3 LOD1: 7 vertices')
 plot(grass_3(:, 1), grass_3(:, 2), '-gx')
+for i= 1:7
+    text(grass_3(i,1), grass_3(i,2), sprintf('%i',i))
+end
 axis equal
 
+disp('Chubby grass 3, LOD1: 7 vertices')
 comma_sep = sprintf('%f, ' , grass_3(:,1)');
 disp(['const float GRASS_3_X[7] = float[7](', comma_sep(1:end-2), ');'])
 comma_sep = sprintf('%f, ' , grass_3(:,2)');
 disp(['const float GRASS_3_Y[7] = float[7](', comma_sep(1:end-2), ');'])
 
+disp('Chubby grass 3, LOD2: 5 vertices')
+grass_3(5:6,:) = [];
 
+figure('Name', 'Chubby grass 3 LOD2: 5 vertices')
+plot(grass_3(:, 1), grass_3(:, 2), '-gx')
+for i= 1:5
+    text(grass_3(i,1), grass_3(i,2), sprintf('%i',i))
+end
+axis equal
 
+comma_sep = sprintf('%f, ' , grass_3(:,1)');
+disp(['const float GRASS_3_X[5] = float[5](', comma_sep(1:end-2), ');'])
+comma_sep = sprintf('%f, ' , grass_3(:,2)');
+disp(['const float GRASS_3_Y[5] = float[5](', comma_sep(1:end-2), ');'])
 
 
 
