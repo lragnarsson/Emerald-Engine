@@ -1,7 +1,7 @@
 
 
 layout (triangles) in;
-layout (triangle_strip, max_vertices = 15) out;
+layout (triangle_strip, max_vertices = 5) out;
 
 in VS_OUT {
     vec2 TexCoord;
@@ -36,7 +36,7 @@ const float GRASS_2_Y[5] = float[5](0.000000, 0.000000, 5.357180, 5.357180, 8.00
 // u,v coordinates for grass locations inside triangle
 const float COORDS_U[6] = float[6](0.125000, 0.125000, 0.437500, 0.125000, 0.437500, 0.750000);
 const float COORDS_V[6] = float[6](0.750000, 0.437500, 0.437500, 0.125000, 0.125000, 0.125000);
-const int N_GRASS_STRAWS = 3;
+const int N_GRASS_STRAWS = 1;
 
 
 

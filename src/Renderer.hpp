@@ -100,8 +100,10 @@ private:
         SHADOW_BUFFER,
         GRASS_LOD1,
         GRASS_LOD2,
+        GRASS_LOD3,
         GRASS_LOD1_SINGLE_COLOR,
         GRASS_LOD2_SINGLE_COLOR,
+        GRASS_LOD3_SINGLE_COLOR,
         NUM_SHADERS
     };
 
@@ -148,11 +150,13 @@ private:
     float up_interp = 0.8; // between [0,1]
 
     // Grass settings
-    float grass_lod1_distance = 10.0;
+    float grass_lod1_distance = 40.0;
     float grass_lod2_distance = 80.0;
+    float grass_lod3_distance = 320.0;
     bool grass_single_color_on = true;
     static const vec3 GRASS_LOD1_COLOR;
     static const vec3 GRASS_LOD2_COLOR;
+    static const vec3 GRASS_LOD3_COLOR;
 
     void init_g_buffer();
     void init_hdr_fbo();

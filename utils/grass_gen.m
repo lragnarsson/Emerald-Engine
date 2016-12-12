@@ -1,5 +1,5 @@
 % Generate grass vertices in a plane
-%% 9 vertex straight grass
+%% 7 vertex straight grass
 N = 7;
 grass_1 = zeros(N,2);
 width = 1;
@@ -23,16 +23,51 @@ end
 
 grass_1(7, :) = [0, height];
 grass_1
+figure(1); 
 plot(grass_1(2:2:end, 1), grass_1(2:2:end, 2), '-gx')
+title('Grass 1 LOD1: 7 vertices')
 hold on;
 plot(grass_1(1:2:end, 1), grass_1(1:2:end, 2), '-gx')
 hold off;
 axis equal
 
+disp('LOD1 - 7 vertices')
 comma_sep = sprintf('%f, ' , grass_1(:,1)');
 disp(['const float GRASS_1_X[7] = float[7](', comma_sep(1:end-2), ');'])
 comma_sep = sprintf('%f, ' , grass_1(:,2)');
 disp(['const float GRASS_1_Y[7] = float[7](', comma_sep(1:end-2), ');'])
+
+disp('Grass 1 LOD2: 5 vertices')
+grass_1(3:4, :) = [];
+figure(2); 
+plot(grass_1(2:2:end, 1), grass_1(2:2:end, 2), '-gx')
+title('Grass 1 LOD2: 5 vertices')
+hold on;
+plot(grass_1(1:2:end, 1), grass_1(1:2:end, 2), '-gx')
+hold off;
+axis equal
+
+disp('LOD2 - 5 vertices')
+comma_sep = sprintf('%f, ' , grass_1(:,1)');
+disp(['const float GRASS_1_X[5] = float[5](', comma_sep(1:end-2), ');'])
+comma_sep = sprintf('%f, ' , grass_1(:,2)');
+disp(['const float GRASS_1_Y[5] = float[5](', comma_sep(1:end-2), ');'])
+
+disp('Grass 1 LOD3: 3 vertices')
+grass_1(3:4, :) = [];
+figure(3); 
+plot(grass_1(2:2:end, 1), grass_1(2:2:end, 2), '-gx')
+title('Grass 1 LOD3: 3 vertices')
+hold on;
+plot(grass_1(1:2:end, 1), grass_1(1:2:end, 2), '-gx')
+hold off;
+axis equal
+
+disp('LOD3 - 3 vertices')
+comma_sep = sprintf('%f, ' , grass_1(:,1)');
+disp(['const float GRASS_1_X[5] = float[5](', comma_sep(1:end-2), ');'])
+comma_sep = sprintf('%f, ' , grass_1(:,2)');
+disp(['const float GRASS_1_Y[5] = float[5](', comma_sep(1:end-2), ');'])
 
 
 %% 7 vertex bent grass
@@ -58,19 +93,38 @@ for index = 1:2:6
     grass_2(index+1, 2) = interp_h;
 end
 
+close all;
 grass_2(N, :) = [width + 2, height];
 grass_2
+figure('Name', 'Bent grass 2: 7 vertices');
 plot(grass_2(2:2:end, 1), grass_2(2:2:end, 2), '-gx')
 hold on;
 plot(grass_2(1:2:end, 1), grass_2(1:2:end, 2), '-gx')
 axis equal
 hold off
 
+disp('Bent grass 2, LOD1: 7 vertices')
 comma_sep = sprintf('%f, ' , grass_2(:,1)');
 disp(['const float GRASS_2_X[7] = float[7](', comma_sep(1:end-2), ');'])
 comma_sep = sprintf('%f, ' , grass_2(:,2)');
 disp(['const float GRASS_2_Y[7] = float[7](', comma_sep(1:end-2), ');'])
 
+grass_2(N, :) = [width + 2, height];
+grass_2(5:6,:) = (grass_2(3:4,:) + grass_2(5:6,:)) / 2;
+grass_2(3:4,:) = [];
+grass_2
+figure('Name', 'Bent grass 2: 5 vertices')
+plot(grass_2(2:2:end, 1), grass_2(2:2:end, 2), '-gx')
+hold on;
+plot(grass_2(1:2:end, 1), grass_2(1:2:end, 2), '-gx')
+axis equal
+hold off
+
+disp('Bent grass 2, LOD2: 5 vertices')
+comma_sep = sprintf('%f, ' , grass_2(:,1)');
+disp(['const float GRASS_2_X[5] = float[5](', comma_sep(1:end-2), ');'])
+comma_sep = sprintf('%f, ' , grass_2(:,2)');
+disp(['const float GRASS_2_Y[5] = float[5](', comma_sep(1:end-2), ');'])
 
 %% 7 vertex double grass
 N = 7;
