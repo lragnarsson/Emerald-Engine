@@ -14,3 +14,4 @@ newmtl 08___Default565
 	Ke 1.0000 1.0000 1.0000
 	map_Ka guardian.png
 	map_Kd guardian.png
+	bump rock_normal_large.png
