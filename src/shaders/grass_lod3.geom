@@ -1,7 +1,7 @@
 
 
 layout (triangles) in;
-layout (triangle_strip, max_vertices = 15) out;
+layout (triangle_strip, max_vertices = 5) out;
 
 in VS_OUT {
     vec2 TexCoord;
@@ -33,14 +33,10 @@ const float GRASS_SCALE = 1.f; // Uniform scale for grass
 const float GRASS_2_X[5] = float[5](-0.435275, 0.435275, 0.925981, 1.556182, 3.000000);
 const float GRASS_2_Y[5] = float[5](0.000000, 0.000000, 5.357180, 5.357180, 8.000000);
 
-// Chubby double grass, less detail:
-const float GRASS_3_X[5] = float[5](-1.200000, -0.400000, -0.200000, 0.400000, 1.300000);
-const float GRASS_3_Y[5] = float[5](1.800000, 1.000000, 0.000000, 0.000000, 4.000000);
-
 // u,v coordinates for grass locations inside triangle
 const float COORDS_U[6] = float[6](0.125000, 0.125000, 0.437500, 0.125000, 0.437500, 0.750000);
 const float COORDS_V[6] = float[6](0.750000, 0.437500, 0.437500, 0.125000, 0.125000, 0.125000);
-const int N_GRASS_STRAWS = 4;
+const int N_GRASS_STRAWS = 1;
 
 
 
@@ -110,23 +106,15 @@ void main()
 
     highp float noise_u, noise_v;
 
-    bool tall = true;
     for (int i=0; i<=N_GRASS_STRAWS; i++) {
-        frag_pos = gs_in[0].FragPos + frag_pos_01 * COORDS_U[i] + frag_pos_02 * COORDS_V[i];
+        frag_pos = gs_in[0].FragPos + frag_pos_01 * COORDS_U[i + 2] + frag_pos_02 * COORDS_V[i + 2];
         tex_coord = tex_coord_base_01 * COORDS_U[i] + tex_coord_base_02 * COORDS_V[i];
 
         noise_u = 2 * rand((i+1) * gs_in[i % 3].worldPos.xy) - 1;
         noise_v = 2 * rand((i+1) * gs_in[i % 3].worldPos.zx) - 1;
 
-        if (tall)
-            generate_grass(tex_coord, frag_pos, normal, noise_u, noise_v,
-                           frag_pos_base_01, frag_pos_base_02,
-                           GRASS_2_X, GRASS_2_Y);
-        else
-            generate_grass(tex_coord, frag_pos, normal, noise_u, noise_v,
-                           frag_pos_base_01, frag_pos_base_02,
-                           GRASS_3_X, GRASS_3_Y);
-
-        tall = !tall;
+        generate_grass(tex_coord, frag_pos, normal, noise_u, noise_v,
+                       frag_pos_base_01, frag_pos_base_02,
+                       GRASS_2_X, GRASS_2_Y);
     }
 }
