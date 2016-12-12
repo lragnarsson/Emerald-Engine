@@ -45,14 +45,14 @@ res/models/muro/muro.obj         | rel | 0 5 0 | 20 0 5 | 0.08 |-1 0 0
 res/models/sponza/sponza.obj     | rel | 0 0 0 | 0 0 350 | 0.1 | -1 -10 0
 
 # Trees
-res/models/tree_dry_1/tree_dry_1.obj                  | rel | 0 0 0 | 10 -5 80 | 0.01 | -1 0 0
+res/models/tree_dry_1/Tree_Dry_1.obj                  | rel | 0 0 0 | 10 -5 80 | 0.01 | -1 0 0
 
 # Rocks
-res/models/rock_6/rock_6.obj                          | rel | 0 0 0 | 40 0 0 | 10 | -1 0 0
-res/models/rock_big/models/rock_big_single_b_LOD0.obj | rel | 0 0 0 | -60 -5 -150 | 0.5 | -1 0 0
-res/models/rock_big/models/rock_big_single_b_LOD1.obj | rel | 0 0 0 | -60 -5 -40 | 0.5 | -1 0 0
-res/models/rock_big/models/rock_big_single_b_LOD2.obj | rel | 0 0 0 | -60 -5 40 | 0.5 | -1 0 0
-res/models/rock_big/models/rock_big_single_b_LOD3.obj | rel | 0 0 0 | -60 -5 150 | 0.5 | -1 0 0
+res/models/rock_6/Rock_6.obj                          | rel | 0 0 0 | 40 0 0 | 10 | -1 0 0
+res/models/rock_big/Models/Rock_big_single_b_LOD0.obj | rel | 0 0 0 | -60 -5 -150 | 0.5 | -1 0 0
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 0 0 | -60 -5 -40 | 0.5 | -1 0 0
+res/models/rock_big/Models/Rock_big_single_b_LOD2.obj | rel | 0 0 0 | -60 -5 40 | 0.5 | -1 0 0
+res/models/rock_big/Models/Rock_big_single_b_LOD3.obj | rel | 0 0 0 | -60 -5 150 | 0.5 | -1 0 0
 
 # Guardian statue
 res/models/final_guardian/guardian.obj | rel | 0 2 0 | 50 5 5 | 5 | -1 0 0
