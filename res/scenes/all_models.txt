@@ -54,6 +54,12 @@ res/models/rock_big/models/rock_big_single_b_LOD1.obj | rel | 0 0 0 | -60 -5 -40
 res/models/rock_big/models/rock_big_single_b_LOD2.obj | rel | 0 0 0 | -60 -5 40 | 0.5 | -1 0 0
 res/models/rock_big/models/rock_big_single_b_LOD3.obj | rel | 0 0 0 | -60 -5 150 | 0.5 | -1 0 0
 
+# Guardian statue
+res/models/final_guardian/guardian.obj | rel | 0 2 0 | 50 5 5 | 5 | -1 0 0
+
+# Craftsman figure
+res/models/craftsman/Craftsman_01.obj  | rel | 0 2 0 | 50 5 -20 | 5 | -1 0 0
+
 # This will start a new section for loading flat-shaded models.
 [flat]
 # Light sources attatched to models are placed directly after given model and loaded according to:
