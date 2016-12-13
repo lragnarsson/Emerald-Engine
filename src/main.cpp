@@ -4,26 +4,9 @@
 void free_resources()
 {
     sdl_quit(main_window, main_context);
-
 }
 
 // --------------------------
-
-void cull_models()
-{
-    Profiler::start_timer("Cull models");
-    // TODO: Run in parallel
-    uint meshes_drawn = 0;
-
-    // Terrain
-    for (auto terrain : Terrain::get_loaded_terrain()) {
-        meshes_drawn += terrain->cull_me(&camera);
-    }
-
-    renderer.meshes_drawn += meshes_drawn;
-    Profiler::stop_timer("Cull models");
-}
-
 
 void cull_turned_off_flat_objects()
 {
@@ -58,9 +41,8 @@ void animate_models()
 
 void culling()
 {
-    renderer.meshes_drawn = 0;
-    Model::cull_models(camera);
-    cull_models();
+    renderer.meshes_drawn = Model::cull_models(camera);
+    renderer.meshes_drawn += Terrain::cull_terrain(camera);
     Light::cull_light_sources(camera);
     Light::upload_lights();
     cull_turned_off_flat_objects();

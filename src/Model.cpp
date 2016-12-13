@@ -418,7 +418,7 @@ void Model::upload_spheres()
 }
 
 
-void Model::cull_models(Camera &camera)
+uint Model::cull_models(Camera &camera)
 {
     Profiler::start_timer("Cull models");
     Model::models_drawn = 0;
@@ -438,7 +438,6 @@ void Model::cull_models(Camera &camera)
         meshes_drawn += model->cull_me(camera);
     }
 
-    //renderer.objects_drawn = models_drawn;
-    //renderer.meshes_drawn += meshes_drawn;
     Profiler::stop_timer("Cull models");
+    return meshes_drawn;
 }
