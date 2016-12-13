@@ -108,7 +108,7 @@ void run()
 void print_welcome()
 {
     GLint foo, bar;
-    glGetIntegerv(GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS, &foo);
+    glGetIntegerv(GL_MAX_GEOMETRY_UNIFORM_COMPONENTS, &foo);
     glGetIntegerv(GL_MAX_COMBINED_UNIFORM_BLOCKS, &bar);
     std::cout << foo << "   " << bar << std::endl;
     std::string welcome;

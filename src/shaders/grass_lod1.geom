@@ -31,7 +31,6 @@ uniform sampler2D diffuse_map;
 
 // for converting normals to clip space
 uniform mat4 projection;
-uniform float upInterp; // Interpolation between up-vector and vertex own normal vector
 uniform mat4 view;
 uniform vec3 wind_direction;
 uniform float wind_strength;
