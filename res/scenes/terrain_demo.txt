@@ -33,7 +33,7 @@
 # It has a planar scale as well as a height scale and is loaded like
 # path/to/folder/with/heightmap/and/textures | planar_scale height_scale | chunk_size
 [terrain]
-res/models/terrain | 1 0.08 | 20
+res/models/terrain | 1 0.2 | 20
 
 [lights]
 # xPos yPos zPos | Red Green Blue
@@ -47,10 +47,10 @@ res/models/terrain | 1 0.08 | 20
 res/models/nanosuit/nanosuit.obj | rel | 0 0 0 | 20 0 -5 | 1 | -1 0 0
 
 # Trees
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 0 0 | 20 -5 20 | 0.005 | -1 0 0
+res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 0 0 | 20 -1 20 | 0.005 | -1 0 0
 
 # Small rock
-res/models/rock_6/Rock_6.obj | rel | 0 0 0 | 40 -5 0 | 10 | -1 0 0
+res/models/rock_6/Rock_6.obj | rel | 0 0 0 | 40 -1 0 | 10 | -1 0 0
 # Big rock
 res/models/rock_big/Models/Rock_big_single_b_LOD0.obj | rel | 0 0 0 | 30 -5 -50 | 0.5 | -1 0 0
 
