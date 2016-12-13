@@ -4,6 +4,8 @@
 const glm::vec3 Renderer::GRASS_LOD1_COLOR = {238.f/255.f, 173.f/255.f, 14.f/255.f}; // brown-yellow ish
 const glm::vec3 Renderer::GRASS_LOD2_COLOR = {72.f/255.f, 118.f/255.f, 1.f};         // royal blue
 
+const glm::vec3 Renderer::GRASS_LOD3_COLOR = {238.f/255, 99.f/255.f, 99.f/255.f};    // indian red
+
 void Renderer::init()
 {
     shaders[FORWARD] = load_shaders("build/shaders/forward.vert", "build/shaders/forward.frag");
@@ -34,11 +36,17 @@ void Renderer::init()
     shaders[GRASS_LOD2] = load_shaders("build/shaders/grass.vert",
                                        "build/shaders/grass_lod2.geom",
                                        "build/shaders/grass.frag");
+    shaders[GRASS_LOD3] = load_shaders("build/shaders/grass.vert",
+                                       "build/shaders/grass_lod3.geom",
+                                       "build/shaders/grass.frag");
     shaders[GRASS_LOD1_SINGLE_COLOR] = load_shaders("build/shaders/grass.vert",
                                                     "build/shaders/grass_lod1.geom",
                                                     "build/shaders/grass_single_color.frag");
     shaders[GRASS_LOD2_SINGLE_COLOR] = load_shaders("build/shaders/grass.vert",
                                                     "build/shaders/grass_lod2.geom",
+                                                    "build/shaders/grass_single_color.frag");
+    shaders[GRASS_LOD3_SINGLE_COLOR] = load_shaders("build/shaders/grass.vert",
+                                                    "build/shaders/grass_lod3.geom",
                                                     "build/shaders/grass_single_color.frag");
     shaders[SHADOW_BUFFER] = load_shaders("build/shaders/shadow.vert",
                                           "build/shaders/shadow.frag");
@@ -150,6 +158,8 @@ void Renderer::set_mode(render_mode mode)
         break;
     case SSAO_MODE:
         break;
+    default:
+        Error::throw_error(Error::non_valid_render_mode, "");
     }
 }
 
@@ -222,6 +232,7 @@ void Renderer::increase_grass_lod_distance()
     else
         this->grass_lod1_distance += 5.f;
     this->grass_lod2_distance = 2 * this->grass_lod1_distance;
+    this->grass_lod3_distance = 8 * this->grass_lod1_distance;
 }
 
 void Renderer::decrease_grass_lod_distance()
@@ -231,6 +242,7 @@ void Renderer::decrease_grass_lod_distance()
     else
         this->grass_lod1_distance -= 5.f;
     this->grass_lod2_distance = 2 * this->grass_lod1_distance;
+    this->grass_lod3_distance = 8 * this->grass_lod1_distance;
 }
 
 
@@ -712,6 +724,7 @@ void Renderer::render_bounding_spheres()
     // TODO: use instancing for bounding spheres!
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glUseProgram(shaders[FLAT_NO_BLOOM]);
+    glDisable(GL_CULL_FACE);
     Mesh* mesh = this->sphere->get_meshes()[0];
     GLuint color = glGetUniformLocation(shaders[FLAT_NO_BLOOM], "color");
     glUniform3fv(color, 1, value_ptr(vec3(1.f)));
@@ -777,6 +790,7 @@ void Renderer::render_bounding_spheres()
     }
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glEnable(GL_CULL_FACE);
 }
 
 // ------------------------
@@ -1040,6 +1054,64 @@ void Renderer::grass_generation_pass()
             float distance_to_mesh = glm::length(delta);
             if (distance_to_mesh < grass_lod1_distance ||
                 distance_to_mesh > grass_lod2_distance) {
+                // TODO: This value depends heavily on the size of meshes. Do this properly
+                continue;
+            }
+
+            glActiveTexture(GL_TEXTURE0 + 1);
+            GLuint diffuse_loc = glGetUniformLocation(grass_shader, "diffuse_map");
+            glUniform1i(diffuse_loc, 1);
+            glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
+
+            glBindVertexArray(mesh->get_VAO());
+
+            /* DRAW GEOMETRY */
+            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        }
+    }
+
+    // Grass LOD3 pass
+        // Grass LOD 2 pass
+    if(grass_single_color_on) {
+        grass_shader = shaders[GRASS_LOD3_SINGLE_COLOR];
+    }
+    else {
+        grass_shader = shaders[GRASS_LOD3];
+    }
+
+    glUseProgram(grass_shader);
+    glUniform3fv(glGetUniformLocation(grass_shader, "color"),
+                 1, value_ptr(GRASS_LOD3_COLOR));
+    glUniform1f(glGetUniformLocation(grass_shader, "upInterp"), this->up_interp);
+    glUniform1f(glGetUniformLocation(grass_shader, "shininess"), 20);
+    glUniform1f(glGetUniformLocation(grass_shader, "wind_strength"), 1.f);
+    glUniform3fv(glGetUniformLocation(grass_shader, "wind_direction"),
+                 1, value_ptr(vec3(0.3f, 0.f, -0.7f)));
+    glUniform2fv(glGetUniformLocation(grass_shader, "time_offset"),
+                 1, value_ptr(((float)SDL_GetTicks()) / 100000.f * vec2(0.f, -1.f)));
+
+    glActiveTexture(GL_TEXTURE0);
+    wind_loc = glGetUniformLocation(grass_shader, "wind_map");
+    glUniform1i(wind_loc, 0);
+
+    glBindTexture(GL_TEXTURE_2D, Terrain::wind_map->id);
+
+    for (auto terrain : loaded_terrain) {
+        if (!terrain->draw_me) {
+            continue;
+        }
+        GLuint m2w_location = glGetUniformLocation(grass_shader, "model");
+        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(terrain->m2w_matrix));
+
+        for (auto mesh : terrain->get_meshes()) {
+            if (!mesh->draw_me) {
+                continue;
+            }
+            glm::vec3 delta = cam_pos - mesh->get_center_point_world(terrain->m2w_matrix);
+            delta.y = 0;
+            float distance_to_mesh = glm::length(delta);
+            if (distance_to_mesh < grass_lod2_distance ||
+                distance_to_mesh > grass_lod3_distance) {
                 // TODO: This value depends heavily on the size of meshes. Do this properly
                 continue;
             }

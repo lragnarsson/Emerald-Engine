@@ -11,7 +11,8 @@ const std::string SCENE_DIRECTORY = "res/scenes/";
 
 enum display_mode {
     WINDOWED,
-    FULLSCREEN
+    FULLSCREEN,
+    FULLSCREEN_VSYNC
 };
 
 class Parser {

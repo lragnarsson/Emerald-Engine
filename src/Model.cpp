@@ -363,7 +363,7 @@ unsigned Model::cull_me(Camera &camera){
     if (draw_me){
         gpu_spheres[Model::models_drawn].position = vec3(camera.get_view_matrix() *
                                                          vec4(get_center_point_world(), 1));
-        gpu_spheres[Model::models_drawn].radius = bounding_sphere_radius;
+        gpu_spheres[Model::models_drawn].radius = 3 * bounding_sphere_radius < 10.f ? 3 * bounding_sphere_radius : 10.f;
         Model::models_drawn++;
 
         for (auto mesh : this->get_meshes()) {

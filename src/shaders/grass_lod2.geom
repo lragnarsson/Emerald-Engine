@@ -1,7 +1,7 @@
 
 
 layout (triangles) in;
-layout (triangle_strip, max_vertices = 27) out;
+layout (triangle_strip, max_vertices = 15) out;
 
 in VS_OUT {
     vec2 TexCoord;
@@ -41,20 +41,18 @@ uniform vec2 time_offset;
 const float MAGNITUDE = 0.5f; // Height scale for grass
 const float GRASS_SCALE = 1.f; // Uniform scale for grass
 
-// Tall straight grass:
-const float GRASS_1_X[7] = float[7](-0.329877, 0.329877, -0.212571, 0.212571, -0.173286, 0.173286, 0.000000);
-const float GRASS_1_Y[7] = float[7](0.000000, 0.000000, 2.490297, 2.490297, 4.847759, 4.847759, 8.000000);
-// Tall bent grass:
-const float GRASS_2_X[7] = float[7](-0.435275, 0.435275, 0.037324, 0.706106, 1.814639, 2.406257, 3.000000);
-const float GRASS_2_Y[7] = float[7](0.000000, 0.000000, 3.691449, 3.691449, 7.022911, 7.022911, 8.000000);
-// Chubby double grass:
-const float GRASS_3_X[7] = float[7](-1.200000, -0.400000, -0.200000, 0.400000, 0.400000, 1.000000, 1.300000);
-const float GRASS_3_Y[7] = float[7](1.800000, 1.000000, 0.000000, 0.000000, 1.800000, 1.800000, 4.000000);
+// Tall bent grass, less detail
+const float GRASS_2_X[5] = float[5](-0.435275, 0.435275, 0.925981, 1.556182, 3.000000);
+const float GRASS_2_Y[5] = float[5](0.000000, 0.000000, 5.357180, 5.357180, 8.000000);
+
+// Chubby double grass, less detail:
+const float GRASS_3_X[5] = float[5](-1.200000, -0.400000, -0.200000, 0.400000, 1.300000);
+const float GRASS_3_Y[5] = float[5](1.800000, 1.000000, 0.000000, 0.000000, 4.000000);
 
 // u,v coordinates for grass locations inside triangle
 const float COORDS_U[6] = float[6](0.125000, 0.125000, 0.437500, 0.125000, 0.437500, 0.750000);
 const float COORDS_V[6] = float[6](0.750000, 0.437500, 0.437500, 0.125000, 0.125000, 0.125000);
-const int N_GRASS_STRAWS = 3;
+const int N_GRASS_STRAWS = 4;
 
 
 
@@ -71,7 +69,7 @@ highp float rand(vec2 co)
 
 // TODO: precompute things like interpolation values.
 void generate_grass(vec2 texCoord, vec3 fragPos, vec3 inNormal,
-                    vec3 base_1, vec3 base_2, const float[7] grass_x, const float[7] grass_y)
+                    vec3 base_1, vec3 base_2, const float[5] grass_x, const float[5] grass_y)
 {
     highp float noise_u = 2 * rand(texCoord) - 1;
     highp float noise_v = 2 * rand(texCoord.ts) - 1;
@@ -84,11 +82,11 @@ void generate_grass(vec2 texCoord, vec3 fragPos, vec3 inNormal,
     vec3 gradient = wind_strength * (0.7 * wind_direction + 1.5 * texture(wind_map, wind_coord).rgb);
 
     vec3 push;
-    vec3 tip_pos = fragPos;// + MAGNITUDE * inNormal * GRASS_SCALE * grass_y[6];
+
     for (int i=0; i < num_spheres; i++) {
-        push = tip_pos - spheres[i].position;
-        if (length(push) <= 2 * spheres[i].radius) {
-            gradient = gradient + 1 * push * (1 - length(push) / (2 * spheres[i].radius));
+        push = fragPos - spheres[i].position;
+        if (length(push) <= spheres[i].radius) {
+            gradient = gradient + 2 * push * (1 - length(push) / spheres[i].radius);
         }
     }
 
@@ -101,9 +99,9 @@ void generate_grass(vec2 texCoord, vec3 fragPos, vec3 inNormal,
 
     float bend_interp;
 
-    for (int i=0; i < 7; i++) {
+    for (int i=0; i < 5; i++) {
         TexCoord = texCoord;
-        bend_interp = pow(grass_y[i] / grass_y[6], 2);
+        bend_interp = pow(grass_y[i] / grass_y[4], 2);
         Normal = normalize(inNormal + 0.2 * grass_normal);
 
         vec3 y = MAGNITUDE * inNormal * GRASS_SCALE * grass_y[i];

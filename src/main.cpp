@@ -93,7 +93,7 @@ void update_camera()
 
         for ( auto terrain : Terrain::get_loaded_terrain() ){
             if (terrain->point_in_terrain(pos.x, pos.z)) {
-                camera.set_height(terrain->get_height(pos.x, pos.z));
+                camera.set_height(8.f + terrain->get_height(pos.x, pos.z));
                 break;
             }
         }
@@ -127,7 +127,7 @@ void run()
         Profiler::start_timer("Swap");
         SDL_GL_SwapWindow(main_window);
         Profiler::stop_timer("Swap");
-        SDL_Delay(45);
+        //SDL_Delay(45);
         Profiler::stop_timer("-> Frame time");
     }
 }

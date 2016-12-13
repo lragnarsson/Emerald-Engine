@@ -21,6 +21,8 @@ const ErrorMessage Error::camera_free_mode = {15, "Camera free mode error!"};
 const ErrorMessage Error::performance_counter_already_started = {16, "Performance counter already started! Counter: "};
 const ErrorMessage Error::performance_counter_not_started= {17, "Performance counter NOT started! Counter: "};
 const ErrorMessage Error::index_out_of_range = {18, "Index out of range!"};
+const ErrorMessage Error::non_valid_render_mode = {19, "Non valid render mode!"};
+const ErrorMessage Error::too_many_meshes = {20, "Your terrain has too many meshes! Consider using smaller terrain or making larger chunks. Max mesh count: "};
 
 
 void Error::throw_error(const ErrorMessage& message, string extra_information)

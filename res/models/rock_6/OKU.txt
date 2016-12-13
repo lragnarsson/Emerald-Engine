@@ -1,0 +1,16 @@
+.This rock free.
+.If you want the link to see more.
+
+.http://www.turbosquid.com/3d-models/rock-3d-obj/1016928.
+.https://www.cgtrader.com/3d-models/plant-tree/other/rocks-00.
+
+.Rock_6....................1055 polygon.
+             .............1057 vertices.
+
+.2048 * 2048 texture.
+
+.uv map: AO,DÝFF,NOR,SPEC.
+
+.OBJ,FBX,BLEND  FORMAT  MODEL.
+
+.GAME  READY.

@@ -48,9 +48,10 @@ bool sdl_init(const GLuint screen_width, const GLuint screen_height,
     glEnable(GL_CULL_FACE);
     SDL_GL_SwapWindow(main_window);
 
-    if ( SDL_GL_SetSwapInterval(0) != 0 ) {
-        printf("WARNING: Unable to disable vsync, %s\n", SDL_GetError());
-    }
+    if ( d_mode != FULLSCREEN_VSYNC )
+        if ( SDL_GL_SetSwapInterval(0) != 0 ) {
+            printf("WARNING: Unable to disable vsync, %s\n", SDL_GetError());
+        }
 
     return true;
 }

@@ -8,7 +8,9 @@ const vector<string> Parser::allowed_args = {
         "--scene-file",
         "-sf",
         "--fullscreen",
-        "-f"
+        "-f",
+        "-v",
+        "--vsync"
     };
 
 // -----------------
@@ -22,6 +24,7 @@ void Parser::print_help(string exec_name){
     help_text += "-f, --fullscreen      Run Emerald in full screen. \n";
     help_text += "-sf, --scene-file     Run Emerald with specified scene file, otherwise default. \n";
     help_text += "-h, --help            Print this help text. \n";
+    help_text += "-v, --vsync           Enable vsync. \n";
 
     cout << help_text;
     exit(1);
@@ -29,8 +32,10 @@ void Parser::print_help(string exec_name){
 
 void Parser::check_if_user_needs_help(int argc, char *argv[]){
     string exec_name = string(argv[0]);
+    int max_args = 5;
+
     // Incorect nr args
-    if (argc > 4){
+    if (argc > max_args){
         print_help(exec_name);
     }
 
@@ -40,7 +45,7 @@ void Parser::check_if_user_needs_help(int argc, char *argv[]){
         if ( string(argv[i]) == "-h" or string(argv[i]) == "--help" )
             print_help(exec_name);
 
-        // If scene file isn't given, we should have at maximum 2 args
+        // Check for scene-file
         if ( string(argv[i]) == "--scene-file" or string(argv[i]) == "-sf" ){
             includes_scene_file = true;
             // Next arg can't be any allowed argument
@@ -56,11 +61,11 @@ void Parser::check_if_user_needs_help(int argc, char *argv[]){
         }
     }
 
-    if (!includes_scene_file and argc > 2)
+    if ( !includes_scene_file and argc > max_args - 2 )
         print_help(exec_name);
     // If argv does NOT include scene file argument, then
     //  args allowed are the only things to be inside argv
-    if (!includes_scene_file){
+    if ( !includes_scene_file ){
         for ( int i = 1; i < argc; i++ ){
             bool found_arg = false;
             for ( int it = 1; it < Parser::allowed_args.size(); it++ ){
@@ -94,11 +99,19 @@ string Parser::get_scene_file_from_command_line(int argc, char *argv[])
 // ----------------
 
 display_mode Parser::get_display_mode_from_command_line(int argc, char *argv[]){
+    bool f_screen, vsync = false;
 
     for (int i = 1; i < argc; i++) {
         if ( string(argv[i]) == "--fullscreen" or string(argv[i]) == "-f" ) {
-            return FULLSCREEN;
+            f_screen = true;
+        }
+        if ( string(argv[i]) == "--vsync" or string(argv[i]) == "-v" ) {
+            vsync = true;
         }
     }
+    if ( f_screen && vsync )
+        return FULLSCREEN_VSYNC;
+    if ( f_screen )
+        return FULLSCREEN;
     return WINDOWED;
 }
