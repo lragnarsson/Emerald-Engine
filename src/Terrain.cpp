@@ -152,7 +152,7 @@ float Terrain::get_pixel_height(int x, int z, SDL_Surface *surface)
             if( SDL_BYTEORDER != SDL_BIG_ENDIAN )
                 return (p[0] + p[1] + p[2])/3.f; //p[0] | p[1] << 8 | p[2] << 16;
             else
-                return p[0] << 16 | p[1] << 8 | p[2];
+                return (p[0] + p[1] + p[2])/3.f; //p[0] << 16 | p[1] << 8 | p[2];
             break;
 
         case 4:
@@ -195,8 +195,7 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
             // Overlap so we don't get visible divisors between chunks
             for (int z = z_total; z < z_total+chunk_size+1; z++){
                 for (int x = x_total; x < x_total+chunk_size+1; x++){
-
-                    float height = (float)get_pixel_height(x, z, heightmap);
+                    float height = get_pixel_height(x, z, heightmap);
 
                     // Create vertices (points in 3D space)
                     m->vertices.push_back(x);
@@ -218,7 +217,6 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
                     m->tangents.push_back(tangent.x);
                     m->tangents.push_back(tangent.y);
                     m->tangents.push_back(tangent.z);
-
                 }
             }
 
@@ -239,10 +237,10 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
 
             // Use default diffuse and specular maps
             m->set_texture(directory + "/albedo.png",
-                           clamp_textures, DIFFUSE);
+                    clamp_textures, DIFFUSE);
 
             m->set_texture(directory + "/specular.png",
-                           clamp_textures, SPECULAR);
+                    clamp_textures, SPECULAR);
 
             // Keep normals as normal map
             m->set_texture(directory + "/normal.png",
@@ -287,14 +285,14 @@ const std::vector<Terrain*> Terrain::get_loaded_terrain()
    hs = height_scale */
 vec3 Terrain::get_normal(int x, int z, SDL_Surface* image,
                          float ps, float hs){
-    vec3 p1(x*ps,     get_pixel_height(x, z, image)*hs,   z*ps);
-    vec3 p2((x-1)*ps, get_pixel_height(x-1, z, image)*hs, z*ps);
-    vec3 p3(x*ps,     get_pixel_height(x, z-1, image)*hs, (z-1)*ps);
-    vec3 p4((x+1)*ps, get_pixel_height(x+1, z, image)*hs, z*ps);
-    vec3 p5(x*ps,    get_pixel_height(x, z+1, image)*hs, (z+1)*ps);
-
     // If not along edges
     if ( x < image->w-1 and x > 0 and z < image->h-1 and z > 0){
+        vec3 p1(x*ps,     get_pixel_height(x, z, image)*hs,   z*ps);
+        vec3 p2((x-1)*ps, get_pixel_height(x-1, z, image)*hs, z*ps);
+        vec3 p3(x*ps,     get_pixel_height(x, z-1, image)*hs, (z-1)*ps);
+        vec3 p4((x+1)*ps, get_pixel_height(x+1, z, image)*hs, z*ps);
+        vec3 p5(x*ps,    get_pixel_height(x, z+1, image)*hs, (z+1)*ps);
+        
         vec3 base1 = p1-p2;
         vec3 base2 = p1-p3;
 
