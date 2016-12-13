@@ -82,13 +82,13 @@ void generate_grass(vec2 texCoord, vec3 fragPos, vec3 inNormal,
 
     vec2 wind_coord = fract(0.005 * texCoord + wind_strength * time_offset);
     vec3 gradient = wind_strength * (0.7 * wind_direction + 1.5 * texture(wind_map, wind_coord).rgb);
-    gradient = vec3(0);
 
     vec3 push;
-    for (int i=0; i < 25; i++) { // num_spheres ??????????????????
-        push = fragPos - spheres[i].position;
-        if (length(push) < 5 * spheres[i].radius) {
-            gradient = gradient + 3 * push * (1 - length(push) / (5 * spheres[i].radius));
+    vec3 tip_pos = fragPos;// + MAGNITUDE * inNormal * GRASS_SCALE * grass_y[6];
+    for (int i=0; i < num_spheres; i++) {
+        push = tip_pos - spheres[i].position;
+        if (length(push) <= 2 * spheres[i].radius) {
+            gradient = gradient + 1 * push * (1 - length(push) / (2 * spheres[i].radius));
         }
     }
 

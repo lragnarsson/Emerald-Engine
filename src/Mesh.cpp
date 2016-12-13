@@ -139,6 +139,7 @@ Texture *Mesh::load_texture(const string full_path, const bool clamp,
     }
 
     glGenerateMipmap(GL_TEXTURE_2D);
+    delete surface;
 
     Mesh::loaded_textures.push_back(texture);
 
