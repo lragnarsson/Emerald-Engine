@@ -105,7 +105,7 @@ float Terrain::get_height(float x_world, float z_world){
 
     // Plane equation
     float D = dot(vertices[0], normal);
-    return 5.f + (D - normal.x * x_model - normal.z * z_model) / normal.y;
+    return (D - normal.x * x_model - normal.z * z_model) / normal.y;
 }
 
 // ------------------
