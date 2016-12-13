@@ -722,6 +722,7 @@ void Renderer::render_bounding_spheres()
     // TODO: use instancing for bounding spheres!
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glUseProgram(shaders[FLAT_NO_BLOOM]);
+    glDisable(GL_CULL_FACE);
     Mesh* mesh = this->sphere->get_meshes()[0];
     GLuint color = glGetUniformLocation(shaders[FLAT_NO_BLOOM], "color");
     glUniform3fv(color, 1, value_ptr(vec3(1.f)));
@@ -787,6 +788,7 @@ void Renderer::render_bounding_spheres()
     }
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glEnable(GL_CULL_FACE);
 }
 
 // ------------------------

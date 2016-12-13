@@ -1,0 +1,6 @@
+Polygone count:
+
+LOD 0 : 996 trianlges 
+LOD 1 : 685 triangles
+LOD 2 : 480 trianlges
+LOD 3 : 278 triangles

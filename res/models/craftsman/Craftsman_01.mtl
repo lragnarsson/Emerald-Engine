@@ -1,0 +1,20 @@
+# MTL written from /Users/artdov/Documents/Big_profits_from_the_environment/Big_House/Decoration_of_facades_002/ZB_Decoration_Facades_Statuette/TS_Craftsman_01/Craftsman_01.obj
+newmtl Craftsman
+Kd 1 1 1
+Ns 724.077
+d 1
+illum 2
+Ka 0 0 0
+Ks 0.187451 0.172549 0.156078
+map_Kd Textures_Craftsman_DM_01.png
+bump Textures_Craftsman_NM_001.png
+
+newmtl Stand_01
+Kd 1 1 1
+Ns 724.077
+d 1
+illum 2
+Ka 0 0 0
+Ks 0.187451 0.172549 0.156078
+map_Kd Textures_Stand_DM_001.png
+bump Textures_Stand_NM_001.png
