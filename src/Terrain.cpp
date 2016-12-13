@@ -133,15 +133,36 @@ int Terrain::get_pixel_index(int x, int z, SDL_Surface* image)
 // -------------------
 // Height is chosen as the mean of the rgb pixel values in the image
 
-float Terrain::get_pixel_height(int x, int z, SDL_Surface* image)
+float Terrain::get_pixel_height(int x, int z, SDL_Surface *surface)
 {
-    //Uint8 black;
-    int index = get_pixel_index(x, z, image);
+    int bpp = surface->format->BytesPerPixel;
+    /* Here p is the address to the pixel we want to retrieve */
+    Uint8 *p = (Uint8 *)surface->pixels + z * surface->pitch + x * bpp;
 
-    Uint8 *all_pixels = (Uint8*) image->pixels;
-    Uint8 pixel = all_pixels[index];
+    switch(bpp) {
+        case 1:
+            return *p;
+            break;
 
-    return pixel;
+        case 2:
+            return (p[0] + p[1])/2.f;//*(Uint16 *)p;
+            break;
+
+        case 3:
+            if( SDL_BYTEORDER != SDL_BIG_ENDIAN )
+                return (p[0] + p[1] + p[2])/3.f; //p[0] | p[1] << 8 | p[2] << 16;
+            else
+                return p[0] << 16 | p[1] << 8 | p[2];
+            break;
+
+        case 4:
+            return (p[0] + p[1] + p[2] + p[3])/4.f; //*(Uint32 *)p;
+            break;
+
+        default:
+            Error::throw_error(Error::cant_load_image, "Terrain: Incorrect nr bytes per pixel.");
+            return 0; /* shouldn't happen, but avoids warnings */
+    }
 }
 
 // -------------------
@@ -155,10 +176,6 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
         Error::throw_error(Error::cant_load_image, SDL_GetError());
     }
 
-    if (heightmap->format->BitsPerPixel != 8){
-        Error::throw_error(Error::cant_load_image, "Need 8-bit per pixel images for heightmap, this image is " + std::to_string(heightmap->format->BitsPerPixel) + "-bit!");
-    }
-
     // We need to save some size data in order to access correct indexes
     this->chunk_size = chunk_size;
     this->total_x = heightmap->w;
@@ -167,6 +184,9 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
     for (int z_total = 0; z_total < heightmap->h; z_total += chunk_size){
         for (int x_total = 0; x_total < heightmap->w; x_total += chunk_size){
 
+            if (meshes.size() > _MAX_TERRAIN_MESHES_){
+                Error::throw_error(Error::too_many_meshes, std::to_string(_MAX_TERRAIN_MESHES_));
+            }
             Mesh* m = new Mesh();
             // Specify triangle to vertex numbers
             m->index_count = 3*2*((chunk_size-1+1) * (chunk_size-1+1));
@@ -176,7 +196,7 @@ void Terrain::load_heightmap(std::string directory, float plane_scale, float hei
             for (int z = z_total; z < z_total+chunk_size+1; z++){
                 for (int x = x_total; x < x_total+chunk_size+1; x++){
 
-                    float height = get_pixel_height(x, z, heightmap);
+                    float height = (float)get_pixel_height(x, z, heightmap);
 
                     // Create vertices (points in 3D space)
                     m->vertices.push_back(x);
