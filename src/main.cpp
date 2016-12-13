@@ -8,17 +8,6 @@ void free_resources()
 
 // --------------------------
 
-void cull_turned_off_flat_objects()
-{
-    for (auto model: Model::get_loaded_flat_models()) {
-        if (!model->get_light_active()) {
-            model->draw_me = false;
-        }
-    }
-}
-
-// --------------------------
-
 void animate_models()
 {
     Profiler::start_timer("Animate models");
@@ -42,11 +31,10 @@ void animate_models()
 void culling()
 {
     renderer.meshes_drawn = Model::cull_models(camera);
+    Model::upload_spheres();
     renderer.meshes_drawn += Terrain::cull_terrain(camera);
     Light::cull_light_sources(camera);
     Light::upload_lights();
-    cull_turned_off_flat_objects();
-    Model::upload_spheres();
 }
 
 // --------------------------
@@ -119,6 +107,10 @@ void run()
 
 void print_welcome()
 {
+    GLint foo, bar;
+    glGetIntegerv(GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS, &foo);
+    glGetIntegerv(GL_MAX_COMBINED_UNIFORM_BLOCKS, &bar);
+    std::cout << foo << "   " << bar << std::endl;
     std::string welcome;
     welcome = std::string("This is Emerald Engine.\n");
     welcome += std::string("A few useful commmands are:\n\n");

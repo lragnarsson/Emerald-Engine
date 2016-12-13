@@ -354,16 +354,18 @@ const std::vector<Mesh*> Model::get_meshes()
 //
 
 unsigned Model::cull_me(Camera &camera){
-    unsigned drawn_meshes = 0;
-    bool draw_me = camera.sphere_in_frustum(this->get_center_point_world(),
-                                            this->bounding_sphere_radius * this->scale);
+    uint drawn_meshes = 0;
+
+    bool draw_me = get_light_active() &&
+        camera.sphere_in_frustum(this->get_center_point_world(),
+                                 this->bounding_sphere_radius * this->scale);
     this->draw_me = draw_me;
 
     // If draw me - see if we can cull meshes
     if (draw_me){
         gpu_spheres[Model::models_drawn].position = vec3(camera.get_view_matrix() *
                                                          vec4(get_center_point_world(), 1));
-        gpu_spheres[Model::models_drawn].radius = 3 * bounding_sphere_radius < 10.f ? 3 * bounding_sphere_radius : 10.f;
+        gpu_spheres[Model::models_drawn].radius = 5 * bounding_sphere_radius < 15.f ? 5 * bounding_sphere_radius : 15.f;
         Model::models_drawn++;
 
         for (auto mesh : this->get_meshes()) {
@@ -409,8 +411,6 @@ void Model::upload_spheres()
     glBufferSubData(GL_UNIFORM_BUFFER, 0,
                     sphere_size * models_drawn, gpu_spheres);
 
-    //std::cout << Model::models_drawn << std::endl;
-
     glBindBuffer(GL_UNIFORM_BUFFER, ubos[1]);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, info_size, &models_drawn);
 
@@ -424,10 +424,6 @@ uint Model::cull_models(Camera &camera)
     Model::models_drawn = 0;
     uint meshes_drawn = 0;
 
-    for (auto foo : Model::gpu_spheres) {
-        foo.position = vec3(0.f);
-        foo.radius = 0.f;
-    }
     // Cull models
     for (auto model : Model::get_loaded_models()) {
         meshes_drawn += model->cull_me(camera);
