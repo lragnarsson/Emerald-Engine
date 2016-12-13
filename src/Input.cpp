@@ -98,6 +98,9 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer, SDL_Window* windo
                 case SDLK_n:
                     renderer.toggle_ssao_smoothing();
                     break;
+                case SDLK_LSHIFT:
+                    camera.toggle_speed();
+                    break;
                 case SDLK_t:
                     renderer.toggle_tweak_bar();
                     break;
