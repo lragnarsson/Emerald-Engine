@@ -157,6 +157,10 @@ void Loader::load_model(ifstream* read_file, int* current_line, vector<string>& 
     animation_start_point = stof(model_line.at(model_line.size()-2));
     nr_of_lights = stof(model_line.back());
 
+    if ( animation_id > Animation_Path::get_number_of_animation_paths()-1 ){
+        Error::throw_error(Error::invalid_file_syntax, "Can't attach a model to a non-existing animation path, line: " + to_string(*current_line));
+    }
+
     // Create rotational matrix for model.
     glm::mat4 rotX = glm::rotate(glm::mat4(1.0f), -numbers[0], glm::vec3(1.f, 0.f, 0.f));
     glm::mat4 rotY = glm::rotate(glm::mat4(1.0f), -numbers[1], glm::vec3(0.f, 1.f, 0.f));
