@@ -5,7 +5,7 @@ using namespace glm;
 /* --- MODEL ---*/
 std::vector<Model*> Model::loaded_models, Model::loaded_flat_models;
 std::vector<GLuint> Model::shader_programs;
-int Model::models_drawn;
+unsigned Model::models_drawn;
 gpu_sphere Model::gpu_spheres[_MAX_MODELS_];
 GLuint Model::ubos[2];
 
@@ -423,15 +423,22 @@ uint Model::cull_models(Camera &camera)
     Profiler::start_timer("Cull models");
     Model::models_drawn = 0;
     uint meshes_drawn = 0;
+    uint model_meshes_drawn;
 
     // Cull models
     for (auto model : Model::get_loaded_models()) {
-        meshes_drawn += model->cull_me(camera);
+        model_meshes_drawn = model->cull_me(camera);
+        meshes_drawn += model_meshes_drawn;
+        if ( model_meshes_drawn != 0)
+            Model::models_drawn++;
     }
 
     // Flat models
     for (auto model : Model::get_loaded_flat_models()) {
-        meshes_drawn += model->cull_me(camera);
+        model_meshes_drawn = model->cull_me(camera);
+        meshes_drawn += model_meshes_drawn;
+        if ( model_meshes_drawn != 0)
+            Model::models_drawn++;
     }
 
     Profiler::stop_timer("Cull models");

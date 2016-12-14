@@ -6,6 +6,7 @@ using namespace glm;
 
 std::vector<Terrain*> Terrain::loaded_terrain;
 Texture* Terrain::wind_map;
+unsigned Terrain::terrain_drawn = 0;
 
 // --------------------
 
@@ -472,11 +473,15 @@ void Terrain::load_wind(std::string full_path) {
 
 uint Terrain::cull_terrain(Camera &camera)
 {
-    uint meshes_drawn = 0;
+    uint meshes_drawn,my_meshes_drawn = 0;
+    Terrain::terrain_drawn = 0;
 
     // Terrain
     for (auto terrain : Terrain::get_loaded_terrain()) {
-        meshes_drawn += terrain->cull_me(&camera);
+        my_meshes_drawn = terrain->cull_me(&camera);
+        meshes_drawn += my_meshes_drawn;
+        if ( my_meshes_drawn != 0 )
+            Terrain::terrain_drawn++;
     }
 
     return meshes_drawn;

@@ -31,8 +31,11 @@ void animate_models()
 void culling()
 {
     renderer.meshes_drawn = Model::cull_models(camera);
+
+    renderer.models_drawn = Model::models_drawn;
     Model::upload_spheres();
     renderer.meshes_drawn += Terrain::cull_terrain(camera);
+    renderer.models_drawn += Terrain::terrain_drawn;
     Light::cull_light_sources(camera);
     Light::upload_lights();
 }

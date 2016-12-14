@@ -54,7 +54,7 @@ public:
     bool running = false;
     bool wireframe_mode = false; // unused
     bool draw_bounding_spheres = false;
-    uint objects_drawn,meshes_drawn;
+    uint models_drawn,meshes_drawn;
 
     Renderer() {}
 

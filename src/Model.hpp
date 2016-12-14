@@ -40,7 +40,7 @@ typedef struct {
 
 class Model {
 public:
-    static int models_drawn;
+    static unsigned models_drawn;
     static std::vector<GLuint> shader_programs; // For UBO binding on init.
     glm::mat4 m2w_matrix, move_matrix, rot_matrix, scale_matrix;
     float bounding_sphere_radius = -1.f, scale = 1.f;
