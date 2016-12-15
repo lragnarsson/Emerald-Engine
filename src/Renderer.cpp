@@ -159,6 +159,8 @@ void Renderer::set_mode(render_mode mode)
         break;
     case SSAO_MODE:
         break;
+    case SHADOW_MODE:
+        break;
     default:
         Error::throw_error(Error::non_valid_render_mode, "");
     }
