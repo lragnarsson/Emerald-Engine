@@ -44,7 +44,6 @@ res/models/terrain | 1 0.15 | 20
 # Models are loaded using the following syntax:
 # /path/to/model | rel/abs | rotX rotY rotZ | Xpos Ypos Zpos | scale | animation_path_id start_animation | nr_of_lights
 # Were rel means relative to ground height at that location and abs means absolute world coord
-res/models/nanosuit/nanosuit.obj | rel | 0 0 0 | 20 0 -5 | 1 | -1 0 0
 
 # Trees
 res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 0 0 | 20 -1 20 | 0.005 | -1 0 0
@@ -72,58 +71,55 @@ res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 184 0 | -22 0 173 | 0.005 | -1 -1
 # Small rock
 res/models/rock_6/Rock_6.obj | rel | 0 0 0 | 40 -1 0 | 10 | -1 0 0
 # Big rock
-res/models/rock_big/Models/Rock_big_single_b_LOD0.obj | rel | 0 0 0 | 30 -5 -50 | 0.5 | -1 0 0
+res/models/rock_big/Models/Rock_big_single_b_LOD0.obj | rel | 0 0 0 | 30 -15 -50 | 0.5 | -1 0 0
 
 # This will start a new section for loading flat-shaded models.
 [flat]
 # Light sources attatched to models are placed directly after given model and loaded according to:
 # relativeXpos relativeYpos relativeZpos R G B
 
-# Cubes with fixes positions
-res/models/cube/cube.obj | abs | 0 0 0 | 50 5 -1 | 0.5 | -1 0 | 1
+# Spheres with fixes positions
+res/models/sphere/sphere.obj | abs | 0 0 0 | 50 5 -1 | 0.5 | -1 0 | 1
 0 0 0 | 10 10 10
-res/models/cube/cube.obj | abs | 0 0 0 | -100 20 50 | 0.5 | -1 0 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -100 20 50 | 0.5 | -1 0 | 1
 0 0 0 | 1 1 1
-res/models/cube/cube.obj | abs | 0 0 0 | -100 20 -50 | 0.5 | -1 0 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -100 20 -50 | 0.5 | -1 0 | 1
 0 0 0 | 1 1 1
-res/models/cube/cube.obj | abs | 0 0 0 | 100 20 -50 | 0.5 | -1 0 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | 100 20 -50 | 0.5 | -1 0 | 1
 0 0 0 | 1 1 1
-res/models/cube/cube.obj | abs | 0 0 0 | 100 20 50 | 0.5 | -1 0 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | 100 20 50 | 0.5 | -1 0 | 1
 0 0 0 | 1 1 1
 
-# Cubes along first spline
-res/models/cube/cube.obj | abs | 0 0 0 | 1 1 1 | 0.5 | 0 0 | 1
+# Spheres along first spline
+res/models/sphere/sphere.obj | abs | 0 0 0 | 1 1 1 | 0.5 | 0 0 | 1
 0 0 0 | 1.0 1.0 0.2
-res/models/cube/cube.obj | abs | 0 0 0 | 3 10 1 | 0.5 | 0 10 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | 3 10 1 | 0.5 | 0 10 | 1
 0 0 0 | 0.2 0.8 0.1
-res/models/cube/cube.obj | abs | 0 0 0 | -2 8 -10 | 0.5 | 0 20 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -2 8 -10 | 0.5 | 0 20 | 1
 0 0 0 | 0.8 0.1 0.1
-res/models/cube/cube.obj | abs | 0 0 0 | -2 7 -7 | 0.5 | 0 30 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -2 7 -7 | 0.5 | 0 30 | 1
 0 0 0 | 0.8 0.1 0.5
-res/models/cube/cube.obj | abs | 0 0 0 | -5 7 -10 | 0.5 | 0 40 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -5 7 -10 | 0.5 | 0 40 | 1
 0 0 0 | 1 1 0.2
-res/models/cube/cube.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 0 50 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 0 50 | 1
 0 0 0 | 0.1 1 0.1
-res/models/cube/cube.obj | abs | 0 0 0 | -5 7 -10 | 0.5 | 0 60 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -5 7 -10 | 0.5 | 0 60 | 1
 0 0 0 | 0.2 0.2 1
-res/models/cube/cube.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 0 70 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 0 70 | 1
 0 0 0 | 1 0.1 0.1
 
-# Cubes along second spline
+# Spheres along second spline
 
-# Cubes along fourth spline
-res/models/cube/cube.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 4 0 | 1
+# Spheres along fourth spline
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 4 0 | 1
 0 0 0 | 10 8 6
-res/models/cube/cube.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 4 5 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 4 10 | 1
 0 0 0 | 4 2 10
-res/models/cube/cube.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 4 10 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 4 20 | 1
 0 0 0 | 10 2 2
-res/models/cube/cube.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 4 15 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 4 30 | 1
 0 0 0 | 4 10 15
-res/models/cube/cube.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 4 20 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 4 40 | 1
 0 0 0 | 10 10 10
-res/models/cube/cube.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 4 25 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 4 50 | 1
 0 0 0 | 10 15 5
-
-
-
