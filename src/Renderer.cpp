@@ -159,9 +159,20 @@ void Renderer::set_mode(render_mode mode)
         break;
     case SSAO_MODE:
         break;
+    case SHADOW_MODE:
+        break;
     default:
         Error::throw_error(Error::non_valid_render_mode, "");
     }
+}
+
+// -------------------------
+
+void Renderer::change_bounding_sphere_mode()
+{
+    draw_bounding_spheres = bounding_sphere_mode((int)draw_bounding_spheres + 1);
+    if (draw_bounding_spheres > ALL_BOUNDING_SPHERES)
+    draw_bounding_spheres = NO_BOUNDING_SPHERES;
 }
 
 // --------------------------
@@ -483,7 +494,7 @@ void Renderer::render_flat()
     }
     Profiler::stop_timer("Flat objects pass");
 
-    if (draw_bounding_spheres) {
+    if (draw_bounding_spheres > 0) {
         render_bounding_spheres();
     }
 }
@@ -761,33 +772,35 @@ void Renderer::render_bounding_spheres()
         glBindVertexArray(0);
     }
 
-    for (auto terrain : Terrain::get_loaded_terrain()) {
-        for (auto tmesh: terrain->get_meshes()) {
-            mat4 bounding_scale = scale(mat4(1.f), vec3(tmesh->bounding_sphere_radius) / 1.5f);
+    if (draw_bounding_spheres > ONLY_MODELS) {
+        for (auto terrain : Terrain::get_loaded_terrain()) {
+            for (auto tmesh: terrain->get_meshes()) {
+                mat4 bounding_scale = scale(mat4(1.f), vec3(tmesh->bounding_sphere_radius) / 1.5f);
 
-            mat4 bounding_move = translate(mat4(1.f), tmesh->get_center_point_world(terrain->m2w_matrix));
+                mat4 bounding_move = translate(mat4(1.f), tmesh->get_center_point_world(terrain->m2w_matrix));
+
+                GLuint m2w_location = glGetUniformLocation(shaders[FLAT_NO_BLOOM], "model");
+                glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
+                                   value_ptr(bounding_move *  bounding_scale));
+
+                // DRAW
+                glBindVertexArray(mesh->get_VAO());
+                glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+                glBindVertexArray(0);
+            }
+            // Draw bounding sphere for entire terrain
+            mat4 bounding_scale = scale(mat4(1.f), vec3(terrain->bounding_sphere_radius) / 1.5f);
+            mat4 bounding_move = translate(mat4(1.f), terrain->get_center_point_world());
 
             GLuint m2w_location = glGetUniformLocation(shaders[FLAT_NO_BLOOM], "model");
             glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
-                               value_ptr(bounding_move *  bounding_scale));
+                               value_ptr(bounding_move * bounding_scale));
 
             // DRAW
             glBindVertexArray(mesh->get_VAO());
             glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);
         }
-        // Draw bounding sphere for entire terrain
-        mat4 bounding_scale = scale(mat4(1.f), vec3(terrain->bounding_sphere_radius) / 1.5f);
-        mat4 bounding_move = translate(mat4(1.f), terrain->get_center_point_world());
-
-        GLuint m2w_location = glGetUniformLocation(shaders[FLAT_NO_BLOOM], "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
-                           value_ptr(bounding_move * bounding_scale));
-
-        // DRAW
-        glBindVertexArray(mesh->get_VAO());
-        glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
     }
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
