@@ -65,7 +65,7 @@ unsigned int Animation_Path::get_vector_index_circular(unsigned int start,
 {
     unsigned long size = control_points.size();
     if (start > size - 1) {
-        Error::throw_error(Error::animation_path_vector_error, std::to_string(start));
+        start = start % size;
     }
 
     unsigned int i = start + offset;

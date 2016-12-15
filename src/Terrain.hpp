@@ -54,7 +54,8 @@ public:
     bool point_in_terrain(float x_world, float z_world);
     unsigned cull_me(Camera* camera);
     float get_height(float x_world, float z_world);
-
+    int get_chunk_size() {return chunk_size;}
+    
 private:
     static std::vector<Terrain*> loaded_terrain;
     int chunk_size,total_x,total_z;

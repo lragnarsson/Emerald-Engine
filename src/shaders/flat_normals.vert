@@ -13,6 +13,6 @@ out VS_OUT {
 
 void main(void)
 {
-    vs_out.Normal = vec3(view * model * vec4(in_Normal, 0.0));
+    vs_out.Normal = normalize(transpose(inverse(mat3(view * model))) * in_Normal);
     gl_Position = projection * view * model *  vec4(in_Position, 1.0);
 }
