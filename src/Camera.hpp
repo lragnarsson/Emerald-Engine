@@ -55,6 +55,7 @@ public:
     void toggle_height_lock();
     void cycle_move_anim_path(int& parameter);
     void cycle_look_anim_path(int& parameter);
+    void toggle_speed();
 
     float get_spline_move_parameter() const {return spline_move_parameter;}
     float get_spline_look_parameter() const {return spline_look_parameter;}
@@ -78,6 +79,7 @@ private:
     bool free_cam;
     bool free_look;
     bool height_lock;
+    bool fast_movement = false;
 
     glm::vec3 frustum_normals[5];
     GLfloat frustum_offsets[5];

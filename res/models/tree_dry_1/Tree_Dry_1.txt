@@ -1,0 +1,27 @@
+Low poly Dry tree for Games.
+Compress the textures as you like.
+
+
+Was originally made for old game engine Reality Factory,(make games with no programming).
+RF had a big success iin its days.
+
+If anyone is interested,a new open source Reality Factory,the RF2 is on now in develpment,but there is only one developer whith little time to spare 
+on the project and progress,
+So,if any programmer is interested to help developing this wonderful Game engine that will make game developing easy to anyone,
+can get the code from there and start working
+
+http://sourceforge.net/projects/realityfactory2/
+
+visit the RF2 forum for details, Developer is User: Paradoxnj
+
+http://www.realityfactory.info/forum/viewforum.php?f=13&sid=81bfd95d4cde8bf3e497c16f94b714d3
+
+http://veleran.cgsociety.org/gallery/
+
+Tree_Dry_1 + Branches
+Faces: 785
+Points: 1337
+
+Tree_Dry_1_LOD1 + Branches
+Faces: 401
+Points: 211

@@ -151,7 +151,7 @@ void Skydome::calculate_sky()
 void Skydome::calculate_sun()
 {
     // Assuming declination = 0
-    float latitude = 50.f * M_PI / 180.f; // lat 50 deg in rad
+    float latitude = 40.f * M_PI / 180.f; // lat 40 deg in rad
     float solar_hour_angle = (time_of_day - 12.f) * 15 * M_PI / 180.f;
     int sha_sign = (solar_hour_angle > 0) - (solar_hour_angle < 0);
     this->altitude = asin(cos(latitude) *

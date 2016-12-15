@@ -34,6 +34,8 @@ public:
     static const ErrorMessage performance_counter_already_started;
     static const ErrorMessage performance_counter_not_started;
     static const ErrorMessage index_out_of_range;
+    static const ErrorMessage non_valid_render_mode;
+    static const ErrorMessage too_many_meshes;
 };
 
 #endif

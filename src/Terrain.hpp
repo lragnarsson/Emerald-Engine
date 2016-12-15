@@ -43,10 +43,12 @@ public:
     glm::mat4 m2w_matrix, move_matrix, rot_matrix, scale_matrix;
     float bounding_sphere_radius = -1.f, scale = 1.f, height_scale = 1.f;
     static Texture *wind_map;
+    static unsigned terrain_drawn;
 
     const std::vector<Mesh*> get_meshes();
     void load_heightmap(std::string heightmap_file, float plane_scale, float height_scale, unsigned chunk_size);
     static const std::vector<Terrain*> get_loaded_terrain();
+    static uint cull_terrain(Camera &camera);
     glm::vec3 get_center_point_world();
     glm::vec3 get_center_point();
     bool point_in_terrain(float x_world, float z_world);

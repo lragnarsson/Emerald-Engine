@@ -88,7 +88,7 @@ void main()
     float shadow = 0.0;
     float sun_dot = dot(sun_direction, normal);
     if (sun_dot > 0) {
-        float shadow_bias = max(0.012 * (1.0 - sun_dot), 0.005);
+        float shadow_bias = max(0.001 * (1.0 - sun_dot), 0.001);
         shadow = shadow_calculation(light_space_matrix * vec4(position, 1.f), shadow_bias);
     }
 

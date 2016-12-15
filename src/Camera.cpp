@@ -125,6 +125,16 @@ bool Camera::get_height_lock()
     return this->height_lock;
 }
 
+void Camera::toggle_speed(){
+    if ( this->fast_movement ){
+        this->speed = 0.01;
+    }
+    else {
+        this->speed = 0.06;
+    }
+    this->fast_movement = !this->fast_movement;
+}
+
 
 void Camera::cycle_move_anim_path(int& parameter)
 {
@@ -187,3 +197,5 @@ bool Camera::sphere_in_frustum(glm::vec3 center, float radius)
     }
     return true;
 }
+
+

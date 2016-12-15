@@ -7,7 +7,6 @@ in VS_OUT {
     vec2 TexCoord;
     vec3 FragPos;  // view space position
     vec3 Normal;   // view space normal
-    vec3 worldPos;
 } gs_in[];
 
 
@@ -15,12 +14,24 @@ out vec2 TexCoord;
 out vec3 FragPos;  // view space position
 out vec3 Normal;   // view space normal
 
+struct Sphere {
+    vec3 position;
+    float radius;
+};
+
+layout (std140) uniform sphere_block {
+    Sphere spheres[_MAX_MODELS_];
+};
+
+layout (std140) uniform sphere_info_block {
+    int num_spheres;
+};
+
 uniform sampler2D wind_map;
 uniform sampler2D diffuse_map;
 
 // for converting normals to clip space
 uniform mat4 projection;
-uniform float upInterp; // Interpolation between up-vector and vertex own normal vector
 uniform mat4 view;
 uniform vec3 wind_direction;
 uniform float wind_strength;
@@ -55,19 +66,30 @@ highp float rand(vec2 co)
 }
 
 
-void generate_grass(vec2 texCoord, vec3 fragPos, vec3 inNormal, float noise_u, float noise_v,
+// TODO: precompute things like interpolation values.
+void generate_grass(vec2 texCoord, vec3 fragPos, vec3 inNormal,
                     vec3 base_1, vec3 base_2, const float[5] grass_x, const float[5] grass_y)
 {
+    highp float noise_u = 2 * rand(texCoord) - 1;
+    highp float noise_v = 2 * rand(texCoord.ts) - 1;
+
+    vec3 up = vec3(0, 1, 0);
     vec3 tangent = 0.3 * (noise_u * base_1 + noise_v * base_2);
-    fragPos = fragPos + 0.3 * (noise_u * base_1 + noise_v * base_2) - vec3(0, 0.3, 0);
+    fragPos = fragPos + 0.3 * (noise_u * base_1 + noise_v * base_2) - 0.3 * up;
 
-    vec4 clip_space_normal = projection * vec4(inNormal * MAGNITUDE, 0);
-    vec4 ws_up_in_cs = projection * view * vec4(0, MAGNITUDE, 0, 0); // World space up in clip space
-    vec4 interpNormal = mix(clip_space_normal, ws_up_in_cs, upInterp);
+    vec2 wind_coord = fract(0.005 * texCoord + wind_strength * time_offset);
+    vec3 gradient = wind_strength * (0.7 * wind_direction + 1.5 * texture(wind_map, wind_coord).rgb);
 
-    vec2 wind_coord = fract(0.01 * texCoord + wind_strength * time_offset);
-    vec3 gradient = wind_strength * (wind_direction + texture(wind_map, wind_coord).rgb);
-    gradient = vec3(view * vec4(gradient, 0)) - dot(inNormal, gradient); // Project onto xz-plane
+    vec3 push;
+
+    for (int i=0; i < num_spheres; i++) {
+        push = fragPos - spheres[i].position;
+        if (length(push) <= spheres[i].radius) {
+            gradient = gradient + 2 * push * (1 - length(push) / spheres[i].radius);
+        }
+    }
+
+    gradient = gradient - up * dot(up, gradient); // Project onto xz-plane
 
     vec3 grass_normal = normalize(cross(tangent, inNormal));
     if (grass_normal.z < 0) {
@@ -78,7 +100,7 @@ void generate_grass(vec2 texCoord, vec3 fragPos, vec3 inNormal, float noise_u, f
 
     for (int i=0; i < 5; i++) {
         TexCoord = texCoord;
-        bend_interp = pow(grass_y[i] / grass_y[4], 2.7);
+        bend_interp = pow(grass_y[i] / grass_y[4], 2);
         Normal = normalize(inNormal + 0.2 * grass_normal);
 
         vec3 y = MAGNITUDE * inNormal * GRASS_SCALE * grass_y[i];
@@ -108,22 +130,17 @@ void main()
 
     vec3 normal = (gs_in[0].Normal + gs_in[1].Normal + gs_in[2].Normal) / 3;
 
-    highp float noise_u, noise_v;
-
     bool tall = true;
     for (int i=0; i<=N_GRASS_STRAWS; i++) {
         frag_pos = gs_in[0].FragPos + frag_pos_01 * COORDS_U[i] + frag_pos_02 * COORDS_V[i];
-        tex_coord = tex_coord_base_01 * COORDS_U[i] + tex_coord_base_02 * COORDS_V[i];
-
-        noise_u = 2 * rand((i+1) * gs_in[i % 3].worldPos.xy) - 1;
-        noise_v = 2 * rand((i+1) * gs_in[i % 3].worldPos.zx) - 1;
+        tex_coord = gs_in[0].TexCoord + tex_coord_base_01 * COORDS_U[i] + tex_coord_base_02 * COORDS_V[i];
 
         if (tall)
-            generate_grass(tex_coord, frag_pos, normal, noise_u, noise_v,
+            generate_grass(tex_coord, frag_pos, normal,
                            frag_pos_base_01, frag_pos_base_02,
                            GRASS_2_X, GRASS_2_Y);
         else
-            generate_grass(tex_coord, frag_pos, normal, noise_u, noise_v,
+            generate_grass(tex_coord, frag_pos, normal,
                            frag_pos_base_01, frag_pos_base_02,
                            GRASS_3_X, GRASS_3_Y);
 
