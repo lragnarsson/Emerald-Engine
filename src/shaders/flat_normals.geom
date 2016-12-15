@@ -10,7 +10,7 @@ in VS_OUT {
 uniform mat4 projection;
 uniform mat4 view;
 
-const float MAGNITUDE = 2.0f; // Length of generated lines
+const float MAGNITUDE = 0.5f; // Length of generated lines
 
 
 void GenerateLine(vec4 clipPos, vec3 inNormal)
