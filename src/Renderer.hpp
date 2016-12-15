@@ -153,7 +153,7 @@ private:
     float grass_lod1_distance = 40.0;
     float grass_lod2_distance = 80.0;
     float grass_lod3_distance = 320.0;
-    bool grass_single_color_on = true;
+    bool grass_single_color_on = false;
     static const vec3 GRASS_LOD1_COLOR;
     static const vec3 GRASS_LOD2_COLOR;
     static const vec3 GRASS_LOD3_COLOR;
