@@ -33,8 +33,15 @@
 #include "Camera.hpp"
 
 
+typedef struct {
+    vec3 position;  // 12 +
+    float radius;   // 4 = 16
+} gpu_sphere;
+
 class Model {
 public:
+    static unsigned models_drawn;
+    static std::vector<GLuint> shader_programs; // For UBO binding on init.
     glm::mat4 m2w_matrix, move_matrix, rot_matrix, scale_matrix;
     float bounding_sphere_radius = -1.f, scale = 1.f;
     bool draw_me = true, clamp_textures = false;
@@ -48,9 +55,12 @@ public:
     ~Model() { };
 
     void load(std::string path);
+    static void init_ubos();
+    static void upload_spheres();
     static const std::vector<Model*> get_loaded_models();
     static const std::vector<Model*> get_loaded_flat_models();
     const std::vector<Mesh*> get_meshes();
+    static uint cull_models(Camera &camera);
 
     void attach_light(Light *light, glm::vec3 relative_pos);
     void move_to(glm::vec3 world_coord);
@@ -63,7 +73,7 @@ public:
     void attach_animation_path(int animation_id, float start_parameter);
     bool has_animation_path() {return has_animation;}
     void move_along_path(float elapsed_time);
-    unsigned cull_me(Camera* camera);
+    unsigned cull_me(Camera &camera);
 
 private:
     struct light_container {
@@ -71,7 +81,11 @@ private:
         glm::vec3 relative_pos;
     };
 
+    static const int sphere_size = 16;
+    static const int info_size = 4;
+    static GLuint ubos[2];
     static std::vector<Model*> loaded_models, loaded_flat_models;
+    static gpu_sphere gpu_spheres[_MAX_MODELS_]; // Sorted, pushed to GPU
     std::vector<light_container> attached_lights;
     std::vector<Mesh*> meshes;
     std::string directory;

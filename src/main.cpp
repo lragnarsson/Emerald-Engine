@@ -4,58 +4,6 @@
 void free_resources()
 {
     sdl_quit(main_window, main_context);
-
-}
-
-// --------------------------
-
-void cull_models()
-{
-    Profiler::start_timer("Cull models");
-    // TODO: Run in parallel
-    uint models_drawn = 0;
-    uint meshes_drawn = 0;
-    unsigned meshes = 0;
-
-    // Cull models
-    for (auto model : Model::get_loaded_models()) {
-        meshes = model->cull_me(&camera);
-        meshes_drawn += meshes;
-        if (meshes > 0){
-            models_drawn++;
-        }
-    }
-
-    // Flat models
-    for (auto model : Model::get_loaded_flat_models()) {
-        meshes = model->cull_me(&camera);
-        if (meshes > 0){
-            meshes_drawn += meshes;
-            models_drawn++;
-        }
-    }
-
-    // Terrain
-    for (auto terrain : Terrain::get_loaded_terrain()) {
-        meshes = terrain->cull_me(&camera);
-        meshes_drawn += meshes;
-        if (meshes > 0){
-            models_drawn++;
-        }
-    }
-
-    renderer.objects_drawn = models_drawn;
-    renderer.meshes_drawn = meshes_drawn;
-    Profiler::stop_timer("Cull models");
-}
-
-void cull_turned_off_flat_objects()
-{
-    for (auto model: Model::get_loaded_flat_models()) {
-        if (!model->get_light_active()) {
-            model->draw_me = false;
-        }
-    }
 }
 
 // --------------------------
@@ -82,10 +30,16 @@ void animate_models()
 
 void culling()
 {
-    cull_models();
+    renderer.meshes_drawn = Model::cull_models(camera);
+    renderer.models_drawn = Model::models_drawn;
+#ifndef __APPLE__ // Disable for now
+    Model::upload_spheres();
+#endif
+
+    renderer.meshes_drawn += Terrain::cull_terrain(camera);
+    renderer.models_drawn += Terrain::terrain_drawn;
     Light::cull_light_sources(camera);
     Light::upload_lights();
-    cull_turned_off_flat_objects();
 }
 
 // --------------------------
@@ -148,7 +102,6 @@ void run()
         Profiler::start_timer("Swap");
         SDL_GL_SwapWindow(main_window);
         Profiler::stop_timer("Swap");
-        //SDL_Delay(45);
         Profiler::stop_timer("-> Frame time");
     }
 }
@@ -158,6 +111,10 @@ void run()
 
 void print_welcome()
 {
+    GLint foo, bar;
+    glGetIntegerv(GL_MAX_GEOMETRY_UNIFORM_COMPONENTS, &foo);
+    glGetIntegerv(GL_MAX_COMBINED_UNIFORM_BLOCKS, &bar);
+    std::cout << foo << "   " << bar << std::endl;
     std::string welcome;
     welcome = std::string("This is Emerald Engine.\n");
     welcome += std::string("A few useful commmands are:\n\n");

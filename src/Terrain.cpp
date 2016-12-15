@@ -6,6 +6,7 @@ using namespace glm;
 
 std::vector<Terrain*> Terrain::loaded_terrain;
 Texture* Terrain::wind_map;
+unsigned Terrain::terrain_drawn = 0;
 
 // --------------------
 
@@ -292,7 +293,7 @@ vec3 Terrain::get_normal(int x, int z, SDL_Surface* image,
         vec3 p3(x*ps,     get_pixel_height(x, z-1, image)*hs, (z-1)*ps);
         vec3 p4((x+1)*ps, get_pixel_height(x+1, z, image)*hs, z*ps);
         vec3 p5(x*ps,    get_pixel_height(x, z+1, image)*hs, (z+1)*ps);
-        
+
         vec3 base1 = p1-p2;
         vec3 base2 = p1-p3;
 
@@ -468,4 +469,20 @@ unsigned Terrain::cull_me(Camera* camera){
 void Terrain::load_wind(std::string full_path) {
 
     Terrain::wind_map = Mesh::load_texture(full_path, false, NORMAL);
+}
+
+uint Terrain::cull_terrain(Camera &camera)
+{
+    uint meshes_drawn,my_meshes_drawn = 0;
+    Terrain::terrain_drawn = 0;
+
+    // Terrain
+    for (auto terrain : Terrain::get_loaded_terrain()) {
+        my_meshes_drawn = terrain->cull_me(&camera);
+        meshes_drawn += my_meshes_drawn;
+        if ( my_meshes_drawn != 0 )
+            Terrain::terrain_drawn++;
+    }
+
+    return meshes_drawn;
 }

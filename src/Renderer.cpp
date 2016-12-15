@@ -72,6 +72,12 @@ void Renderer::init()
 
     Light::shader_programs.push_back(shaders[DEFERRED]);
     Light::shader_programs.push_back(shaders[FORWARD]);
+
+    Model::shader_programs.push_back(shaders[GRASS_LOD1]);
+    Model::shader_programs.push_back(shaders[GRASS_LOD2]);
+    Model::shader_programs.push_back(shaders[GRASS_LOD1_SINGLE_COLOR]);
+    Model::shader_programs.push_back(shaders[GRASS_LOD2_SINGLE_COLOR]);
+    Model::init_ubos();
 }
 
 // --------------------------
@@ -184,12 +190,6 @@ void Renderer::upload_camera_uniforms(const Camera &camera)
         glUniform3fv(glGetUniformLocation(shaderProgram, "camPos"),
                      1, value_ptr(camera.get_pos()));
     }
-
-    glUniformMatrix4fv(glGetUniformLocation(shaders[GRASS_LOD1], "view_inv"),
-                       1, GL_FALSE, value_ptr(inverse(camera.get_view_matrix())));
-
-    glUniformMatrix4fv(glGetUniformLocation(shaders[GRASS_LOD2], "view_inv"),
-                       1, GL_FALSE, value_ptr(inverse(camera.get_view_matrix())));
 
     glUseProgram(0);
 }
@@ -736,7 +736,7 @@ void Renderer::render_bounding_spheres()
         GLuint m2w_location = glGetUniformLocation(shaders[FLAT_NO_BLOOM], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE,
                 value_ptr(model->move_matrix * model->rot_matrix *
-                    bounding_move * model->scale_matrix * bounding_scale));
+                          bounding_move * model->scale_matrix * bounding_scale));
 
         // DRAW
         glBindVertexArray(mesh->get_VAO());
@@ -957,174 +957,76 @@ void Renderer::grass_generation_pass()
 
     glBindFramebuffer(GL_FRAMEBUFFER, g_buffer);
 
-    // Grass LOD 1 pass
+
+    struct lod_info {
+        GLuint shader;
+        GLuint color_shader;
+        float lower_limit;
+        float higher_limit;
+        vec3 color;
+    };
+
+    struct lod_info lods[3] = {{shaders[GRASS_LOD1], shaders[GRASS_LOD1_SINGLE_COLOR],
+                                0, this->grass_lod1_distance, GRASS_LOD1_COLOR},
+                               {shaders[GRASS_LOD2], shaders[GRASS_LOD2_SINGLE_COLOR],
+                                this->grass_lod1_distance, this->grass_lod2_distance, GRASS_LOD2_COLOR},
+                               {shaders[GRASS_LOD3], shaders[GRASS_LOD3_SINGLE_COLOR],
+                                this->grass_lod2_distance, this->grass_lod3_distance, GRASS_LOD3_COLOR}};
+
     GLuint grass_shader;
-    if(grass_single_color_on) {
-        grass_shader = shaders[GRASS_LOD1_SINGLE_COLOR];
-    }
-    else {
-        grass_shader = shaders[GRASS_LOD1];
-    }
-
-    glUseProgram(grass_shader);
-    glUniform3fv(glGetUniformLocation(grass_shader, "color"),
-                 1, value_ptr(GRASS_LOD1_COLOR));
-    glUniform1f(glGetUniformLocation(grass_shader, "upInterp"), this->up_interp);
-    glUniform1f(glGetUniformLocation(grass_shader, "shininess"), 20);
-    glUniform1f(glGetUniformLocation(grass_shader, "wind_strength"), 1.f);
-    glUniform3fv(glGetUniformLocation(grass_shader, "wind_direction"),
-                 1, value_ptr(vec3(0.3f, 0.f, -0.7f)));
-    glUniform2fv(glGetUniformLocation(grass_shader, "time_offset"),
-                 1, value_ptr(((float)SDL_GetTicks()) / 100000.f * vec2(0.f, -1.f)));
-
-    glActiveTexture(GL_TEXTURE0);
-    GLuint wind_loc = glGetUniformLocation(grass_shader, "wind_map");
-    glUniform1i(wind_loc, 0);
-
-    glBindTexture(GL_TEXTURE_2D, Terrain::wind_map->id);
-
-    for (auto terrain : loaded_terrain) {
-        if (!terrain->draw_me) {
-            continue;
+    for (auto lod : lods) {
+        if(grass_single_color_on) {
+            grass_shader = lod.color_shader;
         }
-        GLuint m2w_location = glGetUniformLocation(grass_shader, "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(terrain->m2w_matrix));
-
-        for (auto mesh : terrain->get_meshes()) {
-            if (!mesh->draw_me) {
-                continue;
-            }
-            glm::vec3 delta = cam_pos - mesh->get_center_point_world(terrain->m2w_matrix);
-            delta.y = 0;
-            if (glm::length(delta) > this->grass_lod1_distance) {
-                // TODO: This value depends heavily on the size of meshes. Do this properly
-                continue;
-            }
-
-            glActiveTexture(GL_TEXTURE0 + 1);
-            GLuint diffuse_loc = glGetUniformLocation(grass_shader, "diffuse_map");
-            glUniform1i(diffuse_loc, 1);
-            glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
-
-            glBindVertexArray(mesh->get_VAO());
-
-            /* DRAW GEOMETRY */
-            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        else {
+            grass_shader = lod.shader;
         }
-    }
 
-    // Grass LOD 2 pass
-    if(grass_single_color_on) {
-        grass_shader = shaders[GRASS_LOD2_SINGLE_COLOR];
-    }
-    else {
-        grass_shader = shaders[GRASS_LOD2];
-    }
+        glUseProgram(grass_shader);
+        glUniform3fv(glGetUniformLocation(grass_shader, "color"),
+                     1, value_ptr(lod.color));
 
-    glUseProgram(grass_shader);
-    glUniform3fv(glGetUniformLocation(grass_shader, "color"),
-                 1, value_ptr(GRASS_LOD2_COLOR));
-    glUniform1f(glGetUniformLocation(grass_shader, "upInterp"), this->up_interp);
-    glUniform1f(glGetUniformLocation(grass_shader, "shininess"), 20);
-    glUniform1f(glGetUniformLocation(grass_shader, "wind_strength"), 1.f);
-    glUniform3fv(glGetUniformLocation(grass_shader, "wind_direction"),
-                 1, value_ptr(vec3(0.3f, 0.f, -0.7f)));
-    glUniform2fv(glGetUniformLocation(grass_shader, "time_offset"),
-                 1, value_ptr(((float)SDL_GetTicks()) / 100000.f * vec2(0.f, -1.f)));
+        glUniform1f(glGetUniformLocation(grass_shader, "shininess"), 20);
+        glUniform1f(glGetUniformLocation(grass_shader, "wind_strength"), 1.f);
+        glUniform3fv(glGetUniformLocation(grass_shader, "wind_direction"),
+                     1, value_ptr(vec3(0.3f, 0.f, -0.7f)));
+        glUniform2fv(glGetUniformLocation(grass_shader, "time_offset"),
+                     1, value_ptr(((float)SDL_GetTicks()) / 100000.f * vec2(0.f, -1.f)));
 
-    glActiveTexture(GL_TEXTURE0);
-    wind_loc = glGetUniformLocation(grass_shader, "wind_map");
-    glUniform1i(wind_loc, 0);
+        glActiveTexture(GL_TEXTURE0);
+        GLuint wind_loc = glGetUniformLocation(grass_shader, "wind_map");
+        glUniform1i(wind_loc, 0);
 
-    glBindTexture(GL_TEXTURE_2D, Terrain::wind_map->id);
+        glBindTexture(GL_TEXTURE_2D, Terrain::wind_map->id);
 
-    for (auto terrain : loaded_terrain) {
-        if (!terrain->draw_me) {
-            continue;
-        }
-        GLuint m2w_location = glGetUniformLocation(grass_shader, "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(terrain->m2w_matrix));
-
-        for (auto mesh : terrain->get_meshes()) {
-            if (!mesh->draw_me) {
+        for (auto terrain : loaded_terrain) {
+            if (!terrain->draw_me) {
                 continue;
             }
-            glm::vec3 delta = cam_pos - mesh->get_center_point_world(terrain->m2w_matrix);
-            delta.y = 0;
-            float distance_to_mesh = glm::length(delta);
-            if (distance_to_mesh < grass_lod1_distance ||
-                distance_to_mesh > grass_lod2_distance) {
-                // TODO: This value depends heavily on the size of meshes. Do this properly
-                continue;
+            GLuint m2w_location = glGetUniformLocation(grass_shader, "model");
+            glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(terrain->m2w_matrix));
+
+            for (auto mesh : terrain->get_meshes()) {
+                if (!mesh->draw_me) {
+                    continue;
+                }
+                glm::vec3 delta = cam_pos - mesh->get_center_point_world(terrain->m2w_matrix);
+                delta.y = 0;
+                if (glm::length(delta) < lod.lower_limit ||
+                    glm::length(delta) > lod.higher_limit) {
+                    // TODO: This value depends heavily on the size of meshes. Do this properly
+                    continue;
+                }
+
+                glActiveTexture(GL_TEXTURE0 + 1);
+                GLuint diffuse_loc = glGetUniformLocation(grass_shader, "diffuse_map");
+                glUniform1i(diffuse_loc, 1);
+                glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
+
+                glBindVertexArray(mesh->get_VAO());
+
+                glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
             }
-
-            glActiveTexture(GL_TEXTURE0 + 1);
-            GLuint diffuse_loc = glGetUniformLocation(grass_shader, "diffuse_map");
-            glUniform1i(diffuse_loc, 1);
-            glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
-
-            glBindVertexArray(mesh->get_VAO());
-
-            /* DRAW GEOMETRY */
-            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
-        }
-    }
-
-    // Grass LOD3 pass
-        // Grass LOD 2 pass
-    if(grass_single_color_on) {
-        grass_shader = shaders[GRASS_LOD3_SINGLE_COLOR];
-    }
-    else {
-        grass_shader = shaders[GRASS_LOD3];
-    }
-
-    glUseProgram(grass_shader);
-    glUniform3fv(glGetUniformLocation(grass_shader, "color"),
-                 1, value_ptr(GRASS_LOD3_COLOR));
-    glUniform1f(glGetUniformLocation(grass_shader, "upInterp"), this->up_interp);
-    glUniform1f(glGetUniformLocation(grass_shader, "shininess"), 20);
-    glUniform1f(glGetUniformLocation(grass_shader, "wind_strength"), 1.f);
-    glUniform3fv(glGetUniformLocation(grass_shader, "wind_direction"),
-                 1, value_ptr(vec3(0.3f, 0.f, -0.7f)));
-    glUniform2fv(glGetUniformLocation(grass_shader, "time_offset"),
-                 1, value_ptr(((float)SDL_GetTicks()) / 100000.f * vec2(0.f, -1.f)));
-
-    glActiveTexture(GL_TEXTURE0);
-    wind_loc = glGetUniformLocation(grass_shader, "wind_map");
-    glUniform1i(wind_loc, 0);
-
-    glBindTexture(GL_TEXTURE_2D, Terrain::wind_map->id);
-
-    for (auto terrain : loaded_terrain) {
-        if (!terrain->draw_me) {
-            continue;
-        }
-        GLuint m2w_location = glGetUniformLocation(grass_shader, "model");
-        glUniformMatrix4fv(m2w_location, 1, GL_FALSE, glm::value_ptr(terrain->m2w_matrix));
-
-        for (auto mesh : terrain->get_meshes()) {
-            if (!mesh->draw_me) {
-                continue;
-            }
-            glm::vec3 delta = cam_pos - mesh->get_center_point_world(terrain->m2w_matrix);
-            delta.y = 0;
-            float distance_to_mesh = glm::length(delta);
-            if (distance_to_mesh < grass_lod2_distance ||
-                distance_to_mesh > grass_lod3_distance) {
-                // TODO: This value depends heavily on the size of meshes. Do this properly
-                continue;
-            }
-
-            glActiveTexture(GL_TEXTURE0 + 1);
-            GLuint diffuse_loc = glGetUniformLocation(grass_shader, "diffuse_map");
-            glUniform1i(diffuse_loc, 1);
-            glBindTexture(GL_TEXTURE_2D, mesh->diffuse_map->id);
-
-            glBindVertexArray(mesh->get_VAO());
-
-            /* DRAW GEOMETRY */
-            glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
         }
     }
 
@@ -1686,7 +1588,7 @@ void Renderer::init_tweak_bar(Camera* camera)
 
     TwAddVarRO(tweak_bar, "FPS", TW_TYPE_DOUBLE, &fps,
             " label='FPS' help='Frames per second' ");
-    TwAddVarRW(tweak_bar, "Models drawn", TW_TYPE_INT32,&objects_drawn,
+    TwAddVarRW(tweak_bar, "Models drawn", TW_TYPE_INT32,&models_drawn,
             " label='Models drawn' help='Objects not removed by frustum culling.' ");
     TwAddVarRW(tweak_bar, "Meshes drawn", TW_TYPE_INT32,&meshes_drawn,
             " label='Meshes drawn' help='Objects not removed by frustum culling.' ");
