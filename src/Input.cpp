@@ -84,7 +84,8 @@ void handle_keyboard_input(Camera &camera, Renderer &renderer, SDL_Window* windo
                     renderer.set_mode(SHADOW_MODE);
                     break;
                 case SDLK_b:
-                    renderer.draw_bounding_spheres = !renderer.draw_bounding_spheres;
+                    renderer.change_bounding_sphere_mode();
+                    break;
                 case SDLK_k:
                     renderer.set_kernel_radius(renderer.get_kernel_radius() + 0.1f);
                     break;
