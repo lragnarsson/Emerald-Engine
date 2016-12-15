@@ -84,7 +84,7 @@ void generate_grass(vec2 texCoord, vec3 fragPos, vec3 inNormal,
     for (int i=0; i < num_spheres; i++) {
         push = fragPos - spheres[i].position;
         if (length(push) <= spheres[i].radius) {
-            gradient = gradient + 2 * push * (1 - length(push) / spheres[i].radius);
+            gradient = gradient + push * (1 - length(push) / spheres[i].radius);
         }
     }
 
