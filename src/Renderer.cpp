@@ -322,7 +322,7 @@ void Renderer::shadow_pass(const Camera &camera){
 
 void Renderer::render_deferred(const Camera &camera)
 {
-    skydome->propagate_time(0.1f * this->time_diff);
+    skydome->propagate_time(0.03f * this->time_diff);
     skydome->upload_sun(shaders[DEFERRED], camera);
 
     shadow_pass(camera);
