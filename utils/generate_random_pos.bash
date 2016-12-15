@@ -18,7 +18,7 @@ for i in $(seq 1 $nr_instances); do
     rotation=$(jot -r 1 0 360)
     x_pos=$(jot -r 1 -$limit $limit)
     z_pos=$(jot -r 1 -$limit $limit)
-    echo "$file_to_load | rel | 0 0 $rotation | $x_pos $height $z_pos | $scale | -1 -1 | -1"
+    echo "$file_to_load | rel | 0 $rotation 0 | $x_pos $height $z_pos | $scale | -1 -1 | -1"
 done
 
 
