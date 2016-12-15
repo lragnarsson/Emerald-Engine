@@ -58,7 +58,7 @@ float shadow_calculation(vec4 frag_pos_light_space, float bias)
         for(int y = -core_size; y <= core_size; ++y)
         {
             float pcf_depth = texture(shadow_map, proj_coords.xy + vec2(x, y) * texel_size).r;
-            shadow += current_depth - bias < pcf_depth ? 1.0 : 0.1;
+            shadow += current_depth - bias < pcf_depth ? 1.0 : 0;
         }
     }
     shadow /= (2 * core_size) * (2 * core_size);
@@ -116,13 +116,11 @@ void main()
 
     // Directional light source (sun):
     if (sun_up) {
-        // Correct for sun color:
-        //albedo = albedo * (vec3(1) - 0.3 * normalize(sun_color));
         float d = max(sun_dot, 0.0);
         vec3 diffuse_light = occlusion * d * sun_color * albedo;
         vec3 halfway_dir = normalize(sun_direction + view_direction);
-        float s = pow(max(dot(normal, halfway_dir), 0.0), shininess);
-        vec3 specular_light = specular * s * sun_color * albedo;
+        float s = specular * pow(max(dot(normal, halfway_dir), 0.0), shininess);
+        vec3 specular_light = s * sun_color * albedo;
         light += shadow * (diffuse_light + specular_light);
     }
 

@@ -85,7 +85,7 @@ void generate_grass(vec2 texCoord, vec3 fragPos, vec3 inNormal,
     for (int i=0; i < 5; i++) {
         TexCoord = texCoord * noise_u;
         bend_interp = pow(grass_y[i] / grass_y[4], 2.7);
-        Normal = normalize(inNormal + 0 * grass_normal);
+        Normal = normalize(inNormal + 0.2 * grass_normal);
 
         vec3 y = MAGNITUDE * inNormal * GRASS_SCALE * grass_y[i];
         vec3 xz = GRASS_SCALE * (grass_x[i] * tangent + bend_interp * gradient);
