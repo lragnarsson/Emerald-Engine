@@ -48,12 +48,18 @@ typedef struct {
 } ping_pong_shader;
 
 
+enum bounding_sphere_mode {
+    NO_BOUNDING_SPHERES = 0,
+    ONLY_MODELS,
+    ALL_BOUNDING_SPHERES,
+};
+
 class Renderer
 {
 public:
     bool running = false;
     bool wireframe_mode = false; // unused
-    bool draw_bounding_spheres = false;
+    bounding_sphere_mode draw_bounding_spheres = NO_BOUNDING_SPHERES;
     uint models_drawn, meshes_drawn, grass_straws_drawn;
 
     Renderer() {}
@@ -62,6 +68,7 @@ public:
     void init_tweak_bar(Camera* camera);
     void render(const Camera &camera);
     void set_mode(render_mode mode);
+    void change_bounding_sphere_mode();
     void init_uniforms(const Camera &camera);
     void set_kernel_radius(float radius) {kernel_radius = radius;}
     float get_kernel_radius() {return kernel_radius;}
