@@ -113,5 +113,7 @@ display_mode Parser::get_display_mode_from_command_line(int argc, char *argv[]){
         return FULLSCREEN_VSYNC;
     if ( f_screen )
         return FULLSCREEN;
+    if ( vsync )
+        Error::throw_warning(Error::non_valid_render_mode, "Will not vsync if not in fullscreen.");
     return WINDOWED;
 }
