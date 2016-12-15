@@ -70,8 +70,50 @@ res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 184 0 | -22 0 173 | 0.005 | -1 -1
 
 # Small rock
 res/models/rock_6/Rock_6.obj | rel | 0 0 0 | 40 -1 0 | 10 | -1 0 0
+res/models/rock_6/Rock_6.obj | rel | 0 138 0 | 400 -1 167 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 249 0 | -56 -1 97 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 226 0 | 108 -1 -310 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 203 0 | -166 -1 193 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 297 0 | 132 -1 -166 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 17 0 | -87 -1 -282 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 358 0 | -136 -1 -46 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 52 0 | -94 -1 240 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 12 0 | 360 -1 -215 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 199 0 | -268 -1 147 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 201 0 | -6 -1 185 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 83 0 | -167 -1 -176 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 4 0 | 339 -1 -330 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 69 0 | -123 -1 218 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 170 0 | -38 -1 185 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 153 0 | 228 -1 137 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 273 0 | -349 -1 120 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 75 0 | 372 -1 -316 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 341 0 | -66 -1 -10 | 10 | -1 -1 | -1
+res/models/rock_6/Rock_6.obj | rel | 0 269 0 | 342 -1 -235 | 10 | -1 -1 | -1
+
 # Big rock
 res/models/rock_big/Models/Rock_big_single_b_LOD0.obj | rel | 0 0 0 | 30 -15 -50 | 0.5 | -1 0 0
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 200 0 | -366 -1 -778 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 16 0 | 254 -1 -268 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 150 0 | -203 -1 -11 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 137 0 | 100 -1 -109 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 358 0 | 174 -1 253 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 230 0 | -136 -1 280 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 74 0 | -765 -1 -68 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 171 0 | 0 -1 212 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 160 0 | -250 -1 -219 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 256 0 | -695 -1 -22 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 226 0 | 662 -1 -574 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 347 0 | 547 -1 558 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 340 0 | 498 -1 -95 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 169 0 | 536 -1 -134 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 25 0 | -242 -1 375 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 148 0 | -483 -1 -778 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 303 0 | -714 -1 -785 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 71 0 | -183 -1 270 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 348 0 | 275 -1 356 | 0.5 | -1 -1 | -1
+res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 201 0 | -612 -1 229 | 0.5 | -1 -1 | -1
+
 
 # This will start a new section for loading flat-shaded models.
 [flat]
