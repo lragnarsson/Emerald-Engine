@@ -79,6 +79,7 @@ void Renderer::init()
 void Renderer::render(const Camera &camera)
 {
     upload_camera_uniforms(camera);
+    grass_straws_drawn = 0;
     switch (mode) {
     case FORWARD_MODE:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -979,6 +980,7 @@ void Renderer::grass_generation_pass()
 
     glBindTexture(GL_TEXTURE_2D, Terrain::wind_map->id);
 
+    
     for (auto terrain : loaded_terrain) {
         if (!terrain->draw_me) {
             continue;
@@ -996,6 +998,7 @@ void Renderer::grass_generation_pass()
                 // TODO: This value depends heavily on the size of meshes. Do this properly
                 continue;
             }
+            grass_straws_drawn += 6 * terrain->get_chunk_size() * terrain->get_chunk_size();
 
             glActiveTexture(GL_TEXTURE0 + 1);
             GLuint diffuse_loc = glGetUniformLocation(grass_shader, "diffuse_map");
@@ -1053,6 +1056,7 @@ void Renderer::grass_generation_pass()
                 // TODO: This value depends heavily on the size of meshes. Do this properly
                 continue;
             }
+            grass_straws_drawn += 4 * terrain->get_chunk_size() * terrain->get_chunk_size();
 
             glActiveTexture(GL_TEXTURE0 + 1);
             GLuint diffuse_loc = glGetUniformLocation(grass_shader, "diffuse_map");
@@ -1111,6 +1115,7 @@ void Renderer::grass_generation_pass()
                 // TODO: This value depends heavily on the size of meshes. Do this properly
                 continue;
             }
+            grass_straws_drawn += terrain->get_chunk_size() * terrain->get_chunk_size();
 
             glActiveTexture(GL_TEXTURE0 + 1);
             GLuint diffuse_loc = glGetUniformLocation(grass_shader, "diffuse_map");
@@ -1686,6 +1691,9 @@ void Renderer::init_tweak_bar(Camera* camera)
             " label='Models drawn' help='Objects not removed by frustum culling.' ");
     TwAddVarRW(tweak_bar, "Meshes drawn", TW_TYPE_INT32,&meshes_drawn,
             " label='Meshes drawn' help='Objects not removed by frustum culling.' ");
+    // Grass counter
+    TwAddVarRW(tweak_bar, "Grass straws drawn", TW_TYPE_INT32, &grass_straws_drawn,
+              " label='Grass straws drawn' help='Number of grass straws drawn in grass generation pass.'");
     // SSAO stuff
     TwAddVarRW(tweak_bar, "SSAO ON", TW_TYPE_BOOL8, &ssao_on,
             " label='SSAO ON' help='Status of SSAO' ");
@@ -1723,7 +1731,6 @@ void Renderer::init_tweak_bar(Camera* camera)
             "label='Normal vector interpolation' help='Valid range is [0,1]. 1 uses only up vector.'");
     TwAddVarRW(tweak_bar, "Show normals", TW_TYPE_BOOL8, &show_normals,
             "label='Show normals generated in geometry shader' help='Toggles the normal visualization pass'");
-
 }
 
 // ---------------
