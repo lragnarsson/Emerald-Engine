@@ -67,7 +67,7 @@ highp float rand(vec2 co)
 
 
 // TODO: precompute things like interpolation values.
-void generate_grass(vec2 texCoord, vec3 fragPos, vec3 inNormal,
+void generate_grass(vec2 texCoord, vec3 fragPos, vec3 inNormal, vec3 push,
                     vec3 base_1, vec3 base_2, const float[7] grass_x, const float[7] grass_y)
 {
     highp float noise_u = 2 * rand(texCoord) - 1;
@@ -78,17 +78,10 @@ void generate_grass(vec2 texCoord, vec3 fragPos, vec3 inNormal,
     fragPos = fragPos + 0.3 * (noise_u * base_1 + noise_v * base_2) - 0.3 * up;
 
     vec2 wind_coord = fract(0.005 * texCoord + wind_strength * time_offset);
-    vec3 gradient = wind_strength * (0.7 * wind_direction + 1.5 * texture(wind_map, wind_coord).rgb);
+    vec3 wind_noise = texture(wind_map, wind_coord).rgb;
+    vec3 gradient = push + wind_strength * (0.5 * wind_direction + 2.5 * wind_noise);
 
-    vec3 push;
-    for (int i=0; i < num_spheres; i++) {
-        push = fragPos - spheres[i].position;
-        if (length(push) <= spheres[i].radius) {
-            gradient = gradient + push * (1 - length(push) / spheres[i].radius);
-        }
-    }
-
-    gradient = gradient - up * dot(up, gradient); // Project onto xz-plane
+    gradient = gradient - 0.8 * up * dot(up, gradient); // Project onto xz-plane
 
     vec3 grass_normal = normalize(cross(tangent, inNormal));
     if (grass_normal.z < 0) {
@@ -98,8 +91,8 @@ void generate_grass(vec2 texCoord, vec3 fragPos, vec3 inNormal,
     float bend_interp;
 
     for (int i=0; i < 7; i++) {
-        TexCoord = texCoord;
-        bend_interp = pow(grass_y[i] / grass_y[6], 2);
+        TexCoord = texCoord * noise_u;
+        bend_interp = pow(grass_y[i] / grass_y[6], 1.5);
         Normal = normalize(inNormal + 0.2 * grass_normal);
 
         vec3 y = MAGNITUDE * inNormal * GRASS_SCALE * grass_y[i];
@@ -128,7 +121,17 @@ void main()
 
     vec3 normal = (gs_in[0].Normal + gs_in[1].Normal + gs_in[2].Normal) / 3;
 
-    highp float noise_u, noise_v;
+    float dist;
+    vec3 push;
+    vec3 total_push = vec3(0);
+    vec3 center_triangle = gs_in[0].FragPos + 0.5 * frag_pos_base_01 + 0.5 * frag_pos_02;
+    for (int i=0; i < num_spheres; i++) {
+        push = center_triangle - spheres[i].position;
+        dist = length(push);
+        if (dist <= spheres[i].radius) {
+            total_push = total_push + 1 * push * (1 - dist / spheres[i].radius);
+        }
+    }
 
     bool tall = true;
     for (int i=0; i<=N_GRASS_STRAWS; i++) {
@@ -136,11 +139,11 @@ void main()
         tex_coord = gs_in[0].TexCoord + tex_coord_base_01 * COORDS_U[i] + tex_coord_base_02 * COORDS_V[i];
 
         if (tall)
-            generate_grass(tex_coord, frag_pos, normal,
-                           frag_pos_base_01, frag_pos_base_02,
-                           GRASS_2_X, GRASS_2_Y);
+        generate_grass(tex_coord, frag_pos, normal, total_push,
+                       frag_pos_base_01, frag_pos_base_02,
+                       GRASS_2_X, GRASS_2_Y);
         else
-            generate_grass(tex_coord, frag_pos, normal,
+            generate_grass(tex_coord, frag_pos, normal, total_push,
                            frag_pos_base_01, frag_pos_base_02,
                            GRASS_3_X, GRASS_3_Y);
 

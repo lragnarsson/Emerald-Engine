@@ -88,12 +88,12 @@ void main()
     float shadow = 0.0;
     float sun_dot = dot(sun_direction, normal);
     if (sun_dot > 0) {
-        float shadow_bias = max(0.001 * (1.0 - sun_dot), 0.001);
+        float shadow_bias = max(0.001 * (1.0 - sun_dot), 0.0005);
         shadow = shadow_calculation(light_space_matrix * vec4(position, 1.f), shadow_bias);
     }
 
     // Ambient
-    vec3 light = 0.1 * occlusion * albedo;
+    vec3 light = 0.13 * occlusion * albedo;
 
     // Point lights:
     for(int i=0; i < num_lights; i++) {
@@ -107,7 +107,7 @@ void main()
 
         // Blinn-Phon Specular
         vec3 halfway_dir = normalize(light_dir + view_direction);
-        float s = pow(max(dot(normal, halfway_dir), 0.0), shininess);
+        float s = specular * pow(max(dot(normal, halfway_dir), 0.0), shininess);
 
         vec3 specular_light = s * lights[i].color * albedo;
 
@@ -117,13 +117,13 @@ void main()
     // Directional light source (sun):
     if (sun_up) {
         // Correct for sun color:
-        albedo = albedo * albedo * (vec3(1) - 0.8 * normalize(sun_color));
+        //albedo = albedo * (vec3(1) - 0.3 * normalize(sun_color));
         float d = max(sun_dot, 0.0);
         vec3 diffuse_light = occlusion * d * sun_color * albedo;
         vec3 halfway_dir = normalize(sun_direction + view_direction);
         float s = pow(max(dot(normal, halfway_dir), 0.0), shininess);
-        vec3 specular_light = s * sun_color * albedo * albedo;
-        light += shadow * diffuse_light + specular_light;
+        vec3 specular_light = specular * s * sun_color * albedo;
+        light += shadow * (diffuse_light + specular_light);
     }
 
     OutColor = vec4(light, 1.0);

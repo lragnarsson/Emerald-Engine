@@ -83,9 +83,9 @@ void generate_grass(vec2 texCoord, vec3 fragPos, vec3 inNormal,
     float bend_interp;
 
     for (int i=0; i < 5; i++) {
-        TexCoord = texCoord;
+        TexCoord = texCoord * noise_u;
         bend_interp = pow(grass_y[i] / grass_y[4], 2.7);
-        Normal = normalize(inNormal + 0.2 * grass_normal);
+        Normal = normalize(inNormal + 0 * grass_normal);
 
         vec3 y = MAGNITUDE * inNormal * GRASS_SCALE * grass_y[i];
         vec3 xz = GRASS_SCALE * (grass_x[i] * tangent + bend_interp * gradient);
@@ -114,14 +114,10 @@ void main()
 
     vec3 normal = (gs_in[0].Normal + gs_in[1].Normal + gs_in[2].Normal) / 3;
 
-    highp float noise_u, noise_v;
+    frag_pos = gs_in[0].FragPos + frag_pos_01 * COORDS_U[2] + frag_pos_02 * COORDS_V[2];
+    tex_coord = gs_in[0].TexCoord + tex_coord_base_01 * COORDS_U[2] + tex_coord_base_02 * COORDS_V[2];
 
-    for (int i=0; i<=N_GRASS_STRAWS; i++) {
-        frag_pos = gs_in[0].FragPos + frag_pos_01 * COORDS_U[i + 2] + frag_pos_02 * COORDS_V[i + 2];
-        tex_coord = gs_in[0].TexCoord + tex_coord_base_01 * COORDS_U[i] + tex_coord_base_02 * COORDS_V[i];
-
-        generate_grass(tex_coord, frag_pos, normal,
-                       frag_pos_base_01, frag_pos_base_02,
-                       GRASS_2_X, GRASS_2_Y);
-    }
+    generate_grass(tex_coord, frag_pos, normal,
+                   frag_pos_base_01, frag_pos_base_02,
+                   GRASS_2_X, GRASS_2_Y);
 }

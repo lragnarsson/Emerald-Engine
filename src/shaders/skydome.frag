@@ -25,6 +25,6 @@ void main(void)
         // Align vectors more to make sun smaller:
         vec3 compensated = normalize(sun_direction - 9 * unit_pos / 10.0);
         float sun = 100 * pow(max(dot(unit_pos, compensated), 0.0), 50);
-        out_color += vec4(sun * sun_color, 1);
+        out_color += vec4(sun * sun_color * sun_color, 1);
     }
 }
