@@ -157,13 +157,13 @@ res/models/sphere/sphere.obj | abs | 0 0 0 | 100 20 50 | 0.5 | -1 0 | 1
 # Spheres along fourth spline
 res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 2 0 | 1
 0 0 0 | 10 8 6
-res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 2 10 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 2 15 | 1
 0 0 0 | 4 2 10
-res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 2 20 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 2 35 | 1
 0 0 0 | 10 2 2
-res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 2 30 | 1
+res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 2 55 | 1
 0 0 0 | 4 10 15
-res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 2 40 | 1
-0 0 0 | 10 10 10
-res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 2 50 | 1
-0 0 0 | 10 15 5
+#res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 2 40 | 1
+#0 0 0 | 10 10 10
+#res/models/sphere/sphere.obj | abs | 0 0 0 | -1 10 -8 | 0.5 | 2 50 | 1
+#0 0 0 | 10 15 5
