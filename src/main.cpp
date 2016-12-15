@@ -32,7 +32,7 @@ void culling()
 {
     renderer.meshes_drawn = Model::cull_models(camera);
     renderer.models_drawn = Model::models_drawn;
-#ifndef __APPLE_ // Disable for now
+#ifndef __APPLE__ // Disable for now
     Model::upload_spheres();
 #endif
 
