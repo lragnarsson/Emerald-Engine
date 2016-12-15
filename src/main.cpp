@@ -31,9 +31,11 @@ void animate_models()
 void culling()
 {
     renderer.meshes_drawn = Model::cull_models(camera);
-
     renderer.models_drawn = Model::models_drawn;
+#ifndef __APPLE_ // Disable for now
     Model::upload_spheres();
+#endif
+
     renderer.meshes_drawn += Terrain::cull_terrain(camera);
     renderer.models_drawn += Terrain::terrain_drawn;
     Light::cull_light_sources(camera);
@@ -100,7 +102,6 @@ void run()
         Profiler::start_timer("Swap");
         SDL_GL_SwapWindow(main_window);
         Profiler::stop_timer("Swap");
-        //SDL_Delay(45);
         Profiler::stop_timer("-> Frame time");
     }
 }
