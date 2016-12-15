@@ -473,7 +473,8 @@ void Terrain::load_wind(std::string full_path) {
 
 uint Terrain::cull_terrain(Camera &camera)
 {
-    uint meshes_drawn,my_meshes_drawn = 0;
+    uint meshes_drawn = 0;
+    uint my_meshes_drawn = 0;
     Terrain::terrain_drawn = 0;
 
     // Terrain
