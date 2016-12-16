@@ -200,7 +200,7 @@ private:
 
     void geometry_pass();
     void normal_visualization_pass(const vec3 cam_pos);
-    void grass_generation_pass();
+    void grass_generation_pass(const Camera &camera);
     void render_g_position(const Camera &camera);
     void render_g_normal(const Camera &camer);
     void render_g_albedo(const Camera &camer);

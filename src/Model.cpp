@@ -369,8 +369,8 @@ unsigned Model::cull_me(Camera &camera){
         Model::models_drawn++;
 
         for (auto mesh : this->get_meshes()) {
-            bool draw_me = camera.sphere_in_frustum(mesh->get_center_point_world(this->m2w_matrix), \
-                                                     mesh->bounding_sphere_radius * this->scale);
+            bool draw_me = camera.sphere_in_frustum(mesh->get_center_point_world(this->m2w_matrix),
+                                                    mesh->bounding_sphere_radius * this->scale);
             mesh->draw_me = draw_me;
             if (draw_me)
                 drawn_meshes++;

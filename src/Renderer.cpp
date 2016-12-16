@@ -159,6 +159,8 @@ void Renderer::set_mode(render_mode mode)
         break;
     case SSAO_MODE:
         break;
+    case SHADOW_MODE:
+        break;
     default:
         Error::throw_error(Error::non_valid_render_mode, "");
     }
@@ -320,12 +322,12 @@ void Renderer::shadow_pass(const Camera &camera){
 
 void Renderer::render_deferred(const Camera &camera)
 {
-    skydome->propagate_time(0.1f * this->time_diff);
+    skydome->propagate_time(0.03f * this->time_diff);
     skydome->upload_sun(shaders[DEFERRED], camera);
 
     shadow_pass(camera);
     geometry_pass();
-    grass_generation_pass();
+    grass_generation_pass(camera);
 
 
     if (this->ssao_on) {
@@ -958,7 +960,7 @@ void Renderer::normal_visualization_pass(const vec3 cam_pos)
 
 // --------------------------
 
-void Renderer::grass_generation_pass()
+void Renderer::grass_generation_pass(const Camera &camera)
 {
     std::vector<Terrain*> loaded_terrain = Terrain::get_loaded_terrain();
     if (loaded_terrain.size() == 0)
@@ -998,12 +1000,13 @@ void Renderer::grass_generation_pass()
         glUniform3fv(glGetUniformLocation(grass_shader, "color"),
                      1, value_ptr(lod.color));
 
-        glUniform1f(glGetUniformLocation(grass_shader, "shininess"), 20);
+        glUniform1f(glGetUniformLocation(grass_shader, "shininess"), 80.f);
         glUniform1f(glGetUniformLocation(grass_shader, "wind_strength"), 1.f);
+        vec3 wind_dir = vec3(camera.get_view_matrix() * vec4(0.3f, 0.f, -0.7f, 0.f));
         glUniform3fv(glGetUniformLocation(grass_shader, "wind_direction"),
-                     1, value_ptr(vec3(0.3f, 0.f, -0.7f)));
+                     1, value_ptr(wind_dir));
         glUniform2fv(glGetUniformLocation(grass_shader, "time_offset"),
-                     1, value_ptr(((float)SDL_GetTicks()) / 100000.f * vec2(0.f, -1.f)));
+                     1, value_ptr(((float)SDL_GetTicks()) / 40000.f * vec2(0.8f, -0.1f)));
 
         glActiveTexture(GL_TEXTURE0);
         GLuint wind_loc = glGetUniformLocation(grass_shader, "wind_map");
@@ -1060,7 +1063,7 @@ void Renderer::render_g_position(const Camera &camera)
 {
     geometry_pass();
 
-    grass_generation_pass();
+    grass_generation_pass(camera);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
@@ -1081,7 +1084,7 @@ void Renderer::render_g_normal(const Camera &camera)
 {
     geometry_pass();
 
-    grass_generation_pass();
+    grass_generation_pass(camera);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
@@ -1101,7 +1104,7 @@ void Renderer::render_g_normal(const Camera &camera)
 void Renderer::render_g_albedo(const Camera &camera)
 {
     geometry_pass();
-    grass_generation_pass();
+    grass_generation_pass(camera);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_RGB_COMPONENT]);
@@ -1122,7 +1125,7 @@ void Renderer::render_g_specular(const Camera &camera)
 {
     geometry_pass();
 
-    grass_generation_pass();
+    grass_generation_pass(camera);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaders[SHOW_ALPHA_COMPONENT]);
@@ -1142,7 +1145,7 @@ void Renderer::render_g_specular(const Camera &camera)
 void Renderer::render_ssao(const Camera &camera)
 {
     geometry_pass();
-    grass_generation_pass();
+    grass_generation_pass(camera);
 
     ssao_pass();
 

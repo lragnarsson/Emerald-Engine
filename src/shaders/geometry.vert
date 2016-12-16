@@ -24,10 +24,10 @@ void main()
 
     // Create TBN Matrix to convert normals to world space in fragment shader
     // Then multiply with normalmatrix to transform normals from worldspace to viewspace.
-    vec3 T = normalize(vec3(model * vec4(in_Tangent,   0.0)));
-    vec3 N = normalize(vec3(model * vec4(in_Normal,    0.0)));
+    vec3 T = normalize(vec3(view * model * vec4(in_Tangent,   0.0)));
+    vec3 N = normalize(vec3(view * model * vec4(in_Normal,    0.0)));
     T = normalize(T - dot(T, N) * N);
     vec3 B = cross(T, N);
 
-    TBN_viewSpace = transpose(inverse(mat3(view * model))) * mat3(T, B, N);
+    TBN_viewSpace = inverse(transpose(mat3(T, B, N)));
 }

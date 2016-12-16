@@ -28,9 +28,9 @@ Terrain::Terrain(std::string directory, float plane_scale, float height_scale, u
     this->height_scale = height_scale;
     this->scale_matrix = glm::scale(glm::mat4(1.f), glm::vec3(plane_scale, height_scale, plane_scale));
     this->clamp_textures = false;
-    
+
     load_heightmap(directory, plane_scale, height_scale, chunk_size);
-    load_wind(directory + "/wind.jpg");
+    load_wind(directory + "/wind3.jpg");
 
     Terrain::loaded_terrain.push_back(this);
 
@@ -473,7 +473,8 @@ void Terrain::load_wind(std::string full_path) {
 
 uint Terrain::cull_terrain(Camera &camera)
 {
-    uint meshes_drawn,my_meshes_drawn = 0;
+    uint meshes_drawn = 0;
+    uint my_meshes_drawn = 0;
     Terrain::terrain_drawn = 0;
 
     // Terrain
