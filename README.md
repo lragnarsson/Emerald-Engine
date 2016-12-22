@@ -1,7 +1,7 @@
 Emerald Engine
 --------
 3D graphics engine written in C++ using OpenGL. This project was first created as part of a course
-in computer graphics at Linköping University. Grass, shadows, bloom and more was added as in a
+in computer graphics at Linköping University. Grass, shadows, bloom and more was added in a
 later course.
 
 Many parts of this project have been based on tutorials and examples found online, [learnopengl.com](http://www.learnopengl.com) in particular has been a good source of inspiration. The grass was
