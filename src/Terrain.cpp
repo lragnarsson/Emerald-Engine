@@ -30,7 +30,7 @@ Terrain::Terrain(std::string directory, float plane_scale, float height_scale, u
     this->clamp_textures = false;
 
     load_heightmap(directory, plane_scale, height_scale, chunk_size);
-    load_wind(directory + "/wind3.jpg");
+    load_wind(directory + "/wind2.jpg");
 
     Terrain::loaded_terrain.push_back(this);
 

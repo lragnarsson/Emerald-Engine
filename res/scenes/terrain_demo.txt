@@ -49,73 +49,12 @@ res/models/terrain | 1 0.15 | 20
 
 # Trees
 res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 0 0 | 20 -3 20 | 0.005 | -1 0 0
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 10 0 | -291 -3 -94 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 228 0 | -268 -3 35 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 207 0 | -48 -3 289 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 42 0 | -223 -3 -73 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 176 0 | -18 -3 48 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 348 0 | 232 -3 8 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 2 0 | 187 -3 -179 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 172 0 | 150 -3 -235 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 81 0 | -285 -3 74 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 37 0 | -138 -3 -205 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 308 0 | -214 -3 41 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 231 0 | -299 -3 159 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 217 0 | -80 -3 -102 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 329 0 | 222 -3 248 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 299 0 | -59 -3 -259 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 284 0 | 105 -3 -283 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 28 0 | 140 -3 148 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 181 0 | -202 -3 -237 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 21 0 | 68 -3 160 | 0.005 | -1 -1 | -1
-res/models/tree_dry_1/Tree_Dry_1.obj | rel | 0 184 0 | -22 -3 173 | 0.005 | -1 -1 | -1
 
 # Small rock
 res/models/rock_6/Rock_6.obj | rel | 0 0 0 | 40 -1 0 | 10 | -1 0 0
-res/models/rock_6/Rock_6.obj | rel | 0 138 0 | 400 -1 167 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 249 0 | -56 -1 97 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 226 0 | 108 -1 -310 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 203 0 | -166 -1 193 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 297 0 | 132 -1 -166 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 17 0 | -87 -1 -282 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 358 0 | -136 -1 -46 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 52 0 | -94 -1 240 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 12 0 | 360 -1 -215 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 199 0 | -268 -1 147 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 201 0 | -6 -1 185 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 83 0 | -167 -1 -176 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 4 0 | 339 -1 -330 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 69 0 | -123 -1 218 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 170 0 | -38 -1 185 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 153 0 | 228 -1 137 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 273 0 | -349 -1 120 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 75 0 | 372 -1 -316 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 341 0 | -66 -1 -10 | 10 | -1 -1 | -1
-res/models/rock_6/Rock_6.obj | rel | 0 269 0 | 342 -1 -235 | 10 | -1 -1 | -1
 
 # Big rock
 res/models/rock_big/Models/Rock_big_single_b_LOD0.obj | rel | 0 0 0 | 30 -15 -50 | 0.5 | -1 0 0
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 200 0 | -366 -15 -778 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 16 0 | 254 -15 -268 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 150 0 | -203 -15 -11 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 137 0 | 100 -15 -109 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 358 0 | 174 -15 253 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 230 0 | -136 -15 280 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 74 0 | -765 -15 -68 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 171 0 | 0 -15 212 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 160 0 | -250 -15 -219 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 256 0 | -695 -15 -22 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 226 0 | 662 -15 -574 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 347 0 | 547 -15 558 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 340 0 | 498 -15 -95 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 169 0 | 536 -15 -134 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 25 0 | -242 -15 375 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 148 0 | -483 -15 -778 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 303 0 | -714 -15 -785 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 71 0 | -183 -15 270 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 348 0 | 275 -15 356 | 0.5 | -1 -1 | -1
-res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 201 0 | -612 -15 229 | 0.5 | -1 -1 | -1
-
 
 # This will start a new section for loading flat-shaded models.
 [flat]
@@ -126,12 +65,6 @@ res/models/rock_big/Models/Rock_big_single_b_LOD1.obj | rel | 0 201 0 | -612 -15
 res/models/sphere/sphere.obj | abs | 0 0 0 | 50 5 -1 | 0.5 | -1 0 | 1
 0 0 0 | 10 10 10
 res/models/sphere/sphere.obj | abs | 0 0 0 | -100 20 50 | 0.5 | -1 0 | 1
-0 0 0 | 1 1 1
-res/models/sphere/sphere.obj | abs | 0 0 0 | -100 20 -50 | 0.5 | -1 0 | 1
-0 0 0 | 1 1 1
-res/models/sphere/sphere.obj | abs | 0 0 0 | 100 20 -50 | 0.5 | -1 0 | 1
-0 0 0 | 1 1 1
-res/models/sphere/sphere.obj | abs | 0 0 0 | 100 20 50 | 0.5 | -1 0 | 1
 0 0 0 | 1 1 1
 
 # Spheres along first spline

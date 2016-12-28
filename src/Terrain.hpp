@@ -38,7 +38,7 @@ public:
     Terrain(std::string directory, float plane_scale, float height_scale, unsigned chunk_size);
     ~Terrain();
 
-    bool draw_me = true, clamp_textures = false;
+    bool draw_me = true, clamp_textures = false, cast_shadow = true;
     glm::vec3 world_coord;
     glm::mat4 m2w_matrix, move_matrix, rot_matrix, scale_matrix;
     float bounding_sphere_radius = -1.f, scale = 1.f, height_scale = 1.f;
@@ -55,7 +55,7 @@ public:
     unsigned cull_me(Camera* camera);
     float get_height(float x_world, float z_world);
     int get_chunk_size() {return chunk_size;}
-    
+
 private:
     static std::vector<Terrain*> loaded_terrain;
     int chunk_size,total_x,total_z;

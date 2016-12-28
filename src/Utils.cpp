@@ -128,6 +128,7 @@ GLuint load_shaders(const GLchar* vertex_file_path, const GLchar* geometry_file_
 
     glUseProgram(program);
 
+    std::cout << "Loaded shader " << program << " - " << fragment_file_path << std::endl;
     return program;
 }
 
@@ -163,6 +164,7 @@ GLuint load_shaders(const GLchar* vertex_file_path, const GLchar* fragment_file_
 
     glUseProgram(program);
 
+    std::cout << "Loaded shader " << program << " - " << fragment_file_path << std::endl;
     return program;
 }
 

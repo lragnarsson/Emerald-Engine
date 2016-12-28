@@ -189,7 +189,6 @@ void Camera::update_culling_frustum()
 
 bool Camera::sphere_in_frustum(glm::vec3 center, float radius)
 {
-    glm::vec3 closest_point;
     for (int i=0; i < 5; i++) {
         if (glm::dot(center, frustum_normals[i]) + radius + frustum_offsets[i] <= 0.f ) {
             return false;
@@ -197,5 +196,3 @@ bool Camera::sphere_in_frustum(glm::vec3 center, float radius)
     }
     return true;
 }
-
-
