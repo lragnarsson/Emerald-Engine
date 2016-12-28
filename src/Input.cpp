@@ -193,8 +193,8 @@ void handle_mouse_input(Camera &camera, Renderer &renderer)
                                       -dy*camera.rot_speed*renderer.get_time_diff(),
                                       camera.right));
 
-    // Limit pitch angle to acos(0.1) radians.
-    if (abs(dot(new_front, vec3(0.f, 1.f, 0.f))) < 0.9) {
+    // Limit pitch angle to acos(0.02) radians.
+    if (abs(dot(new_front, vec3(0.f, 1.f, 0.f))) < 0.98) {
         camera.front = new_front;
     }
 
