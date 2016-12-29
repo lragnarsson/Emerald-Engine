@@ -165,6 +165,8 @@ disp(['const float GRASS_2_Y[5] = float[5](', comma_sep(1:end-2), ');'])
 
 %% 7 vertex double grass
 close all;
+FIG_SIZE = [250,150];
+
 N = 7;
 width = 2;
 height = 4;
@@ -192,12 +194,24 @@ grass_3 = [x0, y2;
            x4, y2;
            x5, y3]
 
-figure('Name', 'Chubby grass 3 LOD1: 7 vertices')
+figure('Name', 'Chubby grass 3 LOD1: 7 vertices', 'Position', [1200, 100, FIG_SIZE])
 plot(grass_3(:, 1), grass_3(:, 2), '-gx')
 for i= 1:7
     text(grass_3(i,1), grass_3(i,2), sprintf('%i',i))
 end
+title('Double grass: 7 vertices')
 axis equal
+
+% Using fill
+figure('Name', 'FILL: Chubby grass: 7 vertices', 'Position', [1200 + FIG_SIZE(1), 100, FIG_SIZE]);
+grass_matlab_style_1 = grass_3([4,2,1,3],:);
+grass_matlab_style_2 = grass_3([3,5,7,6,4],:);
+fill(grass_matlab_style_1(:, 1), grass_matlab_style_1(:, 2), '-g*'); 
+hold on
+fill(grass_matlab_style_2(:, 1), grass_matlab_style_2(:, 2), '-g*')
+title('Double grass: 7 vertices')
+axis equal
+hold off
 
 disp('Chubby grass 3, LOD1: 7 vertices')
 comma_sep = sprintf('%f, ' , grass_3(:,1)');
@@ -208,12 +222,24 @@ disp(['const float GRASS_3_Y[7] = float[7](', comma_sep(1:end-2), ');'])
 disp('Chubby grass 3, LOD2: 5 vertices')
 grass_3(5:6,:) = [];
 
-figure('Name', 'Chubby grass 3 LOD2: 5 vertices')
+figure('Name', 'Chubby grass 3 LOD2: 5 vertices', 'Position', [1200, 100 + 1.5 * FIG_SIZE(2), FIG_SIZE])
 plot(grass_3(:, 1), grass_3(:, 2), '-gx')
 for i= 1:5
     text(grass_3(i,1), grass_3(i,2), sprintf('%i',i))
 end
+title('Double grass: 5 vertices')
 axis equal
+
+% Using fill
+figure('Name', 'FILL: Chubby grass: 5 vertices', 'Position', [1200 + FIG_SIZE(1), 100 + 1.5*FIG_SIZE(2), FIG_SIZE]);
+grass_matlab_style_1 = grass_3([4,2,1,3],:);
+grass_matlab_style_2 = grass_3([3,5,4],:);
+fill(grass_matlab_style_1(:, 1), grass_matlab_style_1(:, 2), '-g*'); 
+hold on
+fill(grass_matlab_style_2(:, 1), grass_matlab_style_2(:, 2), '-g*')
+title('Double grass: 5 vertices')
+axis equal
+hold off
 
 comma_sep = sprintf('%f, ' , grass_3(:,1)');
 disp(['const float GRASS_3_X[5] = float[5](', comma_sep(1:end-2), ');'])
