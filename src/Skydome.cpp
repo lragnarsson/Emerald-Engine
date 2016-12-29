@@ -21,8 +21,18 @@ const vec3 Skydome::horizon_midnight = {0.f, 0.01f, 0.05f};
 
 const float Skydome::altitude_margin = -0.12f;
 
-// Calculate the viewing are for light (light projection) used for shadow map
-const mat4 Skydome::light_projection = glm::ortho(-_FAR_/2.f, _FAR_/2.f, -_FAR_/10.f, _FAR_/10.f, _NEAR_, _FAR_/1.3f);
+
+// Calculate the light projection used for shadow map
+const float SUN_LEFT = -_FAR_/2.f;
+const float SUN_RIGHT = _FAR_/2.f;
+const float SUN_BOTTOM = -_FAR_/10.f;
+const float SUN_TOP = _FAR_/10.f;
+const float SUN_NEAR = _NEAR_;
+const float SUN_FAR = _FAR_/1.3f;
+const mat4 Skydome::light_projection = ortho(SUN_LEFT, SUN_RIGHT,
+                                             SUN_BOTTOM, SUN_TOP,
+                                             SUN_NEAR, SUN_FAR);
+
 
 void Skydome::init()
 {
@@ -190,8 +200,8 @@ void Skydome::calculate_sun()
 
 // ---------------
 // Shadow mapping
-void Skydome::update_light_space(const Camera &camera){
-
+void Skydome::update_light_space(const Camera &camera)
+{
     vec3 camera_pos = camera.get_pos();
     vec3 camera_front = camera.front;
 
@@ -211,14 +221,53 @@ void Skydome::update_light_space(const Camera &camera){
 
     this->light_view_matrix = glm::lookAt(sun_pos, // position
                                           look_at, // look at mid frustum
-                                          cross(sun_pos, camera_front)); // up
+                                          cross(sun_direction, camera_front)); // up
 
     // This matrix transforms from world space to light view space
     this->light_space_matrix = Skydome::light_projection * this->light_view_matrix;
+    update_sun_frustum(sun_pos, -sun_direction, camera_front);
 }
 
 // -------------
 
 mat4 Skydome::get_light_space_matrix(){
     return this->light_space_matrix;
+}
+
+
+void Skydome::update_sun_frustum(const vec3 sun_pos, const vec3 sun_front, const vec3 sun_right)
+{
+    // Enlarge frustum due to bad frustum overlap at high camera pitch angles:
+    const float F_HEIGHT = (SUN_TOP - SUN_BOTTOM) / 1.5f;
+    const float F_WIDTH = (SUN_RIGHT - SUN_LEFT) / 1.5f;
+
+    vec3 far_center = SUN_FAR * sun_front;
+    vec3 real_up = normalize(cross(sun_right, sun_front));
+    vec3 top_left = far_center + F_HEIGHT * real_up - F_WIDTH * sun_right;
+    vec3 top_right = far_center + F_HEIGHT * real_up + F_WIDTH * sun_right;
+    vec3 bottom_left = far_center - F_HEIGHT * real_up - F_WIDTH * sun_right;
+    vec3 bottom_right = far_center - F_HEIGHT * real_up + F_WIDTH * sun_right;
+
+    // Normals are defined as pointing inward
+    frustum_normals[0] = normalize(cross(bottom_left, top_left));     // Left normal
+    frustum_normals[1] = normalize(cross(top_right, bottom_right));   // Right normal
+    frustum_normals[2] = normalize(cross(bottom_right, bottom_left)); // Bottom normal
+    frustum_normals[3] = normalize(cross(top_left, top_right));       // Top normal
+    frustum_normals[4] = normalize(-far_center);                           // Far normal
+
+    for (int i=0; i < 4; i++) {
+        frustum_offsets[i] = -dot(frustum_normals[i], sun_pos);
+    }
+    frustum_offsets[4] = -dot(sun_pos + far_center, frustum_normals[4]);;
+}
+
+
+bool Skydome::sphere_in_sun_frustum(vec3 center, float radius)
+{
+    for (int i=0; i < 5; i++) {
+        if (dot(center, frustum_normals[i]) + radius + frustum_offsets[i] <= 0.f ) {
+            return false;
+        }
+    }
+    return true;
 }

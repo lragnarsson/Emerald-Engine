@@ -78,7 +78,7 @@ void generate_grass(vec2 texCoord, vec3 fragPos, vec3 inNormal, vec3 push,
     fragPos = fragPos + 0.3 * (noise_u * base_1 + noise_v * base_2) - 0.3 * up;
 
     vec2 wind_coord = fract(0.005 * texCoord + wind_strength * time_offset);
-    vec3 wind_noise = texture(wind_map, wind_coord).rgb;
+    vec3 wind_noise = 2.f * texture(wind_map, wind_coord).rgb - vec3(1.f);
     vec3 gradient = push + wind_strength * (0.5 * wind_direction + 2.5 * wind_noise);
 
     gradient = gradient - 0.8 * up * dot(up, gradient); // Project onto xz-plane

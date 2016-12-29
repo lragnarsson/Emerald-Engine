@@ -44,7 +44,7 @@ public:
     static std::vector<GLuint> shader_programs; // For UBO binding on init.
     glm::mat4 m2w_matrix, move_matrix, rot_matrix, scale_matrix;
     float bounding_sphere_radius = -1.f, scale = 1.f;
-    bool draw_me = true, clamp_textures = false;
+    bool draw_me = true, clamp_textures = false, cast_shadow = true;
     int num_lights;
 
     Model() { };

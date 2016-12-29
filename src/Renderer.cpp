@@ -269,7 +269,18 @@ void Renderer::toggle_show_normals()
 // --------------------------
 
 void Renderer::shadow_pass(const Camera &camera){
-    this->skydome->update_light_space(camera);
+    skydome->update_light_space(camera);
+
+    for (auto model : Model::get_loaded_models()) {
+        model->cast_shadow = skydome->sphere_in_sun_frustum(model->get_center_point_world(),
+                                                            model->bounding_sphere_radius *
+                                                            model->scale);
+    }
+
+    for (auto terrain : Terrain::get_loaded_terrain()) {
+        terrain->cast_shadow = skydome->sphere_in_sun_frustum(terrain->get_center_point_world(),
+                                                              terrain->bounding_sphere_radius);
+    }
 
     glUseProgram(shaders[SHADOW_BUFFER]);
     // Attach shadow_map FBO
@@ -288,6 +299,9 @@ void Renderer::shadow_pass(const Camera &camera){
 
     // Render models into depth buffer
     for (auto model : Model::get_loaded_models()) {
+        if (!model->cast_shadow)
+            continue;
+
         GLuint m2w_location = glGetUniformLocation(shaders[SHADOW_BUFFER], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(model->m2w_matrix));
 
@@ -300,6 +314,9 @@ void Renderer::shadow_pass(const Camera &camera){
 
     // Render terrain
     for (auto terrain : Terrain::get_loaded_terrain()) {
+        if (!terrain->cast_shadow)
+            continue;
+
         GLuint m2w_location = glGetUniformLocation(shaders[SHADOW_BUFFER], "model");
         glUniformMatrix4fv(m2w_location, 1, GL_FALSE, value_ptr(terrain->m2w_matrix));
 

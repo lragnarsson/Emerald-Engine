@@ -38,6 +38,8 @@ public:
     void update_light_space(const Camera &camera);
     void reset_time();
     glm::mat4 get_light_space_matrix();
+    void update_sun_frustum(const vec3 sun_pos, const vec3 sun_front, const vec3 sun_right);
+    bool sphere_in_sun_frustum(vec3 center, float radius);
 
 private:
     glm::vec3 sun_direction;
@@ -53,6 +55,9 @@ private:
     void init_uniforms();
     void calculate_sky();
     void calculate_sun();
+
+    glm::vec3 frustum_normals[5];
+    float frustum_offsets[5];
 
 
     // Constant color values:

@@ -12,11 +12,11 @@ GLuint Model::ubos[2];
 
 Model::Model(const std::string path)
 {
-    this->rot_matrix = glm::mat4(1.f);
+    this->rot_matrix = mat4(1.f);
     this->scale = 1.f;
-    this->scale_matrix = glm::mat4(1.f);
-    this->world_coord = glm::vec3(0.f);
-    this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
+    this->scale_matrix = mat4(1.f);
+    this->world_coord = vec3(0.f);
+    this->move_matrix = translate(mat4(1.f), world_coord);
     this->m2w_matrix = move_matrix  * rot_matrix * scale_matrix;
     this->clamp_textures = true;
     this->num_lights = 0;
@@ -26,13 +26,13 @@ Model::Model(const std::string path)
 }
 
 
-Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3 world_coord, float scale, bool flat)
+Model::Model(const std::string path, const mat4 rot_matrix, const vec3 world_coord, float scale, bool flat)
 {
     this->rot_matrix = rot_matrix;
     this->scale = scale;
-    this->scale_matrix = glm::scale(glm::mat4(1.f), glm::vec3(scale));
+    this->scale_matrix = glm::scale(mat4(1.f), vec3(scale));
     this->world_coord = world_coord;;
-    this->move_matrix = glm::translate(glm::mat4(1.f), world_coord);
+    this->move_matrix = translate(mat4(1.f), world_coord);
     this->m2w_matrix = move_matrix  * rot_matrix * scale_matrix;
     this->num_lights = 0;
 
@@ -42,6 +42,8 @@ Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3
         Model::loaded_models.push_back(this);
     }
     else {
+        // Increase radius for flat objects to make collision with grass more pronounced:
+        this->bounding_sphere_radius *= 3.f;
         Model::loaded_flat_models.push_back(this);
     }
 
@@ -54,9 +56,9 @@ Model::Model(const std::string path, const glm::mat4 rot_matrix, const glm::vec3
 
 
 /* Public Model functions */
-glm::vec3 Model::get_center_point_world()
+vec3 Model::get_center_point_world()
 {
-    return glm::vec3(this->m2w_matrix * glm::vec4(this->bounding_sphere_center, 1.f));
+    return vec3(this->m2w_matrix * vec4(this->bounding_sphere_center, 1.f));
 }
 
 void Model::attach_animation_path(int animation_id, float start_parameter)
@@ -68,7 +70,7 @@ void Model::attach_animation_path(int animation_id, float start_parameter)
 
 void Model::move_along_path(float elapsed_time)
 {
-    glm::vec3 new_pos;
+    vec3 new_pos;
     // get_pos updates the spline parameter for next iteration
     if (has_animation) {
         new_pos = this->anim_path->get_pos(this->spline_parameter,
@@ -79,17 +81,17 @@ void Model::move_along_path(float elapsed_time)
     this->move_to(new_pos);
 }
 
-glm::vec3 Model::get_center_point()
+vec3 Model::get_center_point()
 {
     return this->bounding_sphere_center;
 }
 
 
-glm::vec3 Model::get_light_color()
+vec3 Model::get_light_color()
 {
     if (num_lights > 0)
         return attached_lights[0].light->color;
-    return glm::vec3(1.f);
+    return vec3(1.f);
 }
 
 bool Model::get_light_active()
@@ -99,10 +101,10 @@ bool Model::get_light_active()
     return true;
 }
 
-void Model::attach_light(Light *light, glm::vec3 relative_pos) {
+void Model::attach_light(Light *light, vec3 relative_pos) {
     light_container new_light = {light, relative_pos};
 
-    glm::vec3 light_pos = glm::vec3(m2w_matrix * glm::vec4(relative_pos, 1.f));
+    vec3 light_pos = vec3(m2w_matrix * vec4(relative_pos, 1.f));
     light->position = light_pos;
     this->num_lights++;
     this->attached_lights.push_back(new_light);
@@ -112,30 +114,30 @@ void Model::attach_light(Light *light, glm::vec3 relative_pos) {
 /* Move model and all attached lights to world_coord.
    Important: the lights does not currently keep their relative
    position to the model */
-void Model::move_to(glm::vec3 world_coord) {
+void Model::move_to(vec3 world_coord) {
     this->world_coord = world_coord;
 
-    move_matrix = glm::translate(glm::mat4(1.f), world_coord);
+    move_matrix = translate(mat4(1.f), world_coord);
     m2w_matrix =  move_matrix * rot_matrix * scale_matrix;
 
     for (auto container : this->attached_lights) {
-        glm::vec3 new_pos = glm::vec3(m2w_matrix * glm::vec4(container.relative_pos, 1.f));
+        vec3 new_pos = vec3(m2w_matrix * vec4(container.relative_pos, 1.f));
         container.light->position = new_pos;
     }
 }
 
 
-void Model::move(glm::vec3 relative) {
+void Model::move(vec3 relative) {
     move_to(this->world_coord + relative);
 }
 
 
-void Model::rotate(glm::vec3 axis, float angle) {
+void Model::rotate(vec3 axis, float angle) {
     rot_matrix = glm::rotate(rot_matrix, angle, axis);
     m2w_matrix = move_matrix * rot_matrix * scale_matrix;
 
     for (auto container : this->attached_lights) {
-        glm::vec3 new_pos = glm::vec3(m2w_matrix * glm::vec4(container.relative_pos, 1.f));
+        vec3 new_pos = vec3(m2w_matrix * vec4(container.relative_pos, 1.f));
         container.light->position = new_pos;
     }
 }
@@ -312,19 +314,19 @@ void Model::generate_bounding_sphere()
             }
         }
         // Make sure meshes has bounding spheres
-        glm::vec3 max_corner = glm::vec3(x_local_max, y_local_max, z_local_max);
-        glm::vec3 min_corner = glm::vec3(x_local_min, y_local_min, z_local_min);
+        vec3 max_corner = vec3(x_local_max, y_local_max, z_local_max);
+        vec3 min_corner = vec3(x_local_min, y_local_min, z_local_min);
 
-        glm::vec3 r_vector = 0.5f * (max_corner - min_corner);
-        mesh->bounding_sphere_radius = glm::length(r_vector);
+        vec3 r_vector = 0.5f * (max_corner - min_corner);
+        mesh->bounding_sphere_radius = length(r_vector);
         mesh->bounding_sphere_center = min_corner + r_vector;
     }
     // Make sure entire model has bounding sphere
-    glm::vec3 max_corner = glm::vec3(x_max, y_max, z_max);
-    glm::vec3 min_corner = glm::vec3(x_min, y_min, z_min);
+    vec3 max_corner = vec3(x_max, y_max, z_max);
+    vec3 min_corner = vec3(x_min, y_min, z_min);
 
-    glm::vec3 r_vector = 0.5f * (max_corner - min_corner);
-    this->bounding_sphere_radius = glm::length(r_vector);
+    vec3 r_vector = 0.5f * (max_corner - min_corner);
+    this->bounding_sphere_radius = length(r_vector);
     this->bounding_sphere_center = min_corner + r_vector;
 
 }
@@ -365,7 +367,7 @@ unsigned Model::cull_me(Camera &camera){
     if (draw_me){
         gpu_spheres[Model::models_drawn].position = vec3(camera.get_view_matrix() *
                                                          vec4(get_center_point_world(), 1));
-        gpu_spheres[Model::models_drawn].radius = 3 * bounding_sphere_radius < 10.f ? 3 * bounding_sphere_radius : 10.f;
+        gpu_spheres[Model::models_drawn].radius = bounding_sphere_radius < 10.f ? bounding_sphere_radius : 10.f;
         Model::models_drawn++;
 
         for (auto mesh : this->get_meshes()) {
