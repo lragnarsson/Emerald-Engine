@@ -126,10 +126,8 @@ hold off
 figure('Name', 'FILL: Bent grass 2: 7 vertices', 'Position', [200 + FIG_SIZE(1), 100, FIG_SIZE]);
 grass_matlab_style = [grass_2(1:2:end,:); grass_2(6:-2:2,:)];
 fill(grass_matlab_style(:, 1), grass_matlab_style(:, 2), '-g*')
-hold on;
 title('Bent grass: 7 vertices')
 axis equal
-hold off
 
 
 disp('Bent grass 2, LOD1: 7 vertices')
@@ -156,10 +154,8 @@ hold off
 figure('Name', 'FILL: Bent grass 2: 7 vertices', 'Position', [200 + FIG_SIZE(1), 100 + 1.5 * FIG_SIZE(2), FIG_SIZE]);
 grass_matlab_style = [grass_2(1:2:end,:); grass_2(4:-2:2,:)];
 fill(grass_matlab_style(:, 1), grass_matlab_style(:, 2), '-g*')
-hold on;
 title('Bent grass: 5 vertices')
 axis equal
-hold off
 
 disp('Bent grass 2, LOD2: 5 vertices')
 comma_sep = sprintf('%f, ' , grass_2(:,1)');
