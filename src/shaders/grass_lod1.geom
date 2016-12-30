@@ -124,12 +124,14 @@ void main()
     float dist;
     vec3 push;
     vec3 total_push = vec3(0);
-    vec3 center_triangle = gs_in[0].FragPos + 0.5 * frag_pos_base_01 + 0.5 * frag_pos_02;
+    vec3 center_triangle = gs_in[0].FragPos +
+        0.5 * frag_pos_base_01 +0.5 * frag_pos_02 +
+        MAGNITUDE * GRASS_SCALE * GRASS_2_Y[6] * normal;
     for (int i=0; i < num_spheres; i++) {
         push = center_triangle - spheres[i].position;
         dist = length(push);
         if (dist <= spheres[i].radius) {
-            total_push = total_push + 1 * push * (1 - dist / spheres[i].radius);
+            total_push = total_push + 3 * normalize(push) * (1 - dist / spheres[i].radius);
         }
     }
 
