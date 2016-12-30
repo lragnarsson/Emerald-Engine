@@ -1,5 +1,7 @@
 % Generate grass vertices in a plane
 %% 7 vertex straight grass
+FIG_SIZE = [250,150];
+
 N = 7;
 grass_1 = zeros(N,2);
 width = 1;
@@ -23,11 +25,14 @@ end
 
 grass_1(7, :) = [0, height];
 grass_1
-figure(1); 
-plot(grass_1(2:2:end, 1), grass_1(2:2:end, 2), '-gx')
-title('Grass 1 LOD1: 7 vertices')
+fig1_name = 'Grass 1 LOD1: 7 vertices';
+figure('Name', fig1_name, 'Position', [100, 100, FIG_SIZE]); 
+plot(grass_1(2:2:end, 1), grass_1(2:2:end, 2), '-g')
+title(fig1_name)
 hold on;
-plot(grass_1(1:2:end, 1), grass_1(1:2:end, 2), '-gx')
+plot(grass_1(1:2:end, 1), grass_1(1:2:end, 2), '-g')
+plot(grass_1(2:2:end, 1), grass_1(2:2:end, 2), 'kx')
+plot(grass_1(1:2:end, 1), grass_1(1:2:end, 2), 'kx')
 hold off;
 axis equal
 
@@ -39,11 +44,14 @@ disp(['const float GRASS_1_Y[7] = float[7](', comma_sep(1:end-2), ');'])
 
 disp('Grass 1 LOD2: 5 vertices')
 grass_1(3:4, :) = [];
-figure(2); 
-plot(grass_1(2:2:end, 1), grass_1(2:2:end, 2), '-gx')
-title('Grass 1 LOD2: 5 vertices')
+fig2_name = 'Grass 1 LOD2: 5 vertices';
+figure('Name', fig2_name, 'Position', [100, 100 + 1.5 * FIG_SIZE(2), FIG_SIZE]); 
+plot(grass_1(2:2:end, 1), grass_1(2:2:end, 2), '-g')
+title(fig2_name)
 hold on;
-plot(grass_1(1:2:end, 1), grass_1(1:2:end, 2), '-gx')
+plot(grass_1(1:2:end, 1), grass_1(1:2:end, 2), '-g')
+plot(grass_1(2:2:end, 1), grass_1(2:2:end, 2), 'kx')
+plot(grass_1(1:2:end, 1), grass_1(1:2:end, 2), 'kx')
 hold off;
 axis equal
 
@@ -55,11 +63,14 @@ disp(['const float GRASS_1_Y[5] = float[5](', comma_sep(1:end-2), ');'])
 
 disp('Grass 1 LOD3: 3 vertices')
 grass_1(3:4, :) = [];
-figure(3); 
-plot(grass_1(2:2:end, 1), grass_1(2:2:end, 2), '-gx')
-title('Grass 1 LOD3: 3 vertices')
+fig3_name = 'Grass 1 LOD3: 3 vertices';
+figure('Name', fig3_name, 'Position', [100, 100 + 1.5 * 2 * FIG_SIZE(2), FIG_SIZE]); 
+plot(grass_1(2:2:end, 1), grass_1(2:2:end, 2), '-g')
+title(fig3_name)
 hold on;
-plot(grass_1(1:2:end, 1), grass_1(1:2:end, 2), '-gx')
+plot(grass_1(1:2:end, 1), grass_1(1:2:end, 2), '-g')
+plot(grass_1(2:2:end, 1), grass_1(2:2:end, 2), 'kx')
+plot(grass_1(1:2:end, 1), grass_1(1:2:end, 2), 'kx')
 hold off;
 axis equal
 
@@ -71,7 +82,8 @@ disp(['const float GRASS_1_Y[5] = float[5](', comma_sep(1:end-2), ');'])
 
 
 %% 7 vertex bent grass
-close all;
+FIG_SIZE = [250,150];
+
 N = 7;
 grass_2 = zeros(N,2);
 width = 1;
@@ -97,12 +109,26 @@ end
 close all;
 grass_2(N, :) = [width + 2, height];
 grass_2
-figure('Name', 'Bent grass 2: 7 vertices');
-plot(grass_2(2:2:end, 1), grass_2(2:2:end, 2), '-gx')
+figure('Name', 'Bent grass 2: 7 vertices', 'Position', [200, 100, FIG_SIZE]);
+plot(grass_2(2:2:end, 1), grass_2(2:2:end, 2), '-g')
+for i= 1:7
+    text(grass_2(i,1), grass_2(i,2), sprintf('%i',i))
+end
 hold on;
-plot(grass_2(1:2:end, 1), grass_2(1:2:end, 2), '-gx')
+plot(grass_2(1:2:end, 1), grass_2(1:2:end, 2), '-g')
+plot(grass_2(2:2:end, 1), grass_2(2:2:end, 2), 'kx')
+plot(grass_2(1:2:end, 1), grass_2(1:2:end, 2), 'kx')
+title('Bent grass: 7 vertices')
 axis equal
 hold off
+
+% Using fill
+figure('Name', 'FILL: Bent grass 2: 7 vertices', 'Position', [200 + FIG_SIZE(1), 100, FIG_SIZE]);
+grass_matlab_style = [grass_2(1:2:end,:); grass_2(6:-2:2,:)];
+fill(grass_matlab_style(:, 1), grass_matlab_style(:, 2), '-g*')
+title('Bent grass: 7 vertices')
+axis equal
+
 
 disp('Bent grass 2, LOD1: 7 vertices')
 comma_sep = sprintf('%f, ' , grass_2(:,1)');
@@ -114,12 +140,22 @@ grass_2(N, :) = [width + 2, height];
 grass_2(5:6,:) = (grass_2(3:4,:) + grass_2(5:6,:)) / 2;
 grass_2(3:4,:) = [];
 grass_2
-figure('Name', 'Bent grass 2: 5 vertices')
-plot(grass_2(2:2:end, 1), grass_2(2:2:end, 2), '-gx')
+figure('Name', 'Bent grass 2: 5 vertices', 'Position', [200, 100 + 1.5 * FIG_SIZE(2), FIG_SIZE])
+plot(grass_2(2:2:end, 1), grass_2(2:2:end, 2), '-g')
 hold on;
-plot(grass_2(1:2:end, 1), grass_2(1:2:end, 2), '-gx')
+plot(grass_2(1:2:end, 1), grass_2(1:2:end, 2), '-g')
+plot(grass_2(2:2:end, 1), grass_2(2:2:end, 2), 'kx')
+plot(grass_2(1:2:end, 1), grass_2(1:2:end, 2), 'kx')
+title('Bent grass: 5 vertices')
 axis equal
 hold off
+
+% Using fill
+figure('Name', 'FILL: Bent grass 2: 7 vertices', 'Position', [200 + FIG_SIZE(1), 100 + 1.5 * FIG_SIZE(2), FIG_SIZE]);
+grass_matlab_style = [grass_2(1:2:end,:); grass_2(4:-2:2,:)];
+fill(grass_matlab_style(:, 1), grass_matlab_style(:, 2), '-g*')
+title('Bent grass: 5 vertices')
+axis equal
 
 disp('Bent grass 2, LOD2: 5 vertices')
 comma_sep = sprintf('%f, ' , grass_2(:,1)');
@@ -129,6 +165,8 @@ disp(['const float GRASS_2_Y[5] = float[5](', comma_sep(1:end-2), ');'])
 
 %% 7 vertex double grass
 close all;
+FIG_SIZE = [250,150];
+
 N = 7;
 width = 2;
 height = 4;
@@ -156,12 +194,24 @@ grass_3 = [x0, y2;
            x4, y2;
            x5, y3]
 
-figure('Name', 'Chubby grass 3 LOD1: 7 vertices')
+figure('Name', 'Chubby grass 3 LOD1: 7 vertices', 'Position', [1200, 100, FIG_SIZE])
 plot(grass_3(:, 1), grass_3(:, 2), '-gx')
 for i= 1:7
     text(grass_3(i,1), grass_3(i,2), sprintf('%i',i))
 end
+title('Double grass: 7 vertices')
 axis equal
+
+% Using fill
+figure('Name', 'FILL: Chubby grass: 7 vertices', 'Position', [1200 + FIG_SIZE(1), 100, FIG_SIZE]);
+grass_matlab_style_1 = grass_3([4,2,1,3],:);
+grass_matlab_style_2 = grass_3([3,5,7,6,4],:);
+fill(grass_matlab_style_1(:, 1), grass_matlab_style_1(:, 2), '-g*'); 
+hold on
+fill(grass_matlab_style_2(:, 1), grass_matlab_style_2(:, 2), '-g*')
+title('Double grass: 7 vertices')
+axis equal
+hold off
 
 disp('Chubby grass 3, LOD1: 7 vertices')
 comma_sep = sprintf('%f, ' , grass_3(:,1)');
@@ -172,12 +222,24 @@ disp(['const float GRASS_3_Y[7] = float[7](', comma_sep(1:end-2), ');'])
 disp('Chubby grass 3, LOD2: 5 vertices')
 grass_3(5:6,:) = [];
 
-figure('Name', 'Chubby grass 3 LOD2: 5 vertices')
+figure('Name', 'Chubby grass 3 LOD2: 5 vertices', 'Position', [1200, 100 + 1.5 * FIG_SIZE(2), FIG_SIZE])
 plot(grass_3(:, 1), grass_3(:, 2), '-gx')
 for i= 1:5
     text(grass_3(i,1), grass_3(i,2), sprintf('%i',i))
 end
+title('Double grass: 5 vertices')
 axis equal
+
+% Using fill
+figure('Name', 'FILL: Chubby grass: 5 vertices', 'Position', [1200 + FIG_SIZE(1), 100 + 1.5*FIG_SIZE(2), FIG_SIZE]);
+grass_matlab_style_1 = grass_3([4,2,1,3],:);
+grass_matlab_style_2 = grass_3([3,5,4],:);
+fill(grass_matlab_style_1(:, 1), grass_matlab_style_1(:, 2), '-g*'); 
+hold on
+fill(grass_matlab_style_2(:, 1), grass_matlab_style_2(:, 2), '-g*')
+title('Double grass: 5 vertices')
+axis equal
+hold off
 
 comma_sep = sprintf('%f, ' , grass_3(:,1)');
 disp(['const float GRASS_3_X[5] = float[5](', comma_sep(1:end-2), ');'])
