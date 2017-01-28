@@ -12,7 +12,6 @@
 #include <vector>
 #include <random>
 #include <SDL2/SDL.h>
-#include <AntTweakBar.h>
 
 #include "Camera.hpp"
 #include "Model.hpp"
@@ -65,7 +64,6 @@ public:
     Renderer() {}
 
     void init();
-    void init_tweak_bar(Camera* camera);
     void render(const Camera &camera);
     void set_mode(render_mode mode);
     void change_bounding_sphere_mode();
@@ -76,7 +74,6 @@ public:
     void toggle_ssao();
     void toggle_ssao_smoothing();
     void toggle_tweak_bar();
-    void copy_tweak_bar_cam_values(const Camera& camera);
     float get_time_diff();
     void propagate_time(const bool forward);
     void increase_up_interp();
@@ -139,12 +136,6 @@ private:
     GLint ssao_n_samples;
     bool ssao_on;
     bool smooth_ssao;
-
-    // Tweak bar
-    TwBar* tweak_bar;
-    bool use_tweak_bar = false;
-    double fps;
-    void count_fps();
 
     // Copied camera spline variables
     float cam_spline_move_para, cam_spline_look_para;
