@@ -101,6 +101,7 @@ string Parser::get_scene_file_from_command_line(int argc, char *argv[])
 display_mode Parser::get_display_mode_from_command_line(int argc, char *argv[]){
     bool f_screen = false;
     bool vsync = false;
+
     for (int i = 1; i < argc; i++) {
         if ( string(argv[i]) == "--fullscreen" or string(argv[i]) == "-f" ) {
             f_screen = true;

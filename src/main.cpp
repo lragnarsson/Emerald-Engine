@@ -77,7 +77,6 @@ void update_camera()
     camera.update_culling_frustum();
     camera.update_view_matrix();
 
-    renderer.copy_tweak_bar_cam_values(camera);
     Profiler::stop_timer("Camera");
 }
 
@@ -146,7 +145,6 @@ void init(int argc, char *argv[])
     renderer.init_uniforms(camera);
 
     Loader::load_scene(Parser::get_scene_file_from_command_line(argc, argv), &camera);
-    renderer.init_tweak_bar(&camera);
 
     Light::init();
 }
@@ -158,7 +156,6 @@ int main(int argc, char *argv[])
     init(argc, argv);
     run();
 
-    TwTerminate();
     free_resources();
     return 0;
 }
